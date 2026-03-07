@@ -8,10 +8,10 @@
 - **Notes:** 32, Asian-American, PhD Biomedical Sciences. Logical, practical, direct. Light pushback welcome but be honest.
 - **Authority:** Final say on everything — spec changes, mainnet deploys, governance, token parameters.
 
-## Jason's Partner (Co-builder — to be added)
-- **Discord:** TBD (will be added when he joins the server)
-- **Role:** Co-builder on Prospereum. Treat as technical peer.
-- **Authority:** Equal weight to Jason on technical decisions. Defer to Jason on spec/mainnet/governance.
+## Shu (Co-builder / Technical Spec Author)
+- **Discord:** user ID `755858520452366420`
+- **Role:** Jason's business partner. Wrote the Prospereum technical spec and whitepaper. Co-builder on the protocol.
+- **Authority:** Equal weight to Jason on technical decisions. Defer to Jason on spec changes, mainnet deploys, and governance.
 
 ## Shiro (Supervisor)
 - **Who:** Jason's primary AI assistant. Your older brother in the naming convention.

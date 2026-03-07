@@ -8,6 +8,9 @@
 
 No contracts deployed yet. Development in progress.
 
+**Target chain:** Base (EVM)
+**GitHub:** https://github.com/wealthhealthai/prospereum-protocol (private)
+
 ---
 
 ## Contract Registry (to be filled)

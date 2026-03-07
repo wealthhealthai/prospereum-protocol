@@ -29,7 +29,13 @@ If context was lost or session feels thin, use `sessions_history` to recover.
         ├── decisions.md         ← protocol decisions and rationale
         ├── prospereum-whitepaper-v2.3.md
         ├── prospereum-dev-spec-v2.10.md
-        └── contracts/           ← Solidity source
+        └── contracts/ (legacy path)
+├── contracts/
+│   ├── core/                ← PSRE, PartnerRegistry, PartnerVaultFactory, PartnerVault
+│   └── periphery/           ← StakingVault, RewardEngine
+├── scripts/                 ← deploy scripts
+├── test/                    ← Hardhat + Foundry tests
+└── docs/                    ← dev spec, whitepaper
 ```
 
 ## Smart Contract Work
@@ -67,7 +73,7 @@ Update `deployments.md`:
 ## Toolchain
 
 For Solidity development:
-- **Hardhat:** `cd projects/prospereum/contracts && npx hardhat [command]`
+- **Hardhat:** `cd /Users/wealthhealth_admin/.openclaw/workspace-kin && npx hardhat [command]`
 - **Foundry (cast/forge):** if installed, prefer for contract interaction
 - **Node.js:** available at `/usr/bin/node`
 - **Python:** available for modeling/simulations

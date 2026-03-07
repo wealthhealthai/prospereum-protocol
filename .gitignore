@@ -8,3 +8,5 @@ coverage/
 coverage.json
 deployments/
 dist/
+.openclaw/
+memory/
