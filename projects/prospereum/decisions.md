@@ -27,6 +27,21 @@ These are FROZEN. Do not deviate without Jason's explicit approval.
 
 _(add items here as they arise)_
 
+## Completed Decisions
+
+| Decision | Value | Decided By | Date |
+|----------|-------|-----------|------|
+| Reward rates (C1) | Whitepaper rates: Bronze 8%, Silver 10%, Gold 12% | Shu | 2026-03-07 |
+| alphaBase | 0.08e18 (not 0.10e18) | Shu | 2026-03-07 |
+| Tier multipliers | M_BRONZE=1.0, M_SILVER=1.25, M_GOLD=1.5 | Shu | 2026-03-07 |
+| TeamVesting contract | Add to spec and build: 1yr cliff, 4yr linear, no governance override | Shu | 2026-03-07 |
+| Epoch finalization | Permissionless (anyone can call). Team-run keeper/cron as ops plan | Shu | 2026-03-07 |
+| Partner identity | PartnerVault address = permanent identity. owner = controller (mutable via updateOwner/Ownable2Step) | Shu | 2026-03-07 |
+| Target chain | Base (EVM) | Shu | 2026-03-06 |
+| PartnerNFT | Removed from v1. No NFT. | Shu | 2026-03-06 |
+| Upgradeability | PSRE immutable. Peripheral contracts versioned. RewardEngine UUPS+multisig+timelock early phase | Shu | 2026-03-06 |
+| Genesis liquidity | Base-native, treasury-only LP seeding from Bootstrap Liquidity bucket. Exact price/depth TBD | Shu | 2026-03-07 |
+
 ---
 
 ## Completed Decisions
