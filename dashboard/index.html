@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prospereum Protocol Dashboard</title>
+  <style>
+    :root {
+      --gold: #D4AF37;
+      --gold-light: #F5E27A;
+      --gold-dim: #8B7520;
+      --bg: #0A0A0A;
+      --surface: #111111;
+      --surface2: #1A1A1A;
+      --border: #222222;
+      --text: #EEEEEE;
+      --muted: #888888;
+      --green: #22C55E;
+      --red: #EF4444;
+      --blue: #3B82F6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+    .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+    .network-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .network-badge.testnet { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+    .network-badge.mainnet { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
+    .dot.live { background: var(--green); }
+    .dot.pending { background: var(--gold); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .grid { display: grid; gap: 16px; }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 1200px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 800px) { .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .card-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .card-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .card-accent { border-left: 3px solid var(--gold); }
+
+    section { margin-bottom: 32px; }
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold-dim);
+      margin-bottom: 14px;
+    }
+
+    .addr-table { width: 100%; border-collapse: collapse; }
+    .addr-table th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .addr-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    .addr-table tr:last-child td { border-bottom: none; }
+    .addr-table tr:hover td { background: var(--surface2); }
+    .addr-mono {
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      color: var(--blue);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .addr-mono:hover { color: var(--gold-light); }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .tag-gold { background: rgba(212,175,55,0.15); color: var(--gold); }
+    .tag-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .tag-green { background: rgba(34,197,94,0.15); color: var(--green); }
+    .tag-red { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      transition: width 0.5s ease;
+    }
+
+    .loading { color: var(--muted); font-size: 13px; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .error { color: var(--red); font-size: 12px; }
+    .ok { color: var(--green); }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    #last-updated { color: var(--muted); font-size: 11px; }
+    .refresh-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: inherit;
+    }
+    .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🐟</div>
+    <div>
+      <div class="logo-text">PROSPEREUM</div>
+      <div class="logo-sub">PROTOCOL DASHBOARD</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div id="network-badge" class="network-badge testnet">
+      <div class="dot pending"></div>
+      <span id="network-name">BASE SEPOLIA</span>
+    </div>
+    <button class="refresh-btn" onclick="refreshAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<!-- NETWORK SELECTOR -->
+<section>
+  <div style="display:flex;gap:10px;margin-bottom:24px;">
+    <button class="refresh-btn" onclick="setNetwork('local')" id="btn-local">Local Fork</button>
+    <button class="refresh-btn" onclick="setNetwork('sepolia')" id="btn-sepolia">Base Sepolia</button>
+    <button class="refresh-btn" onclick="setNetwork('mainnet')" id="btn-mainnet">Base Mainnet</button>
+  </div>
+</section>
+
+<!-- KEY METRICS -->
+<section>
+  <div class="section-title">Protocol Health</div>
+  <div class="grid grid-4" style="margin-bottom:16px;">
+    <div class="card card-accent">
+      <div class="card-title">Total Emitted (T)</div>
+      <div class="card-value" id="val-emitted">—</div>
+      <div class="card-sub">of 12,600,000 PSRE reserve</div>
+      <div class="progress-bar"><div class="progress-fill" id="emit-progress" style="width:0%"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Current Scarcity Cap</div>
+      <div class="card-value" id="val-scarcity">—</div>
+      <div class="card-sub">PSRE/epoch max emission</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Last Finalized Epoch</div>
+      <div class="card-value" id="val-epoch">—</div>
+      <div class="card-sub" id="val-epoch-sub">—</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Registered Partners</div>
+      <div class="card-value" id="val-partners">—</div>
+      <div class="card-sub" id="val-partners-sub">of 200 max</div>
+    </div>
+  </div>
+  <div class="grid grid-3">
+    <div class="card">
+      <div class="card-title">PSRE Total Supply</div>
+      <div class="card-value" id="val-supply">—</div>
+      <div class="card-sub">of 21,000,000 hard cap</div>
+    </div>
+    <div class="card">
+      <div class="card-title">alphaBase (Reward Rate)</div>
+      <div class="card-value" id="val-alpha">8%</div>
+      <div class="card-sub">Bronze 8% · Silver 10% · Gold 12%</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Partner/Staker Split</div>
+      <div class="card-value" id="val-split">70/30</div>
+      <div class="card-sub">partners / stakers</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTRACT ADDRESSES -->
+<section>
+  <div class="section-title">Contract Addresses</div>
+  <div class="card">
+    <table class="addr-table">
+      <thead>
+        <tr>
+          <th>Contract</th>
+          <th>Address</th>
+          <th>Type</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="contracts-tbody">
+        <tr><td colspan="4" class="loading">Loading addresses...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- WALLET ADDRESSES -->
+<section>
+  <div class="section-title">Key Wallets</div>
+  <div class="card">
+    <table class="addr-table">
+      <thead>
+        <tr>
+          <th>Wallet</th>
+          <th>Address</th>
+          <th>Role</th>
+          <th>ETH Balance</th>
+        </tr>
+      </thead>
+      <tbody id="wallets-tbody">
+        <tr><td colspan="4" class="loading">Loading wallets...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- EPOCH HISTORY -->
+<section>
+  <div class="section-title">Recent Epoch History</div>
+  <div class="card">
+    <table class="addr-table">
+      <thead>
+        <tr>
+          <th>Epoch</th>
+          <th>Budget (B)</th>
+          <th>Partners Pool</th>
+          <th>Stakers Pool</th>
+          <th>Minted</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="epochs-tbody">
+        <tr><td colspan="6" class="loading">Loading epoch history...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- REGISTERED VAULTS -->
+<section>
+  <div class="section-title">Registered Partner Vaults</div>
+  <div class="card">
+    <table class="addr-table">
+      <thead>
+        <tr>
+          <th>Partner Wallet</th>
+          <th>Vault Address</th>
+          <th>cumBuy (PSRE)</th>
+          <th>Owed Rewards</th>
+        </tr>
+      </thead>
+      <tbody id="vaults-tbody">
+        <tr><td colspan="4" class="loading">Loading vaults...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div id="last-updated">Last updated: —</div>
+
+<footer>
+  <span>Prospereum Protocol · github.com/wealthhealthai/prospereum-protocol</span>
+  <span>Chain: <span id="footer-chain">—</span></span>
+</footer>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+
+const NETWORKS = {
+  local: {
+    name: 'LOCAL FORK',
+    rpc: 'http://127.0.0.1:8545',
+    explorer: null,
+    badge: 'testnet',
+    contracts: {
+      PSRE:         '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+      TeamVesting:  '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
+      VaultImpl:    '0x0165878A594ca255338adfa4d48449f69242Eb8F',
+      Factory:      '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853',
+      StakingVault: '0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6',
+      RewardEngine: '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318',
+    },
+    wallets: {
+      'Deployer/Admin (testnet)': '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    }
+  },
+  sepolia: {
+    name: 'BASE SEPOLIA',
+    rpc: 'https://sepolia.base.org',
+    explorer: 'https://sepolia.basescan.org',
+    badge: 'testnet',
+    contracts: {
+      PSRE:         null,
+      TeamVesting:  null,
+      VaultImpl:    null,
+      Factory:      null,
+      StakingVault: null,
+      RewardEngine: null,
+    },
+    wallets: {
+      'Deployer (testnet)': '0x117876aA935b4f18f929eD9F550df8785c9A9bd1',
+    }
+  },
+  mainnet: {
+    name: 'BASE MAINNET',
+    rpc: 'https://mainnet.base.org',
+    explorer: 'https://basescan.org',
+    badge: 'mainnet',
+    contracts: {
+      PSRE:         null,
+      TeamVesting:  null,
+      VaultImpl:    null,
+      Factory:      null,
+      StakingVault: null,
+      RewardEngine: null,
+    },
+    wallets: {
+      'Admin (Gnosis Safe)':   'TBD — set before mainnet',
+      'Treasury (Gnosis Safe)':'TBD — set before mainnet',
+      'Team Vesting':          'TBD — set before mainnet',
+    }
+  }
+};
+
+const PSRE_TOTAL_SUPPLY = BigInt('21000000000000000000000000');
+const S_EMISSION        = BigInt('12600000000000000000000000');
+const PRECISION         = BigInt('1000000000000000000');
+
+let currentNetwork = 'sepolia';
+
+// ─── ABI FRAGMENTS ────────────────────────────────────────────────────────────
+
+const encodeCall = (sig) => {
+  // Simple keccak4 selector via string comparison lookup
+  const selectors = {
+    'totalSupply()':            '0x18160ddd',
+    'T()':                      '0xde9c4e0f',
+    'lastFinalizedEpoch()':     '0x1a1078bb',
+    'firstEpochFinalized()':    '0x7b5e68cc',
+    'alphaBase()':              '0x2dd0fa42',
+    'partnerSplit()':           '0xde4b0960',
+    'currentScarcityCap()':     '0xdc1d8c5c',
+    'vaultCount()':             '0x35fe0b54',
+    'getAllVaults()':            '0x30f63b89',
+    'epochFinalized(uint256)':  '0x1d2d6aef',
+    'epochBudget(uint256)':     '0x8a4c7d41',
+    'epochPartnersPool(uint256)':'0x95b84d99',
+    'epochStakersPool(uint256)':'0xa77a6ba6',
+    'epochMinted(uint256)':     '0x1b562c0f',
+    'owedPartner(address)':     '0xaa27f2bf',
+    'partnerOf(address)':       '0x50ce66e1',
+    'cumBuy()':                 '0xecef3a3d',
+  };
+  return selectors[sig] || null;
+};
+
+// ─── RPC CALL ─────────────────────────────────────────────────────────────────
+
+async function rpcCall(rpc, method, params = []) {
+  const res = await fetch(rpc, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params })
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message);
+  return json.result;
+}
+
+async function ethCall(rpc, to, data) {
+  if (!to || to.startsWith('TBD')) return null;
+  try {
+    return await rpcCall(rpc, 'eth_call', [{ to, data }, 'latest']);
+  } catch { return null; }
+}
+
+async function getBalance(rpc, addr) {
+  if (!addr || addr.startsWith('TBD')) return null;
+  try {
+    const r = await rpcCall(rpc, 'eth_getBalance', [addr, 'latest']);
+    return r;
+  } catch { return null; }
+}
+
+// ─── DECODE ───────────────────────────────────────────────────────────────────
+
+const toBigInt = (hex) => hex && hex !== '0x' ? BigInt(hex) : BigInt(0);
+const fromWei  = (bn, dec=18) => Number(bn) / Math.pow(10, dec);
+const fmt      = (n, dp=2) => n.toLocaleString('en-US', { maximumFractionDigits: dp });
+const shortAddr = (a) => a ? `${a.slice(0,6)}…${a.slice(-4)}` : '—';
+const addrLink  = (a, explorer) => {
+  if (!a || a.startsWith('TBD')) return `<span class="muted">${a || 'Not deployed'}</span>`;
+  const url = explorer ? `${explorer}/address/${a}` : null;
+  return url
+    ? `<a class="addr-mono" href="${url}" target="_blank">${a}</a>`
+    : `<span class="addr-mono" onclick="navigator.clipboard.writeText('${a}')" title="Click to copy">${a}</span>`;
+};
+
+// ─── UPDATE UI ────────────────────────────────────────────────────────────────
+
+async function refreshAll() {
+  const net = NETWORKS[currentNetwork];
+  const rpc = net.rpc;
+  const c   = net.contracts;
+  const explorer = net.explorer;
+
+  document.getElementById('network-name').textContent = net.name;
+  document.getElementById('footer-chain').textContent = net.name;
+  const badge = document.getElementById('network-badge');
+  badge.className = `network-badge ${net.badge}`;
+  badge.querySelector('.dot').className = `dot ${net.badge === 'mainnet' ? 'live' : 'pending'}`;
+
+  // Contracts table
+  const contractTypes = {
+    PSRE:         ['ERC-20 Token', 'gold'],
+    TeamVesting:  ['Vesting',      'blue'],
+    VaultImpl:    ['Implementation','blue'],
+    Factory:      ['Factory',      'blue'],
+    StakingVault: ['Staking',      'green'],
+    RewardEngine: ['Core Engine',  'gold'],
+  };
+  const tbody = document.getElementById('contracts-tbody');
+  tbody.innerHTML = Object.entries(contractTypes).map(([name, [type, color]]) => {
+    const addr = c[name];
+    const status = addr ? `<span class="tag tag-green ok">DEPLOYED</span>` : `<span class="tag tag-red">PENDING</span>`;
+    return `<tr>
+      <td><strong>${name}</strong></td>
+      <td>${addrLink(addr, explorer)}</td>
+      <td><span class="tag tag-${color}">${type}</span></td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+
+  // Wallets table
+  const walletsTbody = document.getElementById('wallets-tbody');
+  const walletRows = await Promise.all(Object.entries(net.wallets).map(async ([label, addr]) => {
+    const balHex = await getBalance(rpc, addr);
+    const balEth = balHex ? fmt(fromWei(BigInt(balHex)), 4) : '—';
+    return `<tr>
+      <td><strong>${label}</strong></td>
+      <td>${addrLink(addr, explorer)}</td>
+      <td><span class="tag tag-blue">ADMIN</span></td>
+      <td>${balEth} ETH</td>
+    </tr>`;
+  }));
+  walletsTbody.innerHTML = walletRows.join('');
+
+  // Protocol stats
+  if (c.PSRE) {
+    const supplyHex = await ethCall(rpc, c.PSRE, '0x18160ddd');
+    const supply    = toBigInt(supplyHex);
+    document.getElementById('val-supply').textContent = fmt(fromWei(supply), 0) + ' PSRE';
+
+    const tHex      = await ethCall(rpc, c.RewardEngine, '0xde9c4e0f');
+    const T         = toBigInt(tHex);
+    const emitted   = fromWei(T);
+    document.getElementById('val-emitted').textContent = fmt(emitted, 2) + ' PSRE';
+    const pct = Number((T * BigInt(100) * PRECISION) / S_EMISSION) / Number(PRECISION);
+    document.getElementById('emit-progress').style.width = Math.min(pct, 100) + '%';
+
+    const scarHex = await ethCall(rpc, c.RewardEngine, '0xdc1d8c5c');
+    const scar    = toBigInt(scarHex);
+    document.getElementById('val-scarcity').textContent = fmt(fromWei(scar), 2) + ' PSRE';
+
+    const epochHex  = await ethCall(rpc, c.RewardEngine, '0x1a1078bb');
+    const epoch     = Number(toBigInt(epochHex));
+    const firstHex  = await ethCall(rpc, c.RewardEngine, '0x7b5e68cc');
+    const first     = toBigInt(firstHex);
+    document.getElementById('val-epoch').textContent = first ? epoch.toString() : '—';
+    document.getElementById('val-epoch-sub').textContent = first ? `Epoch ${epoch} finalized` : 'No epochs finalized yet';
+
+    const vcHex = await ethCall(rpc, c.Factory, '0x35fe0b54');
+    const vc    = Number(toBigInt(vcHex));
+    document.getElementById('val-partners').textContent = vc.toString();
+
+    // Epoch history (last 5)
+    const epochsTbody = document.getElementById('epochs-tbody');
+    if (!first) {
+      epochsTbody.innerHTML = '<tr><td colspan="6" class="muted">No epochs finalized yet.</td></tr>';
+    } else {
+      const rows = [];
+      for (let e = Math.max(0, epoch); e >= Math.max(0, epoch - 4); e--) {
+        const enc = '0x' + e.toString(16).padStart(64, '0');
+        // epochFinalized, epochBudget, epochPartnersPool, epochStakersPool, epochMinted
+        const [fin, budget, pPool, sPool, minted] = await Promise.all([
+          ethCall(rpc, c.RewardEngine, '0x1d2d6aef' + enc.slice(2)),
+          ethCall(rpc, c.RewardEngine, '0x8a4c7d41' + enc.slice(2)),
+          ethCall(rpc, c.RewardEngine, '0x95b84d99' + enc.slice(2)),
+          ethCall(rpc, c.RewardEngine, '0xa77a6ba6' + enc.slice(2)),
+          ethCall(rpc, c.RewardEngine, '0x1b562c0f' + enc.slice(2)),
+        ]);
+        if (!toBigInt(fin)) continue;
+        rows.push(`<tr>
+          <td><strong>${e}</strong></td>
+          <td>${fmt(fromWei(toBigInt(budget)), 2)}</td>
+          <td>${fmt(fromWei(toBigInt(pPool)), 2)}</td>
+          <td>${fmt(fromWei(toBigInt(sPool)), 2)}</td>
+          <td>${fmt(fromWei(toBigInt(minted)), 2)}</td>
+          <td><span class="tag tag-green">FINALIZED</span></td>
+        </tr>`);
+      }
+      epochsTbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="6" class="muted">No finalized epochs.</td></tr>';
+    }
+
+    // Partner vaults
+    const vaultsTbody = document.getElementById('vaults-tbody');
+    if (vc === 0) {
+      vaultsTbody.innerHTML = '<tr><td colspan="4" class="muted">No partner vaults registered yet.</td></tr>';
+    } else {
+      // getAllVaults returns dynamic array — skip for now, show count
+      vaultsTbody.innerHTML = `<tr><td colspan="4" class="muted">${vc} vault(s) registered. Expand for individual vault data (requires multicall).</td></tr>`;
+    }
+  } else {
+    ['val-supply','val-emitted','val-scarcity','val-epoch','val-partners'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+    document.getElementById('epochs-tbody').innerHTML = '<tr><td colspan="6" class="muted">Contracts not deployed on this network yet.</td></tr>';
+    document.getElementById('vaults-tbody').innerHTML = '<tr><td colspan="4" class="muted">Contracts not deployed on this network yet.</td></tr>';
+  }
+
+  document.getElementById('last-updated').textContent =
+    'Last updated: ' + new Date().toLocaleString();
+}
+
+function setNetwork(n) {
+  currentNetwork = n;
+  ['local','sepolia','mainnet'].forEach(x => {
+    document.getElementById(`btn-${x}`).style.borderColor = x === n ? 'var(--gold)' : '';
+    document.getElementById(`btn-${x}`).style.color = x === n ? 'var(--gold)' : '';
+  });
+  refreshAll();
+}
+
+// Init
+setNetwork('sepolia');
+// Auto-refresh every 30 seconds
+setInterval(refreshAll, 30000);
+</script>
+</body>
+</html>
