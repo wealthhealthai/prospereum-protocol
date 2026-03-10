@@ -127,6 +127,14 @@ contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step {
     PendingParam public pendingAlphaBase;
     PendingParam public pendingE0;
     PendingParam public pendingPartnerSplit;
+    PendingParam public pendingTierParams; // signals a tier param update is queued
+
+    // Staged tier param values (applied atomically with applyTierParams)
+    uint256 public pendingSilverTh;
+    uint256 public pendingGoldTh;
+    uint256 public pendingMBronze;
+    uint256 public pendingMSilver;
+    uint256 public pendingMGold;
 
     // -------------------------------------------------------------------------
     // Events (Dev Spec v2.3 §10)
@@ -370,15 +378,33 @@ contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step {
         delete pendingPartnerSplit;
     }
 
-    function setTierParams(
+    /// @notice Queue a tier parameter update. Takes effect after PARAM_TIMELOCK (48h).
+    ///         Closes the governance front-run vector identified by ADJUDICATOR.
+    function queueTierParams(
         uint256 _silverTh, uint256 _goldTh,
         uint256 _mB, uint256 _mS, uint256 _mG
     ) external onlyOwner {
-        require(_goldTh > _silverTh,       "RE: invalid thresholds");
-        require(_mG >= _mS && _mS >= _mB,  "RE: invalid multipliers");
-        silverThreshold = _silverTh;
-        goldThreshold   = _goldTh;
-        mBronze = _mB; mSilver = _mS; mGold = _mG;
+        require(_goldTh > _silverTh,      "RE: invalid thresholds");
+        require(_mG >= _mS && _mS >= _mB, "RE: invalid multipliers");
+        pendingSilverTh  = _silverTh;
+        pendingGoldTh    = _goldTh;
+        pendingMBronze   = _mB;
+        pendingMSilver   = _mS;
+        pendingMGold     = _mG;
+        pendingTierParams = PendingParam(1, block.timestamp + PARAM_TIMELOCK); // value=1 as flag
+        emit ParamUpdateQueued("tierParams", 1, pendingTierParams.readyAt);
+    }
+
+    /// @notice Apply queued tier parameter update after timelock has passed.
+    function applyTierParams() external onlyOwner {
+        require(pendingTierParams.readyAt > 0 && block.timestamp >= pendingTierParams.readyAt, "RE: timelock");
+        silverThreshold = pendingSilverTh;
+        goldThreshold   = pendingGoldTh;
+        mBronze         = pendingMBronze;
+        mSilver         = pendingMSilver;
+        mGold           = pendingMGold;
+        delete pendingTierParams;
+        emit ParamUpdated("tierParams", 0, 1);
     }
 
     // -------------------------------------------------------------------------

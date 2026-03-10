@@ -66,8 +66,9 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     /// @notice Running total stakeTime for the current (unfinalized) epoch.
     uint256 public currentEpochTotalStakeTime;
 
-    /// @notice Last epoch that was snapshotted into totalStakeTimeByEpoch.
-    uint256 public lastSnapshotEpoch;
+    /// @notice Tracks which epochs have already been snapshotted (prevents re-snapshot).
+    /// @dev Replaces the broken `lastSnapshotEpoch == 0` guard that allowed epoch 0 re-snapshot.
+    mapping(uint256 => bool) public epochSnapshotted;
 
     // ─────────────────────────────────────────────────────────────────────────
     // RewardEngine
@@ -199,13 +200,13 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
      * @param epochId The epoch being finalized.
      */
     function snapshotEpoch(uint256 epochId) external {
-        require(msg.sender == rewardEngine, "StakingVault: only rewardEngine");
-        require(epochId > lastSnapshotEpoch || lastSnapshotEpoch == 0, "StakingVault: already snapshotted");
-        require(currentEpochId() > epochId, "StakingVault: epoch not ended");
+        require(msg.sender == rewardEngine,      "StakingVault: only rewardEngine");
+        require(!epochSnapshotted[epochId],      "StakingVault: already snapshotted");
+        require(currentEpochId() > epochId,      "StakingVault: epoch not ended");
 
-        totalStakeTimeByEpoch[epochId] = currentEpochTotalStakeTime;
-        lastSnapshotEpoch              = epochId;
-        currentEpochTotalStakeTime     = 0; // reset for next epoch
+        epochSnapshotted[epochId]          = true;
+        totalStakeTimeByEpoch[epochId]     = currentEpochTotalStakeTime;
+        currentEpochTotalStakeTime         = 0; // reset for next epoch
 
         emit EpochSnapshotted(epochId, totalStakeTimeByEpoch[epochId]);
     }
@@ -222,10 +223,24 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
      * @param epochId The epoch to record stakeTime for.
      */
     function recordStakeTime(uint256 epochId) external {
-        require(currentEpochId() > epochId, "StakingVault: epoch not ended");
-        require(userStakeTimeByEpoch[epochId][msg.sender] == 0, "StakingVault: already recorded");
+        require(currentEpochId() > epochId,                        "StakingVault: epoch not ended");
+        require(userStakeTimeByEpoch[epochId][msg.sender] == 0,   "StakingVault: already recorded");
         _checkpointUser(msg.sender);
-        uint256 st = userStakes[msg.sender].accStakeTime;
+
+        // Cap stakeTime to the epoch window to prevent unbounded accStakeTime overflow.
+        // An epoch spans [epochStart, epochEnd). We cap at the duration of one full epoch.
+        // This prevents a staker calling recordStakeTime 52 epochs late from claiming 52x rewards.
+        uint256 epochEnd      = genesisTimestamp + (epochId + 1) * EPOCH_DURATION;
+        uint256 epochStart    = genesisTimestamp + epochId * EPOCH_DURATION;
+        uint256 epochDuration = epochEnd - epochStart; // always = EPOCH_DURATION
+
+        UserStake storage s       = userStakes[msg.sender];
+        uint256 totalStake        = s.psreBalance + s.lpBalance;
+        uint256 maxEpochStakeTime = totalStake * epochDuration; // theoretical max for this epoch
+
+        // Recorded stakeTime = min(accStakeTime, maxEpochStakeTime).
+        // accStakeTime may exceed one epoch if user never checkpointed; we cap it.
+        uint256 st = s.accStakeTime < maxEpochStakeTime ? s.accStakeTime : maxEpochStakeTime;
         userStakeTimeByEpoch[epochId][msg.sender] = st;
     }
 
