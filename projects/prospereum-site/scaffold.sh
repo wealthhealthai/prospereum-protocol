@@ -20,30 +20,26 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    react(),
-  ],
-  server: {
-    port: 7802,
-  },
+  plugins: [react(), tailwindcss()],
+  server: { port: 7802 },
 })
 EOF
 
 echo "→ Writing src/index.css (Tailwind v4, correct import order)..."
 cat > src/index.css << 'EOF'
 /* ⚠️ IMPORT ORDER CRITICAL — Google Fonts must precede @import "tailwindcss" */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-:root {
-  font-family: 'Inter', sans-serif;
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Geist', -apple-system, sans-serif;
   background: #07070E;
   color: #f5f5f5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body, #root { height: 100%; }
 EOF
 
 echo ""

@@ -1,45 +1,66 @@
-# Prospereum (PSRE)
+## Foundry
 
-**Decentralized behavioral mining protocol on Base.**
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-Proof of Net Economic Contribution — on-chain token rewards for health & wellness DTC brands.
+Foundry consists of:
 
-## Protocol Overview
+- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-- **Total Supply:** 21,000,000 PSRE (immutable)
-- **Emission Reserve:** 12,600,000 (60%) — behavioral mining
-- **Team:** 4,200,000 (20%) — 1yr cliff, 4yr linear vest
-- **Treasury/Liquidity:** 4,200,000 (20%) — minted at genesis
-- **Chain:** Base (EVM)
-- **Epoch:** 7 days
-- **Base Reward Rate:** 10% of net partner buy volume
+## Documentation
 
-## Contract Architecture
+https://book.getfoundry.sh/
 
-```
-contracts/
-├── core/
-│   ├── PSRE.sol              — ERC-20, mint-only by RewardEngine, hard cap 21M
-│   ├── PartnerRegistry.sol   — partner identity, partnerId, vault mapping
-│   ├── PartnerVaultFactory.sol — EIP-1167 clone factory
-│   └── PartnerVault.sol      — buy() via Uniswap v3, cumBuy tracking
-└── periphery/
-    ├── StakingVault.sol      — time-weighted PSRE + LP staking
-    └── RewardEngine.sol      — epoch finalization, EMA, scarcity math, minting
+## Usage
+
+### Build
+
+```shell
+$ forge build
 ```
 
-## Build
+### Test
 
-```bash
-npm install
-npx hardhat compile
-npx hardhat test
+```shell
+$ forge test
 ```
 
-## Status
+### Format
 
-🚧 **Pre-alpha — contracts not yet deployed.**
+```shell
+$ forge fmt
+```
 
----
+### Gas Snapshots
 
-*Specs: see `docs/` directory.*
+```shell
+$ forge snapshot
+```
+
+### Anvil
+
+```shell
+$ anvil
+```
+
+### Deploy
+
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
+
+### Cast
+
+```shell
+$ cast <subcommand>
+```
+
+### Help
+
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```

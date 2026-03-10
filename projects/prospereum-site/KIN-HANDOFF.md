@@ -38,13 +38,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    react(),
-  ],
-  server: {
-    port: 7802,
-  },
+  plugins: [react(), tailwindcss()],  // ⚠️ react() first, then tailwindcss() — this is the verified working order
+  server: { port: 7802 },
 })
 ```
 
@@ -53,22 +48,25 @@ export default defineConfig({
 Google Fonts `@import` MUST come before `@import "tailwindcss"` or PostCSS throws a silent error.
 
 ```css
-/* 1. External imports FIRST */
-@import url('https://fonts.googleapis.com/css2?family=YOUR+FONT:wght@400;600;700;800;900&display=swap');
+/* 1. External imports FIRST — verified working pattern from Prometheus */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap');
+/* swap Geist for whatever font Prospereum uses */
 
 /* 2. Tailwind SECOND */
 @import "tailwindcss";
 
 /* 3. Custom globals after */
-:root {
-  font-family: 'YOUR FONT', sans-serif;
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Geist', -apple-system, sans-serif;
   background: #YOUR_BG;
   color: #YOUR_TEXT;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body, #root { height: 100%; }
 ```
+Note: no need for `html, body, #root { height: 100% }` — leave that out unless a specific component needs full viewport height (set it per-component with `min-h-screen` instead).
 
 ### src/main.tsx
 Standard — no changes needed from Vite template default.
