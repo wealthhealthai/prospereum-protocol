@@ -195,10 +195,13 @@ contract Deploy is Script {
         psre.grantRole(psre.MINTER_ROLE(), address(rewardEngine));
         console.log("PSRE: MINTER_ROLE granted to RewardEngine");
 
-        // ── 9. Transfer factory/stakingVault ownership to admin ──────────────
-        // (factory and stakingVault are Ownable2Step — admin must accept)
-        // For testnet this is fine with deployer = admin.
-        // For mainnet: admin should call acceptOwnership() from the Gnosis Safe.
+        // ── 9. Note on ownership ──────────────────────────────────────────────
+        // Factory and StakingVault are deployed with `admin` as the initial owner
+        // (passed directly to Ownable constructor — no pending transfer to accept).
+        // If deployer != admin (e.g. a CI key deploys but multisig is admin),
+        // transfer ownership after deploy: factory.transferOwnership(admin) then
+        // admin calls acceptOwnership() from the Gnosis Safe.
+        // For testnet with deployer == admin: no action needed.
 
         vm.stopBroadcast();
 

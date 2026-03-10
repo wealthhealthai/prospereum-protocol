@@ -242,6 +242,10 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         // accStakeTime may exceed one epoch if user never checkpointed; we cap it.
         uint256 st = s.accStakeTime < maxEpochStakeTime ? s.accStakeTime : maxEpochStakeTime;
         userStakeTimeByEpoch[epochId][msg.sender] = st;
+
+        // Reset accumulator so next epoch starts fresh.
+        // Without this, accStakeTime grows unboundedly across epochs.
+        s.accStakeTime = 0;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

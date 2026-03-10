@@ -664,4 +664,74 @@ contract RewardEngineTest is Test {
 
         assertEq(rewardEngine.currentScarcityCap(), expected);
     }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // queueTierParams / applyTierParams (timelocked governance)
+    // ────────────────────────────────────────────────────────────────────────
+
+    function test_queueTierParams_revertsBeforeTimelock() public {
+        vm.prank(admin);
+        rewardEngine.queueTierParams(
+            0.006e18, 0.025e18,   // new silver/gold thresholds
+            1.0e18, 1.30e18, 1.55e18 // new multipliers
+        );
+
+        // Cannot apply immediately
+        vm.prank(admin);
+        vm.expectRevert("RE: timelock");
+        rewardEngine.applyTierParams();
+
+        // Cannot apply after only 1 hour
+        vm.warp(block.timestamp + 1 hours);
+        vm.prank(admin);
+        vm.expectRevert("RE: timelock");
+        rewardEngine.applyTierParams();
+    }
+
+    function test_applyTierParams_afterTimelock_appliesAllValues() public {
+        uint256 newSilverTh = 0.006e18;
+        uint256 newGoldTh   = 0.025e18;
+        uint256 newMBronze  = 1.0e18;
+        uint256 newMSilver  = 1.30e18;
+        uint256 newMGold    = 1.55e18;
+
+        vm.prank(admin);
+        rewardEngine.queueTierParams(newSilverTh, newGoldTh, newMBronze, newMSilver, newMGold);
+
+        // Advance past 48h timelock
+        vm.warp(block.timestamp + 48 hours + 1);
+        vm.prank(admin);
+        rewardEngine.applyTierParams();
+
+        // All 5 values updated atomically
+        assertEq(rewardEngine.silverThreshold(), newSilverTh, "silverThreshold updated");
+        assertEq(rewardEngine.goldThreshold(),   newGoldTh,   "goldThreshold updated");
+        assertEq(rewardEngine.mBronze(),         newMBronze,  "mBronze updated");
+        assertEq(rewardEngine.mSilver(),         newMSilver,  "mSilver updated");
+        assertEq(rewardEngine.mGold(),           newMGold,    "mGold updated");
+
+        // pendingTierParams cleared
+        (uint256 val, uint256 readyAt) = rewardEngine.pendingTierParams();
+        assertEq(readyAt, 0, "pendingTierParams should be cleared after apply");
+    }
+
+    function test_queueTierParams_invalidThresholdsReverts() public {
+        vm.prank(admin);
+        vm.expectRevert("RE: invalid thresholds");
+        // goldTh <= silverTh — invalid
+        rewardEngine.queueTierParams(0.02e18, 0.01e18, 1.0e18, 1.25e18, 1.5e18);
+    }
+
+    function test_queueTierParams_invalidMultipliersReverts() public {
+        vm.prank(admin);
+        vm.expectRevert("RE: invalid multipliers");
+        // mGold < mSilver — invalid
+        rewardEngine.queueTierParams(0.005e18, 0.02e18, 1.0e18, 1.5e18, 1.2e18);
+    }
+
+    function test_applyTierParams_withoutQueueReverts() public {
+        vm.prank(admin);
+        vm.expectRevert("RE: timelock");
+        rewardEngine.applyTierParams();
+    }
 }

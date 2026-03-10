@@ -224,6 +224,9 @@ contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step {
 
             if (dNB > 0) creditedNB[vault] += dNB;
 
+            // Spec §11 invariant: creditedNB[vault] <= cumBuy[vault]
+            assert(creditedNB[vault] <= cumBuy);
+
             // EMA: R_new = (R_old*(1e18-theta) + dNB*theta) / 1e18
             uint256 R_old = R[vault];
             uint256 R_new = (R_old * (PRECISION - theta) + dNB * theta) / PRECISION;
@@ -309,6 +312,15 @@ contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step {
     // Claims
     // -------------------------------------------------------------------------
 
+    /**
+     * @notice Claim all accumulated partner rewards for a vault.
+     *         owedPartner[vault] accumulates across multiple epochs (pull-based).
+     *         The epochId parameter is used only to verify the epoch is finalized
+     *         before allowing claims. The emitted PartnerClaimed event includes
+     *         the passed epochId as a reference point, not the per-epoch reward amount.
+     *         Off-chain indexers should track cumulative claimed amounts, not per-epoch.
+     *         Per-epoch tracking will be added in v2.
+     */
     function claimPartner(uint256 epochId, address vault) external nonReentrant {
         require(epochFinalized[epochId], "RE: epoch not finalized");
         uint256 owed = owedPartner[vault];
