@@ -198,7 +198,7 @@
 
 <header>
   <div class="logo">
-    <div class="logo-icon">🐟</div>
+    <div class="logo-icon">P</div>
     <div>
       <div class="logo-text">PROSPEREUM</div>
       <div class="logo-sub">PROTOCOL DASHBOARD</div>
@@ -209,7 +209,7 @@
       <div class="dot pending"></div>
       <span id="network-name">BASE SEPOLIA</span>
     </div>
-    <button class="refresh-btn" onclick="refreshAll()">↻ Refresh</button>
+    <button class="refresh-btn" onclick="refreshAll()">Refresh</button>
   </div>
 </header>
 
@@ -228,36 +228,36 @@
   <div class="grid grid-4" style="margin-bottom:16px;">
     <div class="card card-accent">
       <div class="card-title">Total Emitted (T)</div>
-      <div class="card-value" id="val-emitted">—</div>
+      <div class="card-value" id="val-emitted">-</div>
       <div class="card-sub">of 12,600,000 PSRE reserve</div>
       <div class="progress-bar"><div class="progress-fill" id="emit-progress" style="width:0%"></div></div>
     </div>
     <div class="card">
       <div class="card-title">Current Scarcity Cap</div>
-      <div class="card-value" id="val-scarcity">—</div>
+      <div class="card-value" id="val-scarcity">-</div>
       <div class="card-sub">PSRE/epoch max emission</div>
     </div>
     <div class="card">
       <div class="card-title">Last Finalized Epoch</div>
-      <div class="card-value" id="val-epoch">—</div>
-      <div class="card-sub" id="val-epoch-sub">—</div>
+      <div class="card-value" id="val-epoch">-</div>
+      <div class="card-sub" id="val-epoch-sub">-</div>
     </div>
     <div class="card">
       <div class="card-title">Registered Partners</div>
-      <div class="card-value" id="val-partners">—</div>
+      <div class="card-value" id="val-partners">-</div>
       <div class="card-sub" id="val-partners-sub">of 200 max</div>
     </div>
   </div>
   <div class="grid grid-3">
     <div class="card">
       <div class="card-title">PSRE Total Supply</div>
-      <div class="card-value" id="val-supply">—</div>
+      <div class="card-value" id="val-supply">-</div>
       <div class="card-sub">of 21,000,000 hard cap</div>
     </div>
     <div class="card">
       <div class="card-title">alphaBase (Reward Rate)</div>
       <div class="card-value" id="val-alpha">8%</div>
-      <div class="card-sub">Bronze 8% · Silver 10% · Gold 12%</div>
+      <div class="card-sub">Bronze 8% - Silver 10% - Gold 12%</div>
     </div>
     <div class="card">
       <div class="card-title">Partner/Staker Split</div>
@@ -349,15 +349,15 @@
   </div>
 </section>
 
-<div id="last-updated">Last updated: —</div>
+<div id="last-updated">Last updated: ...</div>
 
 <footer>
-  <span>Prospereum Protocol · github.com/wealthhealthai/prospereum-protocol</span>
-  <span>Chain: <span id="footer-chain">—</span></span>
+  <span>Prospereum Protocol - github.com/wealthhealthai/prospereum-protocol</span>
+  <span>Chain: <span id="footer-chain">-</span></span>
 </footer>
 
 <script>
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// CONFIG -
 
 const NETWORKS = {
   local: {
@@ -408,9 +408,9 @@ const NETWORKS = {
       RewardEngine: null,
     },
     wallets: {
-      'Admin (Gnosis Safe)':   'TBD — set before mainnet',
-      'Treasury (Gnosis Safe)':'TBD — set before mainnet',
-      'Team Vesting':          'TBD — set before mainnet',
+      'Admin (Gnosis Safe)':   'TBD - set before mainnet',
+      'Treasury (Gnosis Safe)':'TBD - set before mainnet',
+      'Team Vesting':          'TBD - set before mainnet',
     }
   }
 };
@@ -421,7 +421,7 @@ const PRECISION         = BigInt('1000000000000000000');
 
 let currentNetwork = 'sepolia';
 
-// ─── ABI FRAGMENTS ────────────────────────────────────────────────────────────
+// ABI FRAGMENTS -
 
 const encodeCall = (sig) => {
   // Simple keccak4 selector via string comparison lookup
@@ -447,7 +447,7 @@ const encodeCall = (sig) => {
   return selectors[sig] || null;
 };
 
-// ─── RPC CALL ─────────────────────────────────────────────────────────────────
+// RPC CALL -
 
 async function rpcCall(rpc, method, params = []) {
   const res = await fetch(rpc, {
@@ -475,12 +475,12 @@ async function getBalance(rpc, addr) {
   } catch { return null; }
 }
 
-// ─── DECODE ───────────────────────────────────────────────────────────────────
+// DECODE -
 
 const toBigInt = (hex) => hex && hex !== '0x' ? BigInt(hex) : BigInt(0);
 const fromWei  = (bn, dec=18) => Number(bn) / Math.pow(10, dec);
 const fmt      = (n, dp=2) => n.toLocaleString('en-US', { maximumFractionDigits: dp });
-const shortAddr = (a) => a ? `${a.slice(0,6)}…${a.slice(-4)}` : '—';
+const shortAddr = (a) => a ? `${a.slice(0,6)}...${a.slice(-4)}` : '-';
 const addrLink  = (a, explorer) => {
   if (!a || a.startsWith('TBD')) return `<span class="muted">${a || 'Not deployed'}</span>`;
   const url = explorer ? `${explorer}/address/${a}` : null;
@@ -489,7 +489,7 @@ const addrLink  = (a, explorer) => {
     : `<span class="addr-mono" onclick="navigator.clipboard.writeText('${a}')" title="Click to copy">${a}</span>`;
 };
 
-// ─── UPDATE UI ────────────────────────────────────────────────────────────────
+// UPDATE UI -
 
 async function refreshAll() {
   const net = NETWORKS[currentNetwork];
@@ -528,7 +528,7 @@ async function refreshAll() {
   const walletsTbody = document.getElementById('wallets-tbody');
   const walletRows = await Promise.all(Object.entries(net.wallets).map(async ([label, addr]) => {
     const balHex = await getBalance(rpc, addr);
-    const balEth = balHex ? fmt(fromWei(BigInt(balHex)), 4) : '—';
+    const balEth = balHex ? fmt(fromWei(BigInt(balHex)), 4) : '-';
     return `<tr>
       <td><strong>${label}</strong></td>
       <td>${addrLink(addr, explorer)}</td>
@@ -559,7 +559,7 @@ async function refreshAll() {
     const epoch     = Number(toBigInt(epochHex));
     const firstHex  = await ethCall(rpc, c.RewardEngine, '0x7b5e68cc');
     const first     = toBigInt(firstHex);
-    document.getElementById('val-epoch').textContent = first ? epoch.toString() : '—';
+    document.getElementById('val-epoch').textContent = first ? epoch.toString() : '-';
     document.getElementById('val-epoch-sub').textContent = first ? `Epoch ${epoch} finalized` : 'No epochs finalized yet';
 
     const vcHex = await ethCall(rpc, c.Factory, '0x35fe0b54');
@@ -600,12 +600,12 @@ async function refreshAll() {
     if (vc === 0) {
       vaultsTbody.innerHTML = '<tr><td colspan="4" class="muted">No partner vaults registered yet.</td></tr>';
     } else {
-      // getAllVaults returns dynamic array — skip for now, show count
+      // getAllVaults returns dynamic array - skip for now, show count
       vaultsTbody.innerHTML = `<tr><td colspan="4" class="muted">${vc} vault(s) registered. Expand for individual vault data (requires multicall).</td></tr>`;
     }
   } else {
     ['val-supply','val-emitted','val-scarcity','val-epoch','val-partners'].forEach(id => {
-      document.getElementById(id).textContent = '—';
+      document.getElementById(id).textContent = '-';
     });
     document.getElementById('epochs-tbody').innerHTML = '<tr><td colspan="6" class="muted">Contracts not deployed on this network yet.</td></tr>';
     document.getElementById('vaults-tbody').innerHTML = '<tr><td colspan="4" class="muted">Contracts not deployed on this network yet.</td></tr>';
