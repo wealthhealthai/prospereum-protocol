@@ -20,6 +20,11 @@ Skills define _how_ tools work. This file is for _your_ specifics — the stuff 
 **Never** include a `message(action=send)` call in sub-agent task prompts — it causes duplicate reports.
 Sub-agents should reply with their report as plain text only. The auto-announce handles delivery.
 
+**REPORTS MUST BE CONCISE BY DEFAULT:**
+- 5-10 lines max. Status, key outcomes, any blockers. That's it.
+- No long tables, no full file lists, no verbose descriptions unless Jason/Shu explicitly asks "expand" or "full details".
+- If something needs attention (error, blocker, decision needed), surface it clearly at the top.
+
 ---
 
 ## Sub-Agent Context Packet Templates
@@ -106,7 +111,7 @@ CONSTRAINTS
 - If tests fail, report exactly what failed and the output — do not attempt fixes
 - If you cannot determine pass/fail with confidence, say so explicitly
 
-OUTPUT FORMAT
+OUTPUT FORMAT (concise by default — expand only if asked)
 ## ADJUDICATOR REVIEW
 
 **Verdict:** PASS / FAIL / CONDITIONAL PASS
@@ -166,7 +171,7 @@ CONSTRAINTS
 - If the answer cannot be determined from available sources, say so clearly
 - Cite specific protocols, audits, or code repositories as sources when possible
 
-OUTPUT FORMAT
+OUTPUT FORMAT (concise by default — expand only if asked)
 ## SCOUT RESEARCH REPORT
 
 **Question:** [restate the question]
@@ -245,7 +250,7 @@ CONSTRAINTS
 - After significant code changes, note in your report that ADJUDICATOR review is recommended
 - Never change the dev spec (prospereum-dev-spec-v2.10.md) or decisions.md without Jason's explicit approval
 
-OUTPUT FORMAT (final report to Jason)
+OUTPUT FORMAT (concise by default — expand only if asked)
 ## HEPHAESTUS BUILD REPORT
 
 **Project:** Prospereum — [component name]
@@ -308,8 +313,8 @@ CONSTRAINTS
 - [What requires asking before doing]
 - [Never deploy to mainnet without explicit Jason approval]
 
-OUTPUT FORMAT
-[How to structure the response]
+OUTPUT FORMAT (concise by default — expand only if asked)
+Status + key outcomes in 5-10 lines. Surface blockers clearly. No verbose lists unless asked.
 
 ═══════════════════════════════════════════
 TASK
