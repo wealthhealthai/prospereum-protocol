@@ -172,6 +172,44 @@ nohup npm run dev > /tmp/vite-7802.log 2>&1 &
 
 ---
 
+## Design Tooling — How to Find Great Components
+
+### 21st.dev (primary component source)
+This is where Shiro sourced the design patterns for Prometheus. Think of it as a curated library of production-quality React/Tailwind components — much higher quality than generic UI kits.
+
+- **URL:** https://21st.dev/community/components
+- **Best categories for a landing page:**
+  - `Heroes` — sorted by Most Bookmarked is the best starting point
+  - `Backgrounds` — shader animations, beam effects, particle fields
+  - `Shaders` — GPU-based visual effects (heavy but stunning)
+  - `Texts` — animated headlines, sparkle effects, gradient text
+  - `Calls to Action`, `Features`, `Pricing`, `Testimonials`
+- **How to use:** Browse, find a component you like, open it, grab the source code. Components are React + Tailwind — drop them straight into `src/components/`.
+- **Sort tip:** "Most Bookmarked" surfaces the community-validated best work. "Newest" for cutting-edge stuff.
+
+### UI/UX Pro Max skill (component search CLI)
+An OpenClaw skill that lets you search 21st.dev and other design resources from the terminal. Useful for discovery without opening a browser.
+
+- **Location:** `~/.openclaw/workspace-shiro/projects/prometheus-site/.uipro/`
+  (Shiro's copy — you may want your own in your workspace)
+- **Install:** Clone `nextlevelbuilder/ui-ux-pro-max-skill` into your project
+- **Usage:**
+  ```bash
+  python3 .uipro/src/ui-ux-pro-max/scripts/search.py "<query>" --domain 21st.dev
+  # Examples:
+  python3 .uipro/src/ui-ux-pro-max/scripts/search.py "hero 3D animation" --domain 21st.dev
+  python3 .uipro/src/ui-ux-pro-max/scripts/search.py "dark landing page DeSci" --domain 21st.dev
+  ```
+- **Note:** This is non-MCP usage — runs as a direct CLI subprocess, no server needed.
+
+### Recommended workflow for Prospereum
+1. Start at https://21st.dev/community/components?tags=Heroes&sort=most_bookmarked
+2. Screenshot candidates, compare aesthetics against the Prospereum brand (dark, gold, decentralized science)
+3. Pull source code from the ones that fit, adapt colors/copy, wire into your `src/components/`
+4. Use the UI/UX Pro Max CLI for quick searches when you have a concept in mind but don't want to browse
+
+---
+
 ## Prometheus Reference
 
 Shiro's Prometheus site is a working example of this entire stack:
