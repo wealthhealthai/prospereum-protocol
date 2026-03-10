@@ -14,6 +14,14 @@ Skills define _how_ tools work. This file is for _your_ specifics — the stuff 
 
 ---
 
+## Sub-Agent Reporting Rule
+
+**IMPORTANT:** Sub-agents auto-announce their result to the triggering channel when they finish.
+**Never** include a `message(action=send)` call in sub-agent task prompts — it causes duplicate reports.
+Sub-agents should reply with their report as plain text only. The auto-announce handles delivery.
+
+---
+
 ## Sub-Agent Context Packet Templates
 
 > Copy the relevant template, fill in `[bracketed]` fields, and pass the entire block as the `task` parameter in `sessions_spawn`.
