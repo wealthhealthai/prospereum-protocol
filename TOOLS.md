@@ -20,10 +20,11 @@ Skills define _how_ tools work. This file is for _your_ specifics — the stuff 
 **Never** include a `message(action=send)` call in sub-agent task prompts — it causes duplicate reports.
 Sub-agents should reply with their report as plain text only. The auto-announce handles delivery.
 
-**REPORTS MUST BE CONCISE BY DEFAULT:**
-- 5-10 lines max. Status, key outcomes, any blockers. That's it.
-- No long tables, no full file lists, no verbose descriptions unless Jason/Shu explicitly asks "expand" or "full details".
-- If something needs attention (error, blocker, decision needed), surface it clearly at the top.
+**REPORT FORMAT:**
+- Be thorough and complete in your output — Kin reads the full session output to review your work.
+- Lead with a clear STATUS line and any BLOCKERS at the very top.
+- Include full detail: files changed, test results, issues found, decisions made.
+- Kin will summarize for Jason/Shu — your job is to give Kin everything he needs to review.
 
 ---
 
@@ -111,7 +112,7 @@ CONSTRAINTS
 - If tests fail, report exactly what failed and the output — do not attempt fixes
 - If you cannot determine pass/fail with confidence, say so explicitly
 
-OUTPUT FORMAT (concise by default — expand only if asked)
+OUTPUT FORMAT
 ## ADJUDICATOR REVIEW
 
 **Verdict:** PASS / FAIL / CONDITIONAL PASS
@@ -171,7 +172,7 @@ CONSTRAINTS
 - If the answer cannot be determined from available sources, say so clearly
 - Cite specific protocols, audits, or code repositories as sources when possible
 
-OUTPUT FORMAT (concise by default — expand only if asked)
+OUTPUT FORMAT
 ## SCOUT RESEARCH REPORT
 
 **Question:** [restate the question]
@@ -250,7 +251,7 @@ CONSTRAINTS
 - After significant code changes, note in your report that ADJUDICATOR review is recommended
 - Never change the dev spec (prospereum-dev-spec-v2.10.md) or decisions.md without Jason's explicit approval
 
-OUTPUT FORMAT (concise by default — expand only if asked)
+OUTPUT FORMAT
 ## HEPHAESTUS BUILD REPORT
 
 **Project:** Prospereum — [component name]
@@ -313,8 +314,8 @@ CONSTRAINTS
 - [What requires asking before doing]
 - [Never deploy to mainnet without explicit Jason approval]
 
-OUTPUT FORMAT (concise by default — expand only if asked)
-Status + key outcomes in 5-10 lines. Surface blockers clearly. No verbose lists unless asked.
+OUTPUT FORMAT
+[Full detail — Kin will summarize for Jason/Shu]
 
 ═══════════════════════════════════════════
 TASK
