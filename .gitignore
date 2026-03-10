@@ -10,3 +10,7 @@ deployments/
 dist/
 .openclaw/
 memory/
+node_modules/
+out/
+cache/
+artifacts/

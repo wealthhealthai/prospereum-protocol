@@ -1,0 +1,31 @@
+{
+  "name": "workspace-kin",
+  "version": "1.0.0",
+  "description": "**Decentralized behavioral mining protocol on Base.**",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wealthhealthai/prospereum-protocol.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/wealthhealthai/prospereum-protocol/issues"
+  },
+  "homepage": "https://github.com/wealthhealthai/prospereum-protocol#readme",
+  "devDependencies": {
+    "hardhat": "^3.1.11"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.6.1"
+  }
+}

@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title PSRE — Prospereum Token
@@ -172,17 +172,17 @@ contract PSRE is ERC20, AccessControl, Pausable {
      *      Note: _mint() calls this too — but we only pause transfers,
      *      not genesis mints (constructor calls _mint before pause can be set).
      */
-    function _beforeTokenTransfer(
+    /// @dev OZ v5: override _update (replaces _beforeTokenTransfer).
+    ///      Allow minting even when paused; block transfers/burns when paused.
+    function _update(
         address from,
         address to,
-        uint256 amount
+        uint256 value
     ) internal override {
-        // Allow minting (from == address(0)) even when paused.
-        // Only block transfer/burn when paused.
         if (from != address(0)) {
             require(!paused(), "PSRE: transfers paused");
         }
-        super._beforeTokenTransfer(from, to, amount);
+        super._update(from, to, value);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
