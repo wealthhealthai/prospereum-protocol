@@ -41,6 +41,7 @@ _(add items here as they arise)_
 | PartnerNFT | Removed from v1. No NFT. | Shu | 2026-03-06 |
 | Upgradeability | PSRE immutable. Peripheral contracts versioned. RewardEngine UUPS+multisig+timelock early phase | Shu | 2026-03-06 |
 | Genesis liquidity | Base-native, treasury-only LP seeding from Bootstrap Liquidity bucket. Exact price/depth TBD | Shu | 2026-03-07 |
+| Website stack | Vite 7 + React 19 + TypeScript + Tailwind v4 + Framer Motion + Three.js vanilla. NOT Next.js (GitHub Pages CDN issues). Scaffold in projects/prospereum-site/ | Jason via Shiro handoff | 2026-03-09 |
 
 ---
 
