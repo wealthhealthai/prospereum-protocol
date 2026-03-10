@@ -187,26 +187,69 @@ This is where Shiro sourced the design patterns for Prometheus. Think of it as a
 - **How to use:** Browse, find a component you like, open it, grab the source code. Components are React + Tailwind — drop them straight into `src/components/`.
 - **Sort tip:** "Most Bookmarked" surfaces the community-validated best work. "Newest" for cutting-edge stuff.
 
-### UI/UX Pro Max skill (component search CLI)
-An OpenClaw skill that lets you search 21st.dev and other design resources from the terminal. Useful for discovery without opening a browser.
+### UI/UX Pro Max skill (design intelligence CLI)
+A design intelligence skill that gives you access to a searchable database of UI patterns, styles, typography, color systems, and component recommendations. Think of it as a design advisor you can query from the terminal.
 
-- **Location:** `~/.openclaw/workspace-shiro/projects/prometheus-site/.uipro/`
-  (Shiro's copy — you may want your own in your workspace)
-- **Install:** Clone `nextlevelbuilder/ui-ux-pro-max-skill` into your project
-- **Usage:**
-  ```bash
-  python3 .uipro/src/ui-ux-pro-max/scripts/search.py "<query>" --domain 21st.dev
-  # Examples:
-  python3 .uipro/src/ui-ux-pro-max/scripts/search.py "hero 3D animation" --domain 21st.dev
-  python3 .uipro/src/ui-ux-pro-max/scripts/search.py "dark landing page DeSci" --domain 21st.dev
-  ```
-- **Note:** This is non-MCP usage — runs as a direct CLI subprocess, no server needed.
+**Install — two options:**
+
+**Option A: npm CLI (easiest)**
+```bash
+npm install -g uipro-cli
+cd ~/.openclaw/workspace-kin/projects/prospereum-site
+uipro init --ai openclaw   # generates skill files in current dir
+```
+If `--ai openclaw` isn't recognized, use `--ai claude` (same file output, just rename the dir).
+
+**Option B: git clone (manual, always works)**
+```bash
+cd ~/.openclaw/workspace-kin/projects/prospereum-site
+git clone --depth 1 https://github.com/nextlevelbuilder/ui-ux-pro-max-skill .uipro
+```
+Then run scripts directly from `.uipro/src/ui-ux-pro-max/scripts/`.
+
+**Usage (after install):**
+```bash
+# General component/pattern search
+python3 .uipro/src/ui-ux-pro-max/scripts/search.py "dark landing page blockchain"
+
+# Domain-specific searches
+python3 .uipro/src/ui-ux-pro-max/scripts/search.py "glassmorphism" --domain style
+python3 .uipro/src/ui-ux-pro-max/scripts/search.py "gold accent dark theme" --domain colors
+python3 .uipro/src/ui-ux-pro-max/scripts/search.py "serif display heading" --domain typography
+
+# Generate a full design system for the project
+python3 .uipro/src/ui-ux-pro-max/scripts/search.py "DeSci protocol token" --design-system -p "Prospereum"
+
+# Stack-specific patterns
+python3 .uipro/src/ui-ux-pro-max/scripts/search.py "hero animation" --stack react
+```
+
+**What `--design-system` does:** Generates a full structured recommendation — layout pattern, color palette, typography, section order, CTA placement — based on your project description. Run this early to get a design brief before touching code.
+
+**Requires Python 3:** `python3 --version` to confirm. Install via `brew install python3` if needed.
+
+### How to extract code from 21st.dev
+1. Open a component page (e.g. `https://21st.dev/community/components/serafimcloud/interactive-3d-hero/default`)
+2. You'll see a live preview on the right and a code panel on the left/bottom
+3. Click the **"Code"** tab to see the full source
+4. Some components have a **"Dependencies"** section — install those first (`npm install <pkg>`)
+5. Copy the component into `src/components/YourComponent.tsx` and adjust:
+   - Colors → swap hardcoded hex values to match Prospereum's palette
+   - Copy/text → replace placeholder strings
+   - Sizes → tweak `h-screen`, padding, etc. to fit your layout
+6. If a component uses `shadcn/ui` imports (`@/components/ui/...`), you'll need to init shadcn first: `npx shadcn@latest init`. Most 21st.dev components do NOT require this.
 
 ### Recommended workflow for Prospereum
-1. Start at https://21st.dev/community/components?tags=Heroes&sort=most_bookmarked
-2. Screenshot candidates, compare aesthetics against the Prospereum brand (dark, gold, decentralized science)
-3. Pull source code from the ones that fit, adapt colors/copy, wire into your `src/components/`
-4. Use the UI/UX Pro Max CLI for quick searches when you have a concept in mind but don't want to browse
+1. **Run the design system generator first:**
+   ```bash
+   python3 .uipro/src/ui-ux-pro-max/scripts/search.py "DeSci protocol token staking dark" --design-system -p "Prospereum"
+   ```
+   This gives you a design brief: layout pattern, colors, fonts, section order. Use it as your north star.
+2. Browse https://21st.dev/community/components?tags=Heroes&sort=most_bookmarked — look for dark/moody hero candidates
+3. Also check `Backgrounds` and `Shaders` categories for hero animation options
+4. Screenshot 3–4 candidates, pick the one that fits the DeSci/protocol aesthetic
+5. Extract code, adapt to Prospereum brand, drop into `src/components/`
+6. Use UI/UX Pro Max CLI for typography and color decisions: `--domain colors`, `--domain typography`
 
 ---
 
