@@ -25,7 +25,9 @@ These are FROZEN. Do not deviate without Jason's explicit approval.
 
 ## In-Progress Decisions
 
-_(add items here as they arise)_
+_(add items here as they arise)
+
+## Completed Decisions (continued)_
 
 ## Completed Decisions
 
@@ -42,6 +44,10 @@ _(add items here as they arise)_
 | Upgradeability | PSRE immutable. Peripheral contracts versioned. RewardEngine UUPS+multisig+timelock early phase | Shu | 2026-03-06 |
 | Genesis liquidity | Base-native, treasury-only LP seeding from Bootstrap Liquidity bucket. Exact price/depth TBD | Shu | 2026-03-07 |
 | Website stack | Vite 7 + React 19 + TypeScript + Tailwind v4 + Framer Motion + Three.js vanilla. NOT Next.js (GitHub Pages CDN issues). Scaffold in projects/prospereum-site/ | Jason via Shiro handoff | 2026-03-09 |
+| Founder vesting | Sablier (not custom TeamVesting.sol). Founder tokens held in Founder Safe, streamed via Sablier. TeamVesting.sol removed from mainnet deploy. | Shu | 2026-03-12 |
+| D4 — Genesis LP | PSRE/USDC on Uniswap v3. Launch price: $0.10/PSRE. Liquidity: $40K ($20K USDC + 200K PSRE from treasury). Fee tier: 1%. Price range: $0.04–$0.50. | Shu | 2026-03-12 |
+| LP lock | Genesis LP NFT locked for 24 months via Unicrypt (app.uncx.network). Locked from Treasury Safe. | Shu | 2026-03-12 |
+| Multisig setup | Three wallets required before mainnet: (1) Founder Safe — Jason + Shu, controls governance/upgrades. (2) Treasury Safe — Jason + Shu, controls PSRE treasury + LP. (3) Ops wallet — Jason EOA, day-to-day keeper/gas. | Shu | 2026-03-12 |
 
 ---
 
