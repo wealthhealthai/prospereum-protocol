@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
+import "../interfaces/IPSRE.sol";
 
 /**
  * @title PSRE — Prospereum Token
@@ -19,7 +20,7 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
  *      - No other mint authority
  *      - Pausable: only halts transfers, NOT minting (minting is controlled by role)
  */
-contract PSRE is ERC20, AccessControl, Pausable {
+contract PSRE is ERC20, AccessControl, Pausable, IPSRE {
     // ─────────────────────────────────────────────────────────────────────────
     // Roles
     // ─────────────────────────────────────────────────────────────────────────

@@ -7,29 +7,10 @@ import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// External interfaces (file scope — required by Solidity)
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface IPSRE {
-    function mint(address to, uint256 amount) external;
-    function balanceOf(address account) external view returns (uint256);
-    function transfer(address to, uint256 amount) external returns (bool);
-}
-
-interface IPartnerVault {
-    function cumBuy() external view returns (uint256);
-}
-
-interface IPartnerVaultFactory {
-    function getAllVaults() external view returns (address[] memory);
-}
-
-interface IStakingVault {
-    function snapshotEpoch(uint256 epochId) external;
-    function totalStakeTime(uint256 epochId) external view returns (uint256);
-    function stakeTimeOf(address user, uint256 epochId) external view returns (uint256);
-}
+import "../interfaces/IPSRE.sol";
+import "../interfaces/IPartnerVault.sol";
+import "../interfaces/IPartnerVaultFactory.sol";
+import "../interfaces/IStakingVault.sol";
 
 /**
  * @title RewardEngine

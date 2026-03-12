@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../interfaces/IPartnerVault.sol";
 
 /// @dev Minimal Uniswap v3 SwapRouter interface (Base mainnet: 0x2626664c2603336E57B271c5C0b26F421741e481)
 interface ISwapRouter {
@@ -34,7 +35,7 @@ interface ISwapRouter {
  *      - distribute() moves PSRE out without affecting accounting
  *      - updateOwner() allows wallet migration without losing EMA history
  */
-contract PartnerVault is ReentrancyGuard {
+contract PartnerVault is ReentrancyGuard, IPartnerVault {
     using SafeERC20 for IERC20;
 
     // -------------------------------------------------------------------------

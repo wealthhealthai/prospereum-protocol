@@ -3,6 +3,8 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "../interfaces/IPartnerVaultFactory.sol";
 import "./PartnerVault.sol";
 
 /**
@@ -16,7 +18,7 @@ import "./PartnerVault.sol";
  *      - EIP-1167 clones: ~10x cheaper deployment than full contracts
  *      - Admin can set a MAX_PARTNERS cap to bound finalizeEpoch gas
  */
-contract PartnerVaultFactory is Ownable2Step {
+contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFactory {
     using Clones for address;
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -125,7 +127,7 @@ contract PartnerVaultFactory is Ownable2Step {
      * @dev RewardEngine must be set before vault creation so vaults are
      *      immediately registered and eligible for reward accounting.
      */
-    function createVault() external returns (address vault) {
+    function createVault() external nonReentrant returns (address vault) {
         require(rewardEngine != address(0), "Factory: rewardEngine not set");
         require(vaultOf[msg.sender] == address(0), "Factory: vault already exists");
         require(allVaults.length < maxPartners, "Factory: max partners reached");
