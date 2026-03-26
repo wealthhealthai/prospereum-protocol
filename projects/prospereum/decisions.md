@@ -25,7 +25,17 @@ These are FROZEN. Do not deviate without Jason's explicit approval.
 
 ## In-Progress Decisions
 
-_(add items here as they arise)
+| Decision | Options | Status | Date Raised |
+|----------|---------|--------|-------------|
+| **Managed Partner / Platform Manager architecture** | A→B hybrid (WH holds `partnerOwner`, `updateOwner()` to migrate) vs. registry-level Platform Manager role | Direction: A→B hybrid agreed with Jason. Decision document to be drafted by Kin before spec changes. | 2026-03-26 |
+| **Tier fast-track for enterprise partners** | Add DAO-settable `tierFloor(vault)` minimum tier for verified partners vs. keep pure EMA | Proposed by Kin. Pending Jason + Shu decision. | 2026-03-26 |
+| **C2 — Reward destination** | Rewards to vault owner wallet (dev spec) vs. rewards deposited into PartnerVault (whitepaper) | Kin recommends: owner wallet. Existing review flagged. Pending Jason + Shu call. | 2026-03-24 |
+| **Open Question 1** — Tier multiplier on first reward | Apply Bronze multiplier vs. flat r_base | Recommendation: apply Bronze multiplier. Lock before implementation. | 2026-03-24 |
+| **Open Question 2** — Unqualified vault EMA | Zero EMA credit during unqualified period vs. retroactive credit | Recommendation: zero credit. Lock before implementation. | 2026-03-24 |
+| **REGISTRATION_FEE** | Keep optional $50 fee vs. remove entirely (S_MIN is sufficient) | Recommendation: remove. Pending decision. | 2026-03-24 |
+| **Vault expiry threshold** | 4 epochs (spec default) vs. 6 epochs (protocol review recommendation) | Pending Jason + Shu decision. | 2026-03-24 |
+| **Phase 1 static analysis fixes** | Implement 3 items from Slither/Mythril run (nonReentrant on createVault, extract interfaces, gas benchmark) | Awaiting Jason go-ahead since 2026-03-12. | 2026-03-12 |
+| **Phase 2 fuzz tests** | Proceed with Foundry invariant fuzzing | Awaiting Jason go-ahead. | 2026-03-12 |
 
 ## Completed Decisions (continued)_
 
