@@ -14,3 +14,21 @@ node_modules/
 out/
 cache/
 artifacts/
+
+# Workspace files — not for protocol repo
+SOUL.md
+AGENTS.md
+USER.md
+TOOLS.md
+GOODNIGHT.md
+HEARTBEAT.md
+IDENTITY.md
+BOOTSTRAP.md
+GOODMORNING.md
+PHOENIX.md
+knowledge/
+memory/
+projects/
+cantina-form-preview.png
+*.env
+.env
