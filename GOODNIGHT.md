@@ -2,36 +2,44 @@
 
 ## What Was Done Today
 
-- No code changes. PHOENIX called by Archon at 01:23 AM PDT.
-- Last meaningful session was 2026-03-26: full v3.1 protocol review, enterprise custody discussion (A→B hybrid decided), decisions.md updated, Discord summary sent to Shu.
+- **v3.2 protocol design finalized** — full redesign from v2.3 after extensive design discussions with Shu (March 18-27)
+- **Core changes:** cumS high-water-mark reward metric, effectiveCumS deduction (anti-compounding), CustomerVault architecture, S_min $500 USDC, first qualification condition (replaces vesting + bond)
+- **Three v3.2 documents produced and delivered:**
+  - `prospereum-whitepaper-v3.2-DRAFT.docx`
+  - `prospereum-dev-spec-v3.2-DRAFT.docx`
+  - `prospereum-internal-rationale-v3.2.docx` (anti-spam + anti-inflation audit)
+- **Cantina outreach submitted** by Shu — web form + Twitter DM. Budget: $5-8K private review. Target audit complete: April 4.
+- **All v3.2 decisions locked** — see decisions.md
+- **Memory and decisions.md updated and committed**
 
 ## In Progress / Waiting
 
-- Writing the **enterprise custody / Platform Manager decision document** — top priority next session. No spec edits until this is done.
-- Waiting for **Jason + Shu to resolve C2** (reward destination: owner wallet vs. vault).
-- Waiting for Jason on **Phase 1 static analysis fixes** and **Phase 2 fuzz tests** go-ahead (sitting since 2026-03-12).
+- **BLOCKING: Jason + Shu final approval on v3.2 spec** — contract rebuild cannot start until this is received
+- Cantina responding to outreach (submitted March 26)
+- v2.3 contracts still live on Base Sepolia — these will be superseded by v3.2 rebuild
 
 ## Open Decisions (waiting on Jason or Shu)
 
 | Decision | Raised |
 |---|---|
-| C2 — reward destination (owner wallet vs vault) | 2026-03-24 |
-| Platform Manager / managed partner architecture | 2026-03-26 |
-| Tier fast-track (`tierFloor`) | 2026-03-26 |
-| Open Questions 1+2 (first-reward multiplier, unqualified EMA) | 2026-03-24 |
-| REGISTRATION_FEE removal | 2026-03-24 |
-| Vault expiry threshold (4 vs 6 epochs) | 2026-03-24 |
-| Phase 1 static analysis fixes go-ahead | 2026-03-12 |
-| Phase 2 fuzz tests go-ahead | 2026-03-12 |
+| v3.2 spec final approval | 2026-03-26 — docs delivered, waiting for go-ahead |
 
 ## Blockers
 
-- **No hard blockers.** All open items are waiting on human decisions, not technical issues.
-- Dev spec v3.1 still has stale values (`r_base = 0.10e18`, missing Ownable2Step explicitness) — known, do not fix without Jason approval on the full decision document first.
+- **HARD BLOCKER: v3.2 spec approval** — no contract builds can start without this. Jason + Shu reviewing v3.2 docs.
+- Cantina auditor availability unknown until they respond to outreach.
 
 ## Notes for Tomorrow
 
-1. Write the Platform Manager decision document (Kin drafts, Jason reviews)
-2. Check in with Jason on Phase 1/Phase 2 go-ahead
-3. Ask Jason/Shu: are we building for v3.1 or staying on the deployed v1 contracts? This determines scope of adversarial bug fixes.
-4. All 6 contracts stable on Base Sepolia — no emergency actions needed.
+1. Follow up on v3.2 approval — push for morning decision so HEPHAESTUS can start building
+2. Follow up on Cantina response — if no reply by March 28, reach out via alternative (Sherlock, Code4rena, or another Cantina auditor contact)
+3. Once approved: spawn 3-4 parallel HEPHAESTUS agents for contract rebuild (target 24 hours)
+4. Contracts to rebuild: PSRE (multiplier fix), PartnerVaultFactory (S_min), PartnerVault (cumS tracking), CustomerVault (new), RewardEngine (effectiveCumS formula), StakingVault (minor)
+5. After build: internal hardening (Slither + fuzz + adversarial) in parallel with Cantina
+6. Mainnet target: April 4-7
+
+## Key Contract State
+
+- **Base Sepolia (SUPERSEDED):** 6 v2.3 contracts live and verified — will not be used for mainnet
+- **Mainnet contracts:** Not yet built (waiting on v3.2 spec approval)
+- **Safes:** Not yet created — Jason needs to create Founder Safe + Treasury Safe on app.safe.global

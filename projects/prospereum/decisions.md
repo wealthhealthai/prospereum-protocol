@@ -61,6 +61,25 @@ These are FROZEN. Do not deviate without Jason's explicit approval.
 
 ---
 
-## Completed Decisions
+## Completed Decisions — v3.2 Design Session (2026-03-18 to 2026-03-27)
 
-_(move items here once decided and implemented)_
+| Decision | Value | Decided By | Date |
+|----------|-------|-----------|------|
+| Reward metric | cumS high-water-mark ratchet: `cumS(t) = max(S_eco(t), cumS(t-1))`. Replaces gross cumBuy. | Shu | 2026-03-21 |
+| Anti-compounding formula | `effectiveCumS(t) = cumS(t) - cumulativeRewardMinted(t)`. Reward PSRE excluded from cumS calculation. No provenance tagging needed. | Shu | 2026-03-25 |
+| Initial buy earns zero | S(N) (vault creation buy) sets baseline, earns no reward. Only growth above S(N) earns. | Shu | 2026-03-21 |
+| First qualification condition | First reward only paid when cumS(M) > S(N) for any M > N. First reward = r_base × (cumS(M) - S(N)). | Shu | 2026-03-22 |
+| Vault bond | ELIMINATED. Replaced by un-rewarded initial buy (irrecoverable swap fees serve as entry cost). | Shu | 2026-03-22 |
+| Reward vesting | ELIMINATED. Replaced by first qualification condition. | Shu | 2026-03-22 |
+| Distribution reward | ELIMINATED. Distribution to customers earns no direct protocol reward (indirect commerce incentive sufficient). | Shu | 2026-03-21 |
+| CustomerVault architecture | Partner deploys CustomerVaults on behalf of customers. Customers are blockchain-agnostic. CustomerVault balances included in S_eco. | Shu | 2026-03-21 |
+| CustomerVault gas | Partner pays CustomerVault deployment gas (cost of running rewards program). | Shu | 2026-03-25 |
+| S_min | $500 USDC minimum initial buy to create a PartnerVault. USDC-denominated (not PSRE) to avoid price volatility. | Shu | 2026-03-25 |
+| Vault expiry | 52 epochs (~1 year) of zero cumS growth. Governance sends off-chain notification before deactivation. | Shu | 2026-03-25 |
+| Tier multipliers (corrected) | M_BRONZE=0.8e18, M_SILVER=1.0e18, M_GOLD=1.2e18. Effective rates: 8%/10%/12%. (Corrected from 1.0/1.25/1.5 mismatch.) | Shu | 2026-03-25 |
+| Enterprise vault management | NOT in protocol. WealthHealth Olympus builds service layer on top. Prospereum stays simple — partnerOwner can be any address. | Shu + Jason | 2026-03-26 |
+| Tier floor for enterprise | None. Every partner earns their tier via EMA regardless of platform or commitment size. Protocol is fair and consistent. | Shu | 2026-03-26 |
+| Primary anti-spam mechanism | Reward qualification conditions (no reward on S(N), cumS(M)>S(N) required). NOT the scarcity cap. | Shu | 2026-03-26 |
+| External audit | Yes, required before mainnet. Cantina private review, budget $5-8K. Outreach submitted 2026-03-26. | Shu | 2026-03-26 |
+| Launch target | Mainnet ~April 4-7, 2026. Base Sepolia testnet March 28 (post v3.2 rebuild). | Shu | 2026-03-26 |
+| v3.2 contract rebuild | Full rebuild required. v2.3 contracts (deployed on Base Sepolia) are superseded. Rebuild starts after Jason + Shu approve v3.2 spec. | Kin | 2026-03-26 |
