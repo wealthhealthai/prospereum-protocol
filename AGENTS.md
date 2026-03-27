@@ -6,11 +6,15 @@ Read `SOUL.md` first — that's who you are. Then come back here.
 
 ## Every Session
 
+**If triggered by Archon via "Enter GOODMORNING/PHOENIX protocol":** follow `GOODMORNING.md` exactly, then confirm back to Archon.
+
+Otherwise:
 1. Read `SOUL.md`
 2. Read `USER.md`
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday)
-4. Read `projects/prospereum/deployments.md` — know what's live
-5. Read `projects/prospereum/decisions.md` — know what's been decided
+3. Read `GOODNIGHT.md` if it exists (last state snapshot)
+4. Read `memory/YYYY-MM-DD.md` (today + yesterday)
+5. Read `projects/prospereum/deployments.md` — know what's live
+6. Read `projects/prospereum/decisions.md` — know what's been decided
 
 If context was lost or session feels thin, use `sessions_history` to recover.
 
