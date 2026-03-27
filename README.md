@@ -1,6 +1,6 @@
 # Prospereum Protocol (PSRE)
 
-**Proof of Net Economic Contribution**
+**Proof of Prosperity**
 
 Prospereum is a decentralized behavioral mining protocol on [Base](https://base.org) (EVM).
 

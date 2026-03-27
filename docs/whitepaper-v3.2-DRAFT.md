@@ -8,7 +8,7 @@
 ---
 
 PROSPEREUM Protocol (PSRE)
-Proof of Net Retention
+Proof of Prosperity
 White Paper v3.2 (March 2026)
 
 ---
@@ -20,7 +20,7 @@ progressive scarcity.
 
 Unlike Proof-of-Work (Bitcoin) or Proof-of-Stake (Ethereum), Prospereum introduces:
 
-**Proof of Net Retention**
+**Proof of Prosperity**
 
 Token issuance is unlocked only when provable, sustained on-chain demand for PSRE is
 generated — measured not by gross purchasing activity or time-weighted retention levels, but
@@ -183,7 +183,7 @@ discourages vault churn as a tactic to reset the high-water-mark.
 
 ---
 
-## 6. Behavioral Mining — Proof of Net Retention
+## 6. Behavioral Mining — Proof of Prosperity
 
 ### 6.1 Overview
 
@@ -665,7 +665,7 @@ scarcity function, and cannot increase $S_{emission}$.
 
 ## 12. Conclusion
 
-Prospereum v3.2 refines **Proof of Net Retention** with a cleaner, more structurally sound
+Prospereum v3.2 refines **Proof of Prosperity** with a cleaner, more structurally sound
 reward mechanism: the cumulative high-water-mark, augmented by the effectiveCumS
 deduction.
 
