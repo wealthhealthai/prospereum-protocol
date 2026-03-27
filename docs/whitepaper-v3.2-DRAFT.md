@@ -226,10 +226,21 @@ All mining activity and rewards are calculated and emitted once per epoch.
 
 Let $S_{eco,p}(t)$ be the total PSRE held within partner $p$'s vault ecosystem at epoch $t$:
 
-$$S_{eco,p}(t) = \text{PSRE in PartnerVault}_p + \sum_{cv \in \text{registered}(p)} \text{PSRE in } cv$$
+$$S_{eco,p}(t) = \text{psre.balanceOf}(\text{PartnerVault}_p) + \sum_{cv \in \text{registered}(p)} \text{psre.balanceOf}(cv)$$
 
-This is the total PSRE within the registered vault boundary (PartnerVault + all linked
-CustomerVaults). PSRE transferred to unregistered addresses is excluded from $S_{eco}$.
+This is the actual on-chain PSRE balance across all registered vaults in partner $p$'s
+ecosystem. $S_{eco}$ is read directly from the ERC-20 token contract at epoch snapshot time,
+capturing every source of PSRE inflow:
+
+- **Protocol buys** via `PartnerVault.buy()` (USDC → PSRE via Uniswap v3)
+- **Customer payments** via direct ERC-20 `transfer()` to a registered vault address (e.g., a customer paying for goods with PSRE sends tokens directly to the PartnerVault)
+
+Both flows increase $S_{eco}$ equally. This creates a natural economic incentive for partners
+to receive PSRE payments at their **vault address** rather than an external wallet: payments
+to the vault maintain $S_{eco}$, while payments to an external address exit the ecosystem and
+reduce it. No protocol rule enforces this — economic self-interest aligns the behavior.
+
+PSRE transferred to unregistered addresses is excluded from $S_{eco}$.
 
 ### 6.4 Cumulative High-Water-Mark
 
