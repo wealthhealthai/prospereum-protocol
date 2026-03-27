@@ -31,9 +31,6 @@ Developer Specification v3.2
   The initial buy earns zero reward — it is the baseline.
 - Minimum initial buy $S_{min}$: denominated in USDC — **$500 USDC** (S_MIN = 500e6 for
   6-decimal USDC). Factory validates `usdcAmountIn >= S_MIN` directly. No oracle needed.
-- Vault expiry: PartnerVaults with zero cumS growth for **52** consecutive epochs (~1 year)
-  become inactive. Emits VaultPendingExpiry event at epoch VAULT_EXPIRY_EPOCHS-4 as on-chain signal; no off-chain action required.
-  Inactive vaults may reactivate by making a buy; cumS is preserved — never reset.
 - cumS is permanently tied to vault address. Deregistered vault cumS is preserved (effectively
   frozen); new vault created by same partner starts at cumS = 0.
 - EMA tier system now tracks $\Delta\text{effectiveCumS}_p(t)$ increments instead of TWR.
@@ -128,10 +125,7 @@ S_MIN               = 500e6   // $500 USDC, denominated in USDC base units (6 de
 REGISTRATION_FEE    = ~$50 USDC (non-refundable; paid to treasury at vault creation;
                       DAO-adjustable) [optional; may be removed if S_MIN is sufficient deterrent]
 
-VAULT_EXPIRY_EPOCHS = 52  // consecutive epochs with zero cumS growth before auto-expiry
                           // (~1 year at 7-day epochs)
-                          // Emits VaultPendingExpiry event at epoch VAULT_EXPIRY_EPOCHS-4 as on-chain signal; no off-chain action required.
-```
 
 **Eliminated from v3.0:**
 - `VAULT_BOND` — removed. Replaced by un-rewarded initial buy.
@@ -273,9 +267,7 @@ uint256 public initialCumS;     // set at vault creation = initial buy amount
 mapping(address => bool)  public registeredCustomerVaults;
 address[]                 public customerVaultList;   // enumerable for off-chain
 
-// Activity tracking (for expiry)
 uint256 public lastCumSUpdateEpoch;        // epoch when cumS last grew
-uint256 public consecutiveInactiveEpochs;  // epochs without cumS growth
 bool    public vaultActive;
 
 // Historical snapshot for RewardEngine
@@ -454,8 +446,7 @@ The core monetary policy contract. UUPS upgradeable.
 - **Compute demand cap: $E_{demand}(t) = r_{base} \times \sum_p \max(0, \text{effectiveCumS}_p(t) - \text{effectiveCumS}_p(t-1))$.**
 - Compute scarcity cap, final budget $B$.
 - Compute partner rewards (no vesting) and staker rewards.
-- **Track vault activity (cumS growth epochs); mark vaults inactive after VAULT_EXPIRY_EPOCHS (52).**
-- Mint and pay rewards.
+- **Track vault activity (cumS growth epochs); mark vaults inactive after - Mint and pay rewards.
 - **No vesting ledger required.** Rewards are claimable immediately.
 
 ---
@@ -494,7 +485,6 @@ mapping(address => uint256) public initialCumS;        // cumS at vault creation
 
 // Vault activity tracking
 mapping(address => uint256) public lastGrowthEpoch;    // last epoch where deltaCumS > 0
-mapping(address => uint256) public consecutiveInactive; // epochs without cumS growth
 mapping(address => bool)    public vaultActive;
 
 // Reward claim tracking (pull-based, no vesting)
@@ -693,19 +683,12 @@ In RewardEngine, after receiving `deltaCumS_p` from each vault:
 
 ```
 if deltaCumS_p > 0:
-    consecutiveInactive[vault] = 0
     lastGrowthEpoch[vault] = epochId
 else:
-    consecutiveInactive[vault] += 1
-    if consecutiveInactive[vault] >= VAULT_EXPIRY_EPOCHS:  // 52 epochs
-        vaultActive[vault] = false
         emit VaultMarkedInactive(vault, epochId)
-        // Note: VaultPendingExpiry(vault, expiresAtEpoch) event is emitted at epoch 48 (VAULT_EXPIRY_EPOCHS-4) as an on-chain warning signal. No governance action required.
-```
 
 **Reactivation:** An inactive vault may call `buy()` at any time. On the next
 `finalizeEpoch()`, the vault's `deltaCumS_p > 0` (if the buy raised cumS), which resets
-`consecutiveInactive[vault] = 0` and sets `vaultActive[vault] = true`.
 
 ```
 // In finalizeEpoch, before activity check:
@@ -912,7 +895,6 @@ LP and PSRE staking treated equally. Both contribute $\text{stakeTime} = \text{a
 - One epoch finalized at a time, strictly sequential.
 - Un-rewarded initial buy: no reward earned until cumS grows past `initialCumS[vault]`.
 - cumS ratchet: selling PSRE does not reduce cumS; rebuy must exceed prior peak.
-- Vault expiry after 52 inactive epochs (no cumS growth) prevents ghost vault accumulation.
 - cumS never resets on reactivation or deregistration; tied permanently to vault address.
 - New vault created by same partner address starts at cumS = 0.
 - Time-weighted staking prevents flash stake on staker pool.
@@ -1081,7 +1063,6 @@ assert cumS[vault] >= cumulativeRewardMinted[vault]  // effectiveCumS >= 0
 // qualified[vault] == false only while cumS[vault] == initialCumS[vault]
 //   (once qualified = true, never reverts to false)
 // owedPartner[vault] correctly zeroed after claim
-// VaultExpiry: consecutiveInactive[vault] accurately maintained (threshold = 52)
 ```
 
 ---
@@ -1096,7 +1077,6 @@ assert cumS[vault] >= cumulativeRewardMinted[vault]  // effectiveCumS >= 0
   PartnerVault maintains a running counter updated on every event.
 - No vesting ledger — eliminates the per-epoch per-vault vesting storage from v3.0.
   Rewards go directly to `owedPartner[vault]`.
-- Vault expiry tracking uses per-vault counter — O(1) per epoch per vault.
 - `snapshotEpoch()` is a single external call per vault per epoch — predictable gas.
 - `cumulativeRewardMinted` and `lastEffectiveCumS` are two additional uint256 slots per vault
   in RewardEngine — minimal storage overhead for the effectiveCumS deduction.
@@ -1223,7 +1203,6 @@ assert cumS[vault] >= cumulativeRewardMinted[vault]  // effectiveCumS >= 0
    - **effectiveCumS deduction: reward PSRE deposited into vault → cumulativeRewardMinted incremented → effectiveCumS unchanged → next epoch reward = 0.**
    - **effectiveCumS grows on new buy: new market buy raises cumS by X → effectiveCumS rises by X → reward generated.**
    - **No compounding: multi-epoch simulation confirms rewards do not self-amplify.**
-   - Vault expiry: zero cumS growth for 52 epochs → vault marked inactive.
    - Reactivation: inactive vault buys → cumS grows → vault reactivated; prior cumS preserved.
    - EMA update on deltaEffectiveCumS (not TWR, not raw deltaCumS).
    - Tier multipliers: Bronze = 0.8×, Silver = 1.0×, Gold = 1.2× of alphaBase.

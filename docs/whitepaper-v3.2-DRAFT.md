@@ -162,10 +162,8 @@ $\text{cumS}_p(N) = S_p(N)$ and serves as the natural entry cost for the partner
 The initial buy is not refundable and not rewarded, making it strictly an irrecoverable cost.
 The initial buy replaces any separate vault bond mechanism; there is no returnable bond.
 
-**Vault Expiry**
 
 PartnerVaults with no cumulative high-water-mark growth ($\Delta\text{cumS}_p = 0$) for
-52 consecutive epochs (~1 year) are automatically marked inactive. Expiry is **fully automatic and on-chain** — no governance action or off-chain step required. A `VaultPendingExpiry` event is emitted on-chain 4 epochs before deactivation as a machine-readable signal. Inactive vaults
 are excluded from epoch reward computation, freeing their registry slot.
 
 **Reactivation**
@@ -537,11 +535,6 @@ Only PSRE held in registered vaults (PartnerVault + registered CustomerVaults) c
 $S_{eco}$. PSRE transferred to unregistered addresses leaves the ecosystem and is excluded.
 Partners cannot game this by sending to self-owned unregistered wallets — the leakage
 is permanent (the PSRE must be repurchased from the market, raising cumS further).
-
-### 9.5 Vault Expiry
-
-PartnerVaults with no cumS growth for 52 consecutive epochs (~1 year) are automatically
-marked inactive, preventing ghost vault accumulation in the registry. The process is fully on-chain and automatic — a VaultPendingExpiry event at epoch 48 gives partners and monitoring services advance notice without requiring any governance intervention.
 
 ### 9.6 Scarcity Cap (Protocol-Level Defense)
 
