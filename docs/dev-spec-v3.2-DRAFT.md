@@ -614,18 +614,37 @@ Unchanged from v3.0 — transfers owed staker reward for epochId.
 
 ```solidity
 function _updateCumS() internal {
+    // Sync ecosystemBalance with actual on-chain PSRE balance.
+    // This captures buy() inflows AND any direct ERC-20 transfers into the vault
+    // (e.g., customer paying for goods by transferring PSRE to the partner vault address).
+    // Both sources of PSRE inflow are legitimate economic activity and count toward S_eco.
+    uint256 actualBalance = IERC20(psre).balanceOf(address(this));
+    if (actualBalance > ecosystemBalance) {
+        ecosystemBalance = actualBalance; // capture direct transfers not tracked by buy()
+    }
     if (ecosystemBalance > cumS) {
         cumS = ecosystemBalance;
     }
 }
 ```
 
-**Called after:** `buy()`, `reportLeakage()`, `transferOut()` (note: last two reduce
-ecosystemBalance but do NOT reduce cumS — the ratchet property is enforced by only
-calling `_updateCumS()` after increases, or equivalently by never decreasing cumS).
+**Called after:** `buy()`, `reportLeakage()`, `transferOut()`, and at epoch snapshot.
 
-Implementation note: `_updateCumS()` should only set `cumS = ecosystemBalance` if
-`ecosystemBalance > cumS`. It must never decrease cumS.
+**Key design property — direct ERC-20 transfers count:**
+`_updateCumS()` reads `psre.balanceOf(address(this))` to sync `ecosystemBalance` with
+the vault's actual PSRE balance. This means customers can pay partners for goods by
+sending PSRE directly to the PartnerVault address (standard ERC-20 `transfer()`).
+These payments increase the vault's real balance and are captured in `ecosystemBalance`
+at the next `_updateCumS()` call — most importantly, at epoch snapshot time.
+
+This creates a natural economic incentive: partners prefer customers to pay PSRE to their
+**vault address** (keeps S_eco high → cumS maintained → reward earned) rather than an
+**external wallet** (PSRE exits ecosystem → S_eco drops → must re-buy to earn again).
+No protocol rule enforces this — pure economic self-interest aligns the behavior.
+
+Implementation note: `_updateCumS()` may only increase cumS, never decrease it.
+The ratchet property is enforced by reading balance (which may go up from transfers or
+down from distributions) but only setting `cumS = ecosystemBalance` when `ecosystemBalance > cumS`.
 
 **At epoch finalize (called by RewardEngine via `snapshotEpoch()`):**
 
