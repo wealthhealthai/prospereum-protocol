@@ -165,8 +165,7 @@ The initial buy replaces any separate vault bond mechanism; there is no returnab
 **Vault Expiry**
 
 PartnerVaults with no cumulative high-water-mark growth ($\Delta\text{cumS}_p = 0$) for
-52 consecutive epochs (~1 year) are automatically marked inactive. Before triggering vault
-deactivation, governance issues an off-chain notification to the affected partner. Inactive vaults
+52 consecutive epochs (~1 year) are automatically marked inactive. Expiry is **fully automatic and on-chain** — no governance action or off-chain step required. A `VaultPendingExpiry` event is emitted on-chain 4 epochs before deactivation as a machine-readable signal. Inactive vaults
 are excluded from epoch reward computation, freeing their registry slot.
 
 **Reactivation**
@@ -542,8 +541,7 @@ is permanent (the PSRE must be repurchased from the market, raising cumS further
 ### 9.5 Vault Expiry
 
 PartnerVaults with no cumS growth for 52 consecutive epochs (~1 year) are automatically
-marked inactive, preventing ghost vault accumulation in the registry. Governance issues an
-off-chain notification to the affected partner before triggering deactivation.
+marked inactive, preventing ghost vault accumulation in the registry. The process is fully on-chain and automatic — a VaultPendingExpiry event at epoch 48 gives partners and monitoring services advance notice without requiring any governance intervention.
 
 ### 9.6 Scarcity Cap (Protocol-Level Defense)
 

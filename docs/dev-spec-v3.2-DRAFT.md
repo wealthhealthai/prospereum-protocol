@@ -32,7 +32,7 @@ Developer Specification v3.2
 - Minimum initial buy $S_{min}$: denominated in USDC — **$500 USDC** (S_MIN = 500e6 for
   6-decimal USDC). Factory validates `usdcAmountIn >= S_MIN` directly. No oracle needed.
 - Vault expiry: PartnerVaults with zero cumS growth for **52** consecutive epochs (~1 year)
-  become inactive. Governance sends off-chain notification before triggering deactivation.
+  become inactive. Emits VaultPendingExpiry event at epoch VAULT_EXPIRY_EPOCHS-4 as on-chain signal; no off-chain action required.
   Inactive vaults may reactivate by making a buy; cumS is preserved — never reset.
 - cumS is permanently tied to vault address. Deregistered vault cumS is preserved (effectively
   frozen); new vault created by same partner starts at cumS = 0.
@@ -130,7 +130,7 @@ REGISTRATION_FEE    = ~$50 USDC (non-refundable; paid to treasury at vault creat
 
 VAULT_EXPIRY_EPOCHS = 52  // consecutive epochs with zero cumS growth before auto-expiry
                           // (~1 year at 7-day epochs)
-                          // Governance sends off-chain notification before triggering deactivation.
+                          // Emits VaultPendingExpiry event at epoch VAULT_EXPIRY_EPOCHS-4 as on-chain signal; no off-chain action required.
 ```
 
 **Eliminated from v3.0:**
@@ -700,7 +700,7 @@ else:
     if consecutiveInactive[vault] >= VAULT_EXPIRY_EPOCHS:  // 52 epochs
         vaultActive[vault] = false
         emit VaultMarkedInactive(vault, epochId)
-        // Note: governance sends off-chain notification before this threshold is reached
+        // Note: VaultPendingExpiry(vault, expiresAtEpoch) event is emitted at epoch 48 (VAULT_EXPIRY_EPOCHS-4) as an on-chain warning signal. No governance action required.
 ```
 
 **Reactivation:** An inactive vault may call `buy()` at any time. On the next
