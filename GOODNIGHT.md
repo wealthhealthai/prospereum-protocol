@@ -2,46 +2,34 @@
 
 ## What Was Done Today
 
-**v3.2 contracts COMPLETE** — all 6 contracts rebuilt, 219/219 tests passing, all critical security issues resolved across 4 rounds of ADJUDICATOR review and 2 rounds of adversarial agent review.
+**v3.2 deployed to Base Sepolia ✅**
+- UPGRADE_TIMELOCK locked to 7 days (Jason decided)
+- 219/219 tests passing after timelock update
+- All 8 contracts deployed + Sourcify verified
+- deployments.md, decisions.md updated
+- Committed and pushed: `7e96ba9`
 
-**Security issues resolved:**
-- CustomerVault front-run (CRITICAL) ✅
-- UUPS upgrade timelock (CRITICAL) ✅
-- CV factory-origin check (MAJOR) ✅
-- maxCustomerVaults cap (MAJOR) ✅
-- UUPS upgradeable (MAJOR, spec compliance) ✅
-- renounceOwnership disabled (HIGH) ✅
-- CEI in withdraw() (MEDIUM) ✅
-- scheduleUpgrade isContract (MEDIUM) ✅
-
-**Repo cleaned up:** Private workspace files removed from public `prospereum-protocol` repo. `openclaw-kin-workspace` private repo created.
-
-**Public whitepaper:** `prospereum-whitepaper-public-v1.docx` — IP-protected, Proof of Prosperity.
-
-**Cantina outreach:** Submitted by Shu (web form + Twitter).
+**RewardEngine proxy (primary address):** `0xe668fE9DbCE8CBbc8b3590100e8c31aA12F5C697`
 
 ## In Progress
 
-- Waiting for Jason's go-ahead to deploy v3.2 to Base Sepolia testnet
-- Pending decision: upgrade timelock duration (2 days vs. 7 days)
+- Cantina audit pending — need to send them commit hash `7e96ba9`
+- No response from Cantina yet (outreach submitted 2026-03-26)
 
 ## Open Decisions
 
 | Decision | Raised |
 |---|---|
-| Upgrade timelock: 2 days vs 7 days | 2026-03-28 |
-| Testnet deploy go-ahead | 2026-03-28 |
+| Cantina audit response / backup (Sherlock/CodeHawks) | 2026-03-26 |
 | Gnosis Safe creation (Jason + Shu) | 2026-03-12 |
-| Cantina audit response | 2026-03-26 |
 
 ## Blockers
 
-- **Soft blocker:** Jason hasn't confirmed go-ahead for testnet deploy yet (just needs "go")
-- **Soft blocker:** Cantina hasn't responded; may need to contact Sherlock/CodeHawks as backup
+- **Soft blocker:** Cantina hasn't responded — if no response today, reach out to Sherlock or CodeHawks
+- **Hard blocker for mainnet:** Gnosis Safes (Founder Safe + Treasury Safe) not yet created
 
 ## Notes for Tomorrow
 
-1. **FIRST:** Confirm upgrade timelock (2 or 7 days) with Jason, then deploy to Base Sepolia
-2. Follow up Cantina — if no response by end of day, reach out to Sherlock or CodeHawks
-3. Jason to create Founder Safe + Treasury Safe (app.safe.global) — unblocks mainnet deploy script
-4. Update Cantina estimation commit with final v3.2 hash after testnet deploy
+1. **FIRST:** Follow up Cantina with commit hash `7e96ba9` — if no response, contact Sherlock/CodeHawks
+2. Jason + Shu create Gnosis Safes — unblocks mainnet deploy script
+3. Mainnet target: April 4–7 (after audit clears)
