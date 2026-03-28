@@ -61,6 +61,17 @@ These are FROZEN. Do not deviate without Jason's explicit approval.
 
 ---
 
+## ✅ SPEC APPROVED & FROZEN — 2026-03-27
+
+**Shu approved the v3.2 spec and whitepaper on 2026-03-27.**
+**Jason is aware. Shu authorized contract build to proceed without waiting for Jason's separate approval on this step.**
+**Dev spec:** `projects/prospereum/prospereum-dev-spec-v3.2.md` (frozen)
+**Whitepaper:** `projects/prospereum/prospereum-whitepaper-v3.2.md` (frozen)
+
+Contract rebuild begins immediately. Any spec changes after this point require Shu + Jason approval.
+
+---
+
 ## Completed Decisions — v3.2 Design Session (2026-03-18 to 2026-03-27)
 
 | Decision | Value | Decided By | Date |
