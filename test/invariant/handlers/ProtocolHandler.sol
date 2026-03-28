@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 import "../../../contracts/core/PSRE.sol";
 import "../../../contracts/core/PartnerVaultFactory.sol";
 import "../../../contracts/core/PartnerVault.sol";
+import "../../../contracts/core/CustomerVault.sol";
 import "../../../contracts/periphery/StakingVault.sol";
 import "../../../contracts/periphery/RewardEngine.sol";
 import "../../../contracts/interfaces/IPartnerVault.sol";
@@ -14,14 +15,16 @@ import "../mocks/MockERC20.sol";
 import "../mocks/MockRouter.sol";
 
 /**
- * @title ProtocolHandler
+ * @title ProtocolHandler v3.2
  * @notice Foundry invariant-test handler for the Prospereum protocol.
  *         Deploys a fully wired protocol in its constructor and exposes
  *         bounded action functions that the fuzzer can call in sequence.
  *
- * @dev The handler inherits from Test so it can use vm.prank / vm.warp.
- *      All actions use try/catch to swallow expected reverts (epoch cap,
- *      sequence errors, etc.) so the fuzzer continues rather than failing.
+ * @dev v3.2 changes from v2.3:
+ *      - factory.createVault() now takes (usdcAmountIn, minPsreOut, deadline, fee)
+ *      - ghost_lastCumBuy → ghost_lastCumS (uses getCumS())
+ *      - CustomerVault implementation required for factory
+ *      - S_MIN enforced: createVault needs >= 500e6 USDC
  */
 contract ProtocolHandler is Test {
 
@@ -51,18 +54,18 @@ contract ProtocolHandler is Test {
     // Ghost variables (tracked by handler; verified by invariants)
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice Last known cumBuy for each vault — updated after every successful buy
-    ///         and after every successful finalizeEpoch.  Used to verify monotonicity.
-    mapping(address => uint256) public ghost_lastCumBuy;
+    /// @notice Last known cumS for each vault — updated after every successful buy
+    ///         and after every successful finalizeEpoch. Used to verify monotonicity.
+    mapping(address => uint256) public ghost_lastCumS;
 
     /// @notice Number of epochs successfully finalized during this run.
-    ///         Invariant: rewardEngine.currentEpochId() >= ghost_lastEpoch.
     uint256 public ghost_lastEpoch;
 
     /// @notice Net PSRE deposited into StakingVault during this run.
-    ///         Handler never calls unstake, so this equals the staking vault's
-    ///         PSRE balance (useful for the solvency invariant).
     uint256 public ghost_totalPsreStaked;
+
+    // S_MIN constant (mirrors factory.S_MIN)
+    uint256 constant S_MIN = 500_000_000; // 500 USDC, 6 decimals
 
     // ─────────────────────────────────────────────────────────────────────────
     // Constructor: deploy & wire the full protocol
@@ -75,12 +78,11 @@ contract ProtocolHandler is Test {
         usdc = new MockERC20("USD Coin",     "USDC", 6);
         lp   = new MockERC20("PSRE/USDC LP", "PSLP", 18);
 
-        // ── PartnerVault implementation (cloned by factory) ──────────────────
-        PartnerVault vaultImpl = new PartnerVault();
+        // ── PartnerVault + CustomerVault implementations ──────────────────────
+        PartnerVault  vaultImpl = new PartnerVault();
+        CustomerVault cvImpl    = new CustomerVault();
 
         // ── PSRE token ────────────────────────────────────────────────────────
-        // Handler is admin, treasury, and teamVesting for test simplicity.
-        // Genesis mints 8.4 M PSRE to address(this); those tokens are inert here.
         psre = new PSRE(
             address(this), // admin
             address(this), // treasury  (receives 4.2 M genesis PSRE)
@@ -91,9 +93,10 @@ contract ProtocolHandler is Test {
         // ── Mock router — mints PSRE on every swap (no real pool needed) ─────
         router = new MockRouter(address(psre));
 
-        // ── PartnerVaultFactory ───────────────────────────────────────────────
+        // ── PartnerVaultFactory (v3.2: needs cvImpl as 2nd arg) ──────────────
         factory = new PartnerVaultFactory(
             address(vaultImpl),
+            address(cvImpl),
             address(psre),
             address(router),
             address(usdc),
@@ -124,7 +127,7 @@ contract ProtocolHandler is Test {
         // ── Grant MINTER_ROLE ─────────────────────────────────────────────────
         bytes32 MINTER_ROLE = psre.MINTER_ROLE();
         psre.grantRole(MINTER_ROLE, address(rewardEngine)); // mints at epoch finalization
-        psre.grantRole(MINTER_ROLE, address(router));       // mints on vault buys
+        psre.grantRole(MINTER_ROLE, address(router));       // mints on vault buys (MockRouter)
         psre.grantRole(MINTER_ROLE, address(this));         // handler mints for staking setup
 
         // ── Actors ────────────────────────────────────────────────────────────
@@ -136,7 +139,8 @@ contract ProtocolHandler is Test {
     // ─────────────────────────────────────────────────────────────────────────
     // Action 1: createVault
     // Pick an actor, create a PartnerVault for them if they don't have one yet.
-    // Capped at 5 vaults total.
+    // v3.2: factory.createVault(usdcAmountIn, minPsreOut, deadline, fee)
+    //       Actor must have >= S_MIN USDC and approve factory.
     // ─────────────────────────────────────────────────────────────────────────
 
     function createVault(uint256 actorSeed) external {
@@ -145,20 +149,27 @@ contract ProtocolHandler is Test {
         address actor = actors[actorSeed % actors.length];
         if (factory.vaultOf(actor) != address(0)) return; // actor already has a vault
 
+        // Mint S_MIN USDC to actor and approve factory (for initial buy)
+        usdc.mint(actor, S_MIN);
         vm.prank(actor);
-        try factory.createVault() returns (address vault) {
+        usdc.approve(address(factory), S_MIN);
+
+        vm.prank(actor);
+        try factory.createVault(
+            S_MIN,                      // usdcAmountIn = exactly S_MIN
+            1,                          // minPsreOut (MockRouter always produces > 0)
+            block.timestamp + 1 hours,
+            3000
+        ) returns (address vault) {
             vaults.push(vault);
+            ghost_lastCumS[vault] = IPartnerVault(vault).getCumS();
         } catch {}
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Action 2: executeBuy
     // Mint USDC to vault owner, approve the vault, call vault.buy().
-    // Updates ghost_lastCumBuy on success.
-    //
-    // NOTE: PartnerVault.buy() signature is:
-    //   buy(uint256 amountIn, uint256 minAmountOut, uint256 deadline, uint24 fee)
-    // minAmountOut must be > 0 (slippage protection enforced by vault).
+    // Updates ghost_lastCumS on success.
     // ─────────────────────────────────────────────────────────────────────────
 
     function executeBuy(uint256 vaultSeed, uint256 usdcAmount) external {
@@ -176,12 +187,12 @@ contract ProtocolHandler is Test {
         usdc.approve(vault, usdcAmount);
         try PartnerVault(vault).buy(
             usdcAmount,
-            1,                       // minAmountOut: must be > 0; router always produces > 0
+            1,                       // minAmountOut: must be > 0
             block.timestamp + 60,
-            3000                     // 0.3% fee tier (ignored by MockRouter)
+            3000
         ) {
-            // cumBuy is monotonically increasing — record last known value
-            ghost_lastCumBuy[vault] = IPartnerVault(vault).cumBuy();
+            // cumS is monotonically increasing — record last known value
+            ghost_lastCumS[vault] = IPartnerVault(vault).getCumS();
         } catch {}
         vm.stopPrank();
     }
@@ -189,14 +200,12 @@ contract ProtocolHandler is Test {
     // ─────────────────────────────────────────────────────────────────────────
     // Action 3: stakePSRE
     // Mint PSRE to actor, approve StakingVault, and stake.
-    // May silently skip if the PSRE epoch mint cap is exhausted.
     // ─────────────────────────────────────────────────────────────────────────
 
     function stakePSRE(uint256 actorSeed, uint256 amount) external {
         amount = bound(amount, 1e18, 1000e18);
         address actor = actors[actorSeed % actors.length];
 
-        // Mint PSRE to actor. May revert if PSRE epoch cap (25,200/epoch) is hit.
         bool minted = false;
         try psre.mint(actor, amount) {
             minted = true;
@@ -213,8 +222,6 @@ contract ProtocolHandler is Test {
 
     // ─────────────────────────────────────────────────────────────────────────
     // Action 4: advanceTime
-    // Warp forward 1 second to 8 days. Crossing a 7-day boundary moves the
-    // protocol into the next epoch, resetting PSRE's per-epoch mint cap.
     // ─────────────────────────────────────────────────────────────────────────
 
     function advanceTime(uint256 seconds_) external {
@@ -224,14 +231,9 @@ contract ProtocolHandler is Test {
 
     // ─────────────────────────────────────────────────────────────────────────
     // Action 5: snapshotAndFinalize
-    // Attempts to finalize the next sequential epoch.
-    // RewardEngine.finalizeEpoch() internally calls stakingVault.snapshotEpoch(),
-    // so there is no separate snapshot call needed here.
-    // On success: increments ghost_lastEpoch and refreshes ghost_lastCumBuy.
     // ─────────────────────────────────────────────────────────────────────────
 
     function snapshotAndFinalize() external {
-        // Determine the next epoch that needs finalization
         uint256 epochToFinalize;
         if (!rewardEngine.firstEpochFinalized()) {
             epochToFinalize = 0;
@@ -239,15 +241,14 @@ contract ProtocolHandler is Test {
             epochToFinalize = rewardEngine.lastFinalizedEpoch() + 1;
         }
 
-        // RewardEngine requires currentEpochId() > epochId before finalizing
         if (rewardEngine.currentEpochId() <= epochToFinalize) return;
 
         try rewardEngine.finalizeEpoch(epochToFinalize) {
             ghost_lastEpoch++;
 
-            // Refresh cumBuy snapshots for all known vaults
+            // Refresh cumS snapshots for all known vaults
             for (uint256 i = 0; i < vaults.length; i++) {
-                ghost_lastCumBuy[vaults[i]] = IPartnerVault(vaults[i]).cumBuy();
+                ghost_lastCumS[vaults[i]] = IPartnerVault(vaults[i]).getCumS();
             }
         } catch {}
     }
@@ -256,12 +257,10 @@ contract ProtocolHandler is Test {
     // View helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice Returns all deployed vault addresses for invariant iteration.
     function getVaults() external view returns (address[] memory) {
         return vaults;
     }
 
-    /// @notice Returns all actor addresses.
     function getActors() external view returns (address[] memory) {
         return actors;
     }

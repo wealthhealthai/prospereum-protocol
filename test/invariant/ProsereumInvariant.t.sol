@@ -5,27 +5,23 @@ import "forge-std/Test.sol";
 import "./handlers/ProtocolHandler.sol";
 
 /**
- * @title ProsereumInvariantTest
+ * @title ProsereumInvariantTest v3.2
  * @notice Phase 2 Foundry invariant (fuzz) tests for the Prospereum protocol.
  *
  * @dev The fuzzer randomly sequences calls to ProtocolHandler's action functions.
  *      Each invariant_* function is checked after every call sequence step.
  *
- *      Invariants verified:
+ *      Invariants verified (v3.2):
  *        1. PSRE total supply never exceeds the 21M hard cap.
- *        2. cumBuy for any vault never decreases (monotonically non-decreasing).
+ *        2. cumS for any vault never decreases (monotonically non-decreasing ratchet).
  *        3. RewardEngine's current epoch ID never goes backwards.
  *        4. StakingVault is solvent: its PSRE balance >= total PSRE staked via handler.
+ *        5. T (total minted by RE) never exceeds S_EMISSION (12.6M).
  *
  *      Configuration ([invariant] in foundry.toml):
  *        runs  = 50   — quick smoke-test; increase to 500+ for deeper coverage
  *        depth = 20   — calls per run
- *        fail_on_revert = false — legitimate reverts (epoch caps, sequence errors) are expected
- *
- *  FIXES vs. original spec:
- *    - cap()            → MAX_SUPPLY()   (PSRE has no cap() function; MAX_SUPPLY is a public constant)
- *    - currentEpoch()   → currentEpochId() (correct RewardEngine function name)
- *    - totalPsreRewards() → handler.ghost_totalPsreStaked() (StakingVault has no such getter)
+ *        fail_on_revert = false — legitimate reverts are expected
  */
 contract ProsereumInvariantTest is Test {
 
@@ -38,10 +34,6 @@ contract ProsereumInvariantTest is Test {
 
     // ─────────────────────────────────────────────────────────────────────────
     // Invariant 1: PSRE total supply never exceeds the 21M hard cap
-    //
-    // PSRE.MAX_SUPPLY = 21_000_000e18.
-    // Supply starts at 8.4M (genesis mint) and grows via RewardEngine minting.
-    // Any mint beyond MAX_SUPPLY would be a critical protocol bug.
     // ─────────────────────────────────────────────────────────────────────────
 
     function invariant_totalSupplyNeverExceedsCap() public view {
@@ -53,33 +45,28 @@ contract ProsereumInvariantTest is Test {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Invariant 2: cumBuy for any vault never decreases
+    // Invariant 2: cumS for any vault never decreases (ratchet property)
     //
-    // PartnerVault.cumBuy is incremented by buy() and never decremented.
-    // ghost_lastCumBuy[vault] records the last observed value after a buy or
-    // finalization. If cumBuy ever drops below that snapshot, this fires.
+    // v3.2: cumBuy replaced by cumS high-water-mark ratchet.
+    // ghost_lastCumS[vault] records the last observed cumS after each buy or
+    // finalization. cumS may only increase — any decrease is a critical bug.
     // ─────────────────────────────────────────────────────────────────────────
 
-    function invariant_cumBuyNeverDecreases() public view {
+    function invariant_cumSNeverDecreases() public view {
         address[] memory vaults = handler.getVaults();
         for (uint256 i = 0; i < vaults.length; i++) {
             address vault   = vaults[i];
-            uint256 current = IPartnerVault(vault).cumBuy();
+            uint256 current = IPartnerVault(vault).getCumS();
             assertGe(
                 current,
-                handler.ghost_lastCumBuy(vault),
-                "INVARIANT BROKEN: vault cumBuy decreased"
+                handler.ghost_lastCumS(vault),
+                "INVARIANT BROKEN: vault cumS decreased (ratchet violated)"
             );
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Invariant 3: Epoch counter only moves forward
-    //
-    // ghost_lastEpoch counts successfully finalized epochs (incremented by handler).
-    // rewardEngine.currentEpochId() is the time-based epoch counter.
-    // finalizeEpoch(N) requires currentEpochId() > N, so after N epochs are
-    // finalized, currentEpochId() must be >= ghost_lastEpoch.
     // ─────────────────────────────────────────────────────────────────────────
 
     function invariant_epochOnlyIncreases() public view {
@@ -91,13 +78,7 @@ contract ProsereumInvariantTest is Test {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Invariant 4: StakingVault solvency — PSRE balance >= total staked
-    //
-    // handler.ghost_totalPsreStaked tracks net PSRE deposited via stakePSRE()
-    // (handler never calls unstake, so this equals the vault's live balance).
-    // If vaultBalance < ghost_totalPsreStaked, PSRE has been lost — critical bug.
-    //
-    // Note: StakingVault has no totalPsreStaked() getter; ghost variable used instead.
+    // Invariant 4: StakingVault solvency
     // ─────────────────────────────────────────────────────────────────────────
 
     function invariant_stakingVaultSolvent() public view {
@@ -106,6 +87,18 @@ contract ProsereumInvariantTest is Test {
             vaultBalance,
             handler.ghost_totalPsreStaked(),
             "INVARIANT BROKEN: StakingVault PSRE balance < total staked (insolvent)"
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Invariant 5: RewardEngine total minted (T) never exceeds S_EMISSION
+    // ─────────────────────────────────────────────────────────────────────────
+
+    function invariant_totalMintedNeverExceedsEmission() public view {
+        assertLe(
+            handler.rewardEngine().T(),
+            handler.rewardEngine().S_EMISSION(),
+            "INVARIANT BROKEN: RewardEngine T > S_EMISSION"
         );
     }
 }

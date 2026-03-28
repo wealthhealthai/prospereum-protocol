@@ -5,6 +5,7 @@ import "forge-std/Script.sol";
 import "../contracts/core/PSRE.sol";
 import "../contracts/core/PartnerVault.sol";
 import "../contracts/core/PartnerVaultFactory.sol";
+import "../contracts/core/CustomerVault.sol";
 import "../contracts/periphery/StakingVault.sol";
 import "../contracts/periphery/RewardEngine.sol";
 import "../contracts/periphery/TeamVesting.sol";
@@ -92,13 +93,16 @@ contract DeployFork is Script {
         psre.transfer(address(router), 500_000e18);
         console.log("Router funded with 500,000 PSRE");
 
-        // ── 6. Deploy PartnerVault implementation ────────────────────────────
+        // ── 6. Deploy PartnerVault + CustomerVault implementations ───────────
         PartnerVault vaultImpl = new PartnerVault();
         console.log("PartnerVault impl: ", address(vaultImpl));
+        CustomerVault cvImpl = new CustomerVault();
+        console.log("CustomerVault impl:", address(cvImpl));
 
-        // ── 7. Deploy PartnerVaultFactory ────────────────────────────────────
+        // ── 7. Deploy PartnerVaultFactory (v3.2: +CustomerVault impl, S_MIN) ─
         PartnerVaultFactory factory = new PartnerVaultFactory(
             address(vaultImpl),
+            address(cvImpl),
             address(psre),
             address(router),
             address(usdc),
@@ -157,24 +161,32 @@ contract DeployFork is Script {
         require(supply == 8_400_000e18, "SMOKE FAIL: PSRE totalSupply != 8.4M");
         console.log("[PASS] PSRE totalSupply == 8.4M:", supply);
 
-        // ── (b) Create a PartnerVault via factory (partner = deployer) ────────
-        address vault = factory.createVault();
+        // ── (b) Create a PartnerVault via factory (v3.2: USDC → initial buy) ─
+        //    v3.2: createVault takes (usdcAmountIn, minPsreOut, deadline, fee)
+        //    S_MIN = 500e6 (500 USDC). Mint extra USDC to deployer for initial buy.
+        usdc.mint(deployer, 1_000_000e6);
+        usdc.approve(address(factory), type(uint256).max);
+        address vault = factory.createVault(
+            500_000_000,         // 500 USDC = S_MIN
+            1,                   // minPsreOut (mock router fixed output)
+            block.timestamp + 1 hours,
+            3000
+        );
         require(vault != address(0),                      "SMOKE FAIL: vault is zero");
         require(factory.vaultOf(deployer) == vault,       "SMOKE FAIL: vaultOf mismatch");
         console.log("[PASS] PartnerVault created:", vault);
 
-        // ── (c) Call buy() on the vault ───────────────────────────────────────
-        //    Mint USDC to deployer and approve vault
-        usdc.mint(deployer, 1_000_000e6);
+        // ── (c) Call buy() on the vault (v3.2: subsequent buy grows cumS) ─────
+        //    Note: initial buy already done by factory. This is a second buy.
         usdc.approve(vault, type(uint256).max);
-
         PartnerVault(vault).buy(100e6, 1, block.timestamp + 1 hours, 3000);
-        console.log("[PASS] buy() executed");
+        console.log("[PASS] buy() executed (second buy, grows cumS)");
 
-        // ── (d) Verify vault.cumBuy() == 1000e18 ─────────────────────────────
-        uint256 cumBuy = PartnerVault(vault).cumBuy();
-        require(cumBuy == PSRE_PER_BUY, "SMOKE FAIL: cumBuy != 1000e18");
-        console.log("[PASS] vault.cumBuy() == 1000 PSRE:", cumBuy);
+        // ── (d) Verify vault cumS > initialCumS (v3.2: cumS replaces cumBuy) ─
+        uint256 cumS_      = PartnerVault(vault).getCumS();
+        uint256 initCumS   = PartnerVault(vault).getInitialCumS();
+        require(cumS_ > initCumS, "SMOKE FAIL: cumS should be > initialCumS after second buy");
+        console.log("[PASS] vault.cumS() > initialCumS after buy:", cumS_);
 
         // ── (e) Stake 500e18 PSRE in StakingVault ────────────────────────────
         psre.approve(address(stakingVault), type(uint256).max);
@@ -215,16 +227,31 @@ contract DeployFork is Script {
         require(rewardEngine.epochFinalized(0), "SMOKE FAIL: epoch 0 not finalized");
         console.log("[PASS] Epoch 0 is marked finalized");
 
-        // ── (i) Call claimPartner(0, vault) and verify vault received PSRE ────
-        uint256 owed = rewardEngine.owedPartner(vault);
-        require(owed > 0, "SMOKE FAIL: owedPartner == 0 (no partner reward computed)");
-        console.log("[INFO] owedPartner:", owed);
+        // ── (i) v3.2: epoch 0 earns zero (vault not yet qualified) ──────────
+        //    In v3.2, the initial buy epoch earns ZERO reward.
+        //    First reward only when cumS > initialCumS (needs a second buy).
+        uint256 owed0 = rewardEngine.owedPartner(vault);
+        console.log("[INFO] owedPartner after epoch 0 (expected 0):", owed0);
+        require(owed0 == 0, "SMOKE FAIL: epoch 0 should earn zero (initial buy earns nothing)");
+        console.log("[PASS] Epoch 0 earns zero (correct v3.2 behavior)");
 
-        uint256 vaultBalBefore = psre.balanceOf(vault);
-        rewardEngine.claimPartner(0, vault);
-        uint256 vaultBalAfter = psre.balanceOf(vault);
-        require(vaultBalAfter - vaultBalBefore == owed, "SMOKE FAIL: vault PSRE balance mismatch after claim");
-        console.log("[PASS] Partner reward claimed, vault received PSRE:", vaultBalAfter - vaultBalBefore);
+        // Warp to epoch 1, finalize (second buy already happened in step c)
+        vm.warp(genesis + 2 * EPOCH + 1);
+        rewardEngine.finalizeEpoch(1);
+        console.log("[PASS] Epoch 1 finalized");
+
+        uint256 owed1 = rewardEngine.owedPartner(vault);
+        console.log("[INFO] owedPartner after epoch 1:", owed1);
+        require(owed1 > 0, "SMOKE FAIL: epoch 1 should earn reward (cumS > initialCumS from second buy)");
+        console.log("[PASS] First reward earned after qualification:", owed1);
+
+        // v3.2: claimPartnerReward(vault) — transfers to vault owner (deployer)
+        uint256 deployerBalBefore = psre.balanceOf(deployer);
+        rewardEngine.claimPartnerReward(vault);
+        uint256 deployerBalAfter = psre.balanceOf(deployer);
+        require(deployerBalAfter - deployerBalBefore == owed1,
+            "SMOKE FAIL: deployer PSRE balance mismatch after claim");
+        console.log("[PASS] Partner reward claimed to owner:", deployerBalAfter - deployerBalBefore);
 
         // ── (j) All assertions passed ─────────────────────────────────────────
         console.log("\n===========================================");

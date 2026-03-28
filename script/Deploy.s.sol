@@ -5,6 +5,7 @@ import "forge-std/Script.sol";
 import "../contracts/core/PSRE.sol";
 import "../contracts/core/PartnerVault.sol";
 import "../contracts/core/PartnerVaultFactory.sol";
+import "../contracts/core/CustomerVault.sol";
 import "../contracts/periphery/StakingVault.sol";
 import "../contracts/periphery/RewardEngine.sol";
 import "../contracts/periphery/TeamVesting.sol";
@@ -144,13 +145,16 @@ contract Deploy is Script {
         psre.transfer(address(teamVesting), 4_200_000e18);
         console.log("Team tokens transferred to TeamVesting");
 
-        // ── 4. Deploy PartnerVault implementation ────────────────────────────
+        // ── 4. Deploy PartnerVault + CustomerVault implementations ───────────
         PartnerVault vaultImpl = new PartnerVault();
         console.log("PartnerVault impl: ", address(vaultImpl));
+        CustomerVault cvImpl = new CustomerVault();
+        console.log("CustomerVault impl:", address(cvImpl));
 
-        // ── 5. Deploy PartnerVaultFactory ────────────────────────────────────
+        // ── 5. Deploy PartnerVaultFactory (v3.2: +CustomerVault impl, S_MIN) ─
         PartnerVaultFactory factory = new PartnerVaultFactory(
             address(vaultImpl),
+            address(cvImpl),
             address(psre),
             routerAddress,
             usdcAddress,

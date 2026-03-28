@@ -2,426 +2,464 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import "../contracts/core/PSRE.sol";
-import "../contracts/core/PartnerVault.sol";
 import "../contracts/core/PartnerVaultFactory.sol";
-import "../contracts/periphery/StakingVault.sol";
+import "../contracts/core/PartnerVault.sol";
+import "../contracts/core/CustomerVault.sol";
+import "../contracts/core/PSRE.sol";
 import "../contracts/periphery/RewardEngine.sol";
+import "../contracts/periphery/StakingVault.sol";
 import "./mocks/MockERC20.sol";
 import "./mocks/MockSwapRouter.sol";
 
-/// @dev End-to-end integration tests covering full epoch lifecycle.
+/**
+ * @title IntegrationTest v3.2
+ * @notice Full lifecycle integration test:
+ *         1. Deploy all contracts
+ *         2. Create vault (initial buy earns zero)
+ *         3. Deploy CustomerVaults
+ *         4. Grow ecosystem (buys, direct ERC-20 transfers)
+ *         5. First qualification → first reward
+ *         6. Ongoing rewards across multiple epochs
+ *         7. No reward compounding invariant
+ *         8. Vault wash-trade resistance: sell → rebuy required
+ *         9. Customer claims ownership + withdraws
+ *        10. Two vaults competing for rewards
+ */
 contract IntegrationTest is Test {
-    // ── Protocol stack ────────────────────────────────────────────────────
-    PSRE                public psre;
-    StakingVault        public stakingVault;
-    RewardEngine        public rewardEngine;
     PartnerVaultFactory public factory;
     PartnerVault        public vaultImpl;
+    CustomerVault       public cvImpl;
+    RewardEngine        public re;
+    StakingVault        public sv;
+    PSRE                public psre;
     MockERC20           public usdc;
+    MockERC20           public lpToken;
     MockSwapRouter      public router;
 
-    // ── Actors ────────────────────────────────────────────────────────────
-    address public admin    = makeAddr("admin");
-    address public treasury = makeAddr("treasury");
-    address public teamVest = makeAddr("teamVest");
-    address public partner1 = makeAddr("partner1");
-    address public partner2 = makeAddr("partner2");
-    address public staker1  = makeAddr("staker1");
-    address public staker2  = makeAddr("staker2");
+    address public admin      = makeAddr("admin");
+    address public treasury   = makeAddr("treasury");
+    address public teamVest   = makeAddr("teamVest");
+    address public partner    = makeAddr("partner");
+    address public partner2   = makeAddr("partner2");
+    address public customer1  = makeAddr("customer1");
+    address public other      = makeAddr("other");
 
+    uint256 public constant PSRE_PER_SWAP = 1000e18;
+    uint256 public constant S_MIN_USDC    = 500_000_000; // 500e6
     uint256 public genesis;
-    uint256 public constant EPOCH = 7 days;
-    uint256 public constant PSRE_PER_BUY = 1_000e18;
 
+    PartnerVault pv1;
+    PartnerVault pv2;
+
+    // ── Deploy full protocol ──────────────────────────────────────────────────
     function setUp() public {
         genesis = block.timestamp;
 
-        psre         = new PSRE(admin, treasury, teamVest, genesis);
-        usdc         = new MockERC20("USDC", "USDC", 6);
-        router       = new MockSwapRouter(address(psre), PSRE_PER_BUY);
-        vaultImpl    = new PartnerVault();
-        stakingVault = new StakingVault(address(psre), address(usdc), genesis, admin);
-        factory      = new PartnerVaultFactory(address(vaultImpl), address(psre), address(router), address(usdc), admin);
+        // Tokens
+        psre    = new PSRE(admin, treasury, teamVest, genesis);
+        usdc    = new MockERC20("USD Coin", "USDC", 6);
+        lpToken = new MockERC20("PSRE-USDC LP", "LP", 18);
+        router  = new MockSwapRouter(address(psre), PSRE_PER_SWAP);
+        deal(address(psre), address(router), 100_000_000e18);
 
-        rewardEngine = new RewardEngine(
-            address(psre), address(factory), address(stakingVault), genesis, admin
+        // Implementations
+        vaultImpl = new PartnerVault();
+        cvImpl    = new CustomerVault();
+
+        // StakingVault
+        sv = new StakingVault(address(psre), address(lpToken), genesis, admin);
+
+        // Factory
+        factory = new PartnerVaultFactory(
+            address(vaultImpl), address(cvImpl),
+            address(psre), address(router), address(usdc),
+            admin
         );
 
-        vm.prank(admin); stakingVault.setRewardEngine(address(rewardEngine));
-        vm.prank(admin); factory.setRewardEngine(address(rewardEngine));
+        // RewardEngine
+        re = new RewardEngine(
+            address(psre), address(factory), address(sv), genesis, admin
+        );
 
-        bytes32 minterRole = psre.MINTER_ROLE();
+        // Wire up
         vm.prank(admin);
-        psre.grantRole(minterRole, address(rewardEngine));
+        factory.setRewardEngine(address(re));
 
-        // Fund router with PSRE for swaps (bypass epoch cap using deal)
-        deal(address(psre), address(router), 500_000e18);
-
-        // Fund USDC for partners
-        usdc.mint(partner1, 1_000_000e6);
-        usdc.mint(partner2, 1_000_000e6);
-
-        // Fund PSRE for stakers
-        deal(address(psre), staker1, 10_000e18);
-        deal(address(psre), staker2, 10_000e18);
-
-        // Staker approvals
-        vm.prank(staker1); psre.approve(address(stakingVault), type(uint256).max);
-        vm.prank(staker2); psre.approve(address(stakingVault), type(uint256).max);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helper functions
-    // ─────────────────────────────────────────────────────────────────────────
-
-    function _registerPartner(address partner) internal returns (address vault) {
-        vm.prank(partner);
-        vault = factory.createVault();
-        vm.prank(partner);
-        usdc.approve(vault, type(uint256).max);
-    }
-
-    function _buy(address partner, uint256 times) internal {
-        address vault = factory.vaultOf(partner);
-        for (uint256 i = 0; i < times; i++) {
-            vm.prank(partner);
-            PartnerVault(vault).buy(100e6, 1, block.timestamp + 1 hours, 3000);
-        }
-    }
-
-    function _stakeAtStart(address staker, uint256 amount) internal {
-        vm.prank(staker);
-        stakingVault.stakePSRE(amount);
-    }
-
-    function _checkpointStaker(address staker) internal {
-        vm.prank(staker);
-        try stakingVault.unstakePSRE(1) {} catch {}
-    }
-
-    function _finalizeEpoch(uint256 epochId) internal {
-        vm.warp(genesis + (epochId + 1) * EPOCH + 1);
-        rewardEngine.finalizeEpoch(epochId);
-    }
-
-    function _finalizeEpochWithStakerCheckpoint(address staker, uint256 epochId) internal {
-        vm.warp(genesis + (epochId + 1) * EPOCH - 1);
-        _checkpointStaker(staker);
-        vm.warp(genesis + (epochId + 1) * EPOCH + 1);
-        rewardEngine.finalizeEpoch(epochId);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Test 1: Full epoch lifecycle
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// @dev register partner → buy PSRE → stake → finalize epoch → claim partner → claim staker
-    function test_fullEpochLifecycle() public {
-        // 1. Register partner1
-        address vault1 = _registerPartner(partner1);
-
-        // 2. partner1 buys PSRE in epoch 0
-        _buy(partner1, 1); // cumBuy = 1000 PSRE
-        assertEq(PartnerVault(vault1).cumBuy(), PSRE_PER_BUY);
-
-        // 3. staker1 stakes for epoch 0
-        _stakeAtStart(staker1, 1000e18);
-
-        // 4. Warp to epoch end, checkpoint staker at exact finalization time
-        vm.warp(genesis + EPOCH + 1);
-        _checkpointStaker(staker1); // checkpoint at exact finalization timestamp
-
-        // 5. Record stakeTime BEFORE snapshot (same timestamp as checkpoint)
-        vm.prank(staker1);
-        stakingVault.recordStakeTime(0);
-
-        // Finalize epoch 0 (snapshot at same timestamp — staker1 ST ≈ total ST)
-        rewardEngine.finalizeEpoch(0);
-        assertTrue(rewardEngine.epochFinalized(0), "epoch 0 should be finalized");
-
-        // 6. Partner1 claims
-        uint256 owedP = rewardEngine.owedPartner(vault1);
-        assertGt(owedP, 0, "partner1 should be owed tokens");
-        uint256 vault1BalBefore = psre.balanceOf(vault1);
-        rewardEngine.claimPartner(0, vault1);
-        assertEq(psre.balanceOf(vault1) - vault1BalBefore, owedP, "partner1 should receive exact owed");
-
-        // 7. Staker1 claims
-        uint256 staker1BalBefore = psre.balanceOf(staker1);
-        vm.prank(staker1);
-        rewardEngine.claimStake(0);
-        uint256 staker1Reward = psre.balanceOf(staker1) - staker1BalBefore;
-        assertGt(staker1Reward, 0, "staker1 should receive rewards");
-
-        // 8. Verify total minted = partner reward + staker reward
-        uint256 totalMinted = rewardEngine.epochMinted(0);
-        // minted covers at minimum the partner reward (staker pool only paid if totalStakeTime > 0)
-        assertGe(totalMinted, owedP, "minted should cover at least partner reward");
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Test 2: Multi-partner epoch — proportional rewards
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// @dev 2 partners with different buy volumes verify proportional rewards
-    function test_multiPartnerEpoch_proportionalRewards() public {
-        // Register both partners
-        address vault1 = _registerPartner(partner1);
-        address vault2 = _registerPartner(partner2);
-
-        // partner1 buys 3x, partner2 buys 1x (different volumes in same epoch)
-        vm.warp(genesis); // ensure we're in epoch 0
-        _buy(partner1, 3); // cumBuy = 3000 PSRE, deltaNB = 3000
-        _buy(partner2, 1); // cumBuy = 1000 PSRE, deltaNB = 1000
-
-        _finalizeEpoch(0);
-
-        uint256 owed1 = rewardEngine.owedPartner(vault1);
-        uint256 owed2 = rewardEngine.owedPartner(vault2);
-
-        // With same tier (both start at 0 R), reward ratio should be proportional to delta weights
-        // BUT: tier is determined by R share. Both have R computed from same deltaB.
-        // partner1's R_new is 3x partner2's R_new, so partner1 share > goldThreshold.
-        // The actual reward ratio depends on tiers.
-        // Key invariant: partner1 earns more than partner2 (3x volume, same or better tier)
-        assertGt(owed1, owed2, "partner1 (3x buys) should earn more than partner2 (1x buy)");
-
-        // Both should earn something
-        assertGt(owed1, 0, "partner1 should have non-zero reward");
-        assertGt(owed2, 0, "partner2 should have non-zero reward");
-
-        // Combined rewards = B_partners (since W = total weight)
-        uint256 B_partners = rewardEngine.epochPartnersPool(0);
-        assertEq(owed1 + owed2, B_partners, "partner rewards should sum to B_partners");
-
-        // Claim both
-        rewardEngine.claimPartner(0, vault1);
-        rewardEngine.claimPartner(0, vault2);
-        assertGt(psre.balanceOf(vault1), psre.balanceOf(vault2), "vault1 should hold more PSRE than vault2");
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Test 3: EMA tier progression — Bronze → Silver after 13+ epochs
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// @dev Partner buys consistently for 13+ epochs → reaches Silver tier
-    function test_EMA_tierProgression_bronzeToSilver() public {
-        // Setup: partner1 + partner2 with dramatically different volumes
-        // partner2 buys a LOT to dominate sumR, making partner1 Bronze.
-        // partner1 then gradually builds up to Silver.
-        //
-        // Strategy: single partner (partner1) in isolation grows their R over 13 epochs.
-        // With a single partner sumR = R[vault1], share = 100% → Gold immediately.
-        //
-        // To test Bronze→Silver progression, we need 2 partners where partner2 dominates.
-        // This makes partner1's share small (Bronze), then we stop partner2 buying,
-        // so EMA decays partner2's R while partner1's grows.
-        //
-        // Simplified: use partner1 alone. After 13 epochs EMA converges.
-        // theta = 1/13 ≈ 7.7%. After 13 epochs R ≈ 63% of steady-state.
-        // With single partner: always Gold (100% share).
-        //
-        // For Bronze→Silver test: we need sumR to be large (dominated by partner2)
-        // so that partner1's share crosses silverThreshold (0.5%) but not goldThreshold (2%).
-
-        address vault1 = _registerPartner(partner1);
-        address vault2 = _registerPartner(partner2);
-
-        // Epoch 0: both buy; partner2 buys HEAVILY (50x) to dominate sumR
-        vm.warp(genesis);
-        _buy(partner1, 1);  // deltaNB = 1000 (small)
-        _buy(partner2, 50); // deltaNB = 50,000 (huge)
-        _finalizeEpoch(0);
-
-        // After epoch 0:
-        // R1 = theta * 1000 = 76923...
-        // R2 = theta * 50000 = 3846...e18
-        // sumR ≈ R2 (dominated by partner2)
-        // partner1 share = R1/sumR ≈ 1/50 = 2% → Gold!
-        // Actually 2% exactly == goldThreshold (0.02e18), need to check >=
-
-        // Run 13 more epochs where only partner1 buys (partner2 stops)
-        for (uint256 i = 1; i <= 13; i++) {
-            vm.warp(genesis + i * EPOCH);
-            _buy(partner1, 1); // only partner1 buys; partner2 R decays via EMA
-            _finalizeEpoch(i);
-        }
-
-        // After 13 epochs of partner1 buying and partner2 not buying,
-        // partner2's R has decayed significantly (exponential decay with theta=1/13)
-        // partner1's R has grown
-        // Eventually partner1's share should exceed silverThreshold (0.5%)
-
-        // The assertion: partner1's currentAlpha > Bronze rate
-        // We verify by checking owedPartner after epoch 13 is proportionally higher
-        // per unit of buy than it was in epoch 0 (when they were likely Bronze)
-
-        // Final verification: run epoch 14 with partner1 buying, check reward rate
-        vm.warp(genesis + 14 * EPOCH);
-        _buy(partner1, 1);
-        vm.warp(genesis + 15 * EPOCH + 1);
-        rewardEngine.finalizeEpoch(14);
-
-        uint256 owed = rewardEngine.owedPartner(vault1);
-        uint256 alphaBase = rewardEngine.alphaBase();
-        uint256 PREC = 1e18;
-
-        // With Silver tier: effective rate = alphaBase * mSilver = 8% * 1.25 = 10%
-        // demand_silver = 0.10 * 1000e18 = 100e18
-        // B_partners_silver = 70% * 100 = 70e18
-        // With Gold: 84e18. With Bronze: 56e18.
-        // owed should be > Bronze level (56) as partner1 R has grown
-        uint256 bronzeOwnedWouldBe = (alphaBase * rewardEngine.mBronze() / PREC) * PSRE_PER_BUY / PREC * 70 / 100;
-
-        // At minimum, partner1 has grown past pure Bronze (regardless of partner2 sharing pool)
-        // The key check: partner1's weight in epoch 14 reflects EMA tier progression
-        // We verify partner1 R state has accumulated
-        uint256 R1 = rewardEngine.R(vault1);
-        uint256 R2 = rewardEngine.R(vault2);
-        assertGt(R1, 0, "partner1 R should be > 0 after buying");
-        // Note: with partner2 starting at 50x delta, R2 still exceeds R1 after 13 epochs.
-        // The important metric is share crossing silverThreshold, not absolute R1 > R2.
-        assertGt(R2, 0, "partner2 R should have decayed but still be > 0");
-
-        // partner1's share of sumR after 13 epochs should be significant
-        uint256 sumR = rewardEngine.sumR();
-        uint256 p1Share = (R1 * PREC) / sumR;
-
-        // After 13+ epochs, partner1 share should cross silverThreshold (0.5%)
-        uint256 silverThreshold = rewardEngine.silverThreshold();
-        assertGe(p1Share, silverThreshold, "partner1 should reach at least Silver tier after 13 epochs");
-
-        // Unused but included for completeness
-        assertGt(owed, 0, "partner1 earned rewards in epoch 14");
-        assertGe(bronzeOwnedWouldBe, 0);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Test 4: Two stakers — proportional claim
-    // ─────────────────────────────────────────────────────────────────────────
-
-    function test_twoStakers_proportionalClaims() public {
-        _registerPartner(partner1);
-        _buy(partner1, 1);
-
-        // staker1 stakes 2x more than staker2
-        _stakeAtStart(staker1, 2000e18);
-        _stakeAtStart(staker2, 1000e18);
-
-        // Checkpoint both before epoch ends
-        vm.warp(genesis + EPOCH - 1);
-        _checkpointStaker(staker1);
-        _checkpointStaker(staker2);
-
-        vm.warp(genesis + EPOCH + 1);
-        rewardEngine.finalizeEpoch(0);
-
-        // Record stakeTime
-        vm.prank(staker1); stakingVault.recordStakeTime(0);
-        vm.prank(staker2); stakingVault.recordStakeTime(0);
-
-        uint256 st1 = stakingVault.stakeTimeOf(staker1, 0);
-        uint256 st2 = stakingVault.stakeTimeOf(staker2, 0);
-
-        // staker1 should have ~2x the stakeTime of staker2
-        assertApproxEqRel(st1, st2 * 2, 0.001e18, "staker1 stakeTime should be ~2x staker2");
-
-        uint256 bal1Before = psre.balanceOf(staker1);
-        uint256 bal2Before = psre.balanceOf(staker2);
-
-        vm.prank(staker1); rewardEngine.claimStake(0);
-        vm.prank(staker2); rewardEngine.claimStake(0);
-
-        uint256 reward1 = psre.balanceOf(staker1) - bal1Before;
-        uint256 reward2 = psre.balanceOf(staker2) - bal2Before;
-
-        assertGt(reward1, reward2, "staker1 should earn more (2x stake)");
-        assertApproxEqRel(reward1, reward2 * 2, 0.001e18, "staker1 reward should be ~2x staker2");
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Test 5: Sequential epoch finalization over multiple epochs
-    // ─────────────────────────────────────────────────────────────────────────
-
-    function test_multipleEpochs_sequential() public {
-        address vault1 = _registerPartner(partner1);
-
-        for (uint256 i = 0; i < 5; i++) {
-            vm.warp(genesis + i * EPOCH + 1);
-            _buy(partner1, 1);
-            _finalizeEpoch(i);
-            assertTrue(rewardEngine.epochFinalized(i), string.concat("epoch ", vm.toString(i), " should be finalized"));
-        }
-
-        // Total T should still be bounded
-        assertLe(rewardEngine.T(), rewardEngine.S_EMISSION());
-
-        // Claim accumulated partner rewards (owedPartner accumulates across epochs)
-        uint256 owed = rewardEngine.owedPartner(vault1);
-        assertGt(owed, 0, "partner1 should have accumulated rewards over 5 epochs");
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Test 6: pauseEpochFinalization does not break existing claims
-    // ─────────────────────────────────────────────────────────────────────────
-
-    function test_pause_doesNotBreakExistingClaims() public {
-        address vault1 = _registerPartner(partner1);
-        _buy(partner1, 1);
-        _finalizeEpoch(0);
-
-        // Pause
         vm.prank(admin);
-        rewardEngine.pause();
+        sv.setRewardEngine(address(re));
 
-        // Claims still work while paused
-        uint256 owed = rewardEngine.owedPartner(vault1);
-        assertGt(owed, 0);
-        rewardEngine.claimPartner(0, vault1);
-        assertEq(rewardEngine.owedPartner(vault1), 0);
+        // Grant MINTER_ROLE to RewardEngine
+        vm.startPrank(admin);
+        psre.grantRole(psre.MINTER_ROLE(), address(re));
+        vm.stopPrank();
+
+        // Fund partners
+        usdc.mint(partner,  100_000e6);
+        usdc.mint(partner2, 100_000e6);
+        vm.prank(partner);
+        usdc.approve(address(factory), type(uint256).max);
+        vm.prank(partner2);
+        usdc.approve(address(factory), type(uint256).max);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Test 7: distribute from vault after rewards claimed
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    function test_partnerCanDistributeAfterClaim() public {
-        address vault1 = _registerPartner(partner1);
-        _buy(partner1, 1);
-        _finalizeEpoch(0);
-        rewardEngine.claimPartner(0, vault1);
-
-        uint256 vaultBal = psre.balanceOf(vault1);
-        assertGt(vaultBal, 0, "vault should have PSRE after claim");
-
-        // Partner distributes to themselves
-        vm.prank(partner1);
-        PartnerVault(vault1).distribute(partner1, vaultBal);
-        assertEq(psre.balanceOf(partner1), vaultBal);
-        assertEq(psre.balanceOf(vault1), 0);
+    function _advanceAndFinalize(uint256 epochId) internal {
+        vm.warp(genesis + (epochId + 1) * 7 days + 1);
+        re.finalizeEpoch(epochId);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Test 8: EMA tier progression — single partner always Gold (edge case doc)
-    // ─────────────────────────────────────────────────────────────────────────
+    function _buyViaBuy(address _partner, PartnerVault pv, uint256 psreAmt) internal {
+        router.setPsreOut(psreAmt);
+        usdc.mint(_partner, 100e6);
+        vm.prank(_partner);
+        usdc.approve(address(pv), type(uint256).max);
+        vm.prank(_partner);
+        pv.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+    }
 
-    function test_singlePartner_alwaysGold() public {
-        address vault1 = _registerPartner(partner1);
+    // ── Test: Full lifecycle ───────────────────────────────────────────────────
 
-        for (uint256 i = 0; i < 3; i++) {
-            vm.warp(genesis + i * EPOCH + 1);
-            _buy(partner1, 1);
-            _finalizeEpoch(i);
+    /**
+     * @notice Full lifecycle: deploy, initial buy, qualify, earn, claim, repeat.
+     */
+    function test_fullLifecycle_singlePartner() public {
+        // ── 1. Create vault (initial buy = S_MIN_USDC) ──────────────────────
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
+
+        // Verify initial state
+        assertEq(pv1.initialCumS(), PSRE_PER_SWAP, "initialCumS = initial buy");
+        assertEq(pv1.cumS(),        PSRE_PER_SWAP, "cumS starts at initialCumS");
+        assertFalse(pv1.qualified(), "not qualified initially");
+
+        // ── 2. Epoch 0: initial buy — earns ZERO reward ──────────────────────
+        _advanceAndFinalize(0);
+        assertEq(re.owedPartner(vaultAddr), 0, "initial buy epoch earns zero");
+        assertFalse(re.qualified(vaultAddr));
+
+        // ── 3. Partner buys more PSRE → cumS grows above initialCumS ─────────
+        _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+        uint256 cumSAfterBuy = pv1.cumS();
+        assertGt(cumSAfterBuy, pv1.initialCumS(), "cumS > initialCumS after buy");
+
+        // ── 4. Epoch 1: first qualification → first reward ───────────────────
+        _advanceAndFinalize(1);
+        assertTrue(re.qualified(vaultAddr), "vault should be qualified after epoch 1");
+        uint256 firstReward = re.owedPartner(vaultAddr);
+        assertGt(firstReward, 0, "first reward should be > 0");
+
+        // ── 5. Claim first reward ─────────────────────────────────────────────
+        uint256 balBefore = psre.balanceOf(partner);
+        vm.prank(partner);
+        re.claimPartnerReward(vaultAddr);
+        assertEq(psre.balanceOf(partner), balBefore + firstReward);
+        assertEq(re.owedPartner(vaultAddr), 0);
+
+        // ── 6. Epoch 2: another buy, another reward ───────────────────────────
+        _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+        _advanceAndFinalize(2);
+        uint256 reward2 = re.owedPartner(vaultAddr);
+        assertGt(reward2, 0, "epoch 2 reward > 0");
+
+        // ── 7. Epoch 3: no buy → flat epoch → zero reward ────────────────────
+        _advanceAndFinalize(3);
+        uint256 reward3 = re.owedPartner(vaultAddr);
+        assertEq(reward3, reward2, "flat epoch adds zero reward");
+
+        // ── 8. Claim accumulated rewards ─────────────────────────────────────
+        vm.prank(partner);
+        re.claimPartnerReward(vaultAddr);
+        assertEq(psre.balanceOf(partner), firstReward + reward2, "partner receives all rewards");
+    }
+
+    /**
+     * @notice CustomerVault lifecycle: deploy CV, distribute, customer claims, withdraws.
+     */
+    function test_customerVault_lifecycle() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
+
+        // ── Deploy CustomerVault ─────────────────────────────────────────────
+        vm.prank(partner);
+        address cvAddr = factory.deployCustomerVault(vaultAddr, customer1);
+        CustomerVault cv = CustomerVault(cvAddr);
+
+        // ── Grow ecosystem: buy PSRE ──────────────────────────────────────────
+        _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+
+        // ── Distribute to CustomerVault ──────────────────────────────────────
+        uint256 dist = 300e18;
+        vm.prank(partner);
+        pv1.distributeToCustomer(cvAddr, dist);
+        assertEq(psre.balanceOf(cvAddr), dist, "CV should hold distributed PSRE");
+
+        // Distributing doesn't change ecosystemBalance (PSRE stays in ecosystem)
+        assertEq(pv1.ecosystemBalance(), PSRE_PER_SWAP + PSRE_PER_SWAP,
+            "ecosystemBalance unchanged by distribution");
+
+        // ── Customer claims vault ownership ──────────────────────────────────
+        vm.prank(customer1);
+        cv.claimVault(customer1);
+        assertTrue(cv.customerClaimed());
+        assertEq(cv.customer(), customer1);
+
+        // ── Customer withdraws PSRE ──────────────────────────────────────────
+        uint256 customerBalBefore = psre.balanceOf(customer1);
+        uint256 ecoBefore         = pv1.ecosystemBalance();
+
+        vm.prank(customer1);
+        cv.withdraw(dist);
+
+        assertEq(psre.balanceOf(customer1), customerBalBefore + dist);
+        assertEq(psre.balanceOf(cvAddr), 0);
+        // ecosystemBalance should have decreased via reportLeakage
+        assertEq(pv1.ecosystemBalance(), ecoBefore - dist,
+            "withdrawal reduces parent ecosystemBalance");
+        // cumS ratchet holds
+        assertEq(pv1.cumS(), PSRE_PER_SWAP * 2, "cumS ratchet holds after withdrawal");
+    }
+
+    /**
+     * @notice No compounding: reward PSRE deposited back into vault should not amplify rewards.
+     */
+    function test_noCompounding_invariant() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
+
+        _advanceAndFinalize(0);
+        _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+        _advanceAndFinalize(1); // qualifies, earns reward
+
+        uint256 reward1 = re.owedPartner(vaultAddr);
+        assertGt(reward1, 0);
+
+        // Partner claims reward
+        vm.prank(partner);
+        re.claimPartnerReward(vaultAddr);
+
+        // Partner sends the reward PSRE back into the vault (compounding attempt)
+        uint256 rewardReceived = psre.balanceOf(partner);
+        vm.prank(partner);
+        IERC20(address(psre)).transfer(vaultAddr, rewardReceived);
+
+        // Advance epoch — the "re-deposited reward" might bump cumS, but
+        // cumulativeRewardMinted deducts it from effectiveCumS
+        _advanceAndFinalize(2);
+
+        uint256 reward2 = re.owedPartner(vaultAddr);
+        // reward2 should be approximately zero because:
+        //   effectiveCumS before = lastEffectiveCumS
+        //   cumS increased by rewardReceived (direct transfer)
+        //   but cumulativeRewardMinted also increased by reward1
+        //   so effectiveCumS ≈ unchanged → delta ≈ 0
+
+        // Allow a small amount from rounding, but not multiplicative amplification
+        uint256 maxAllowedCompound = reward1 / 10; // no more than 10% of first reward
+        assertLe(reward2, maxAllowedCompound,
+            "compounding attempt should not significantly amplify rewards");
+    }
+
+    /**
+     * @notice Wash-trade resistance: sell → cumS ratchet holds → must rebuy past peak to earn.
+     */
+    function test_washTradeResistance() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
+
+        _advanceAndFinalize(0);
+        _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+
+        uint256 cumSPeak = pv1.cumS();
+        _advanceAndFinalize(1); // earns first reward
+
+        uint256 reward1 = re.owedPartner(vaultAddr);
+        assertGt(reward1, 0);
+
+        // ── Simulated "sell": partner transfers out PSRE (exits ecosystem) ───
+        uint256 ownBalance = psre.balanceOf(vaultAddr);
+        vm.prank(partner);
+        pv1.transferOut(other, ownBalance);
+
+        // cumS ratchet holds at peak
+        assertEq(pv1.cumS(), cumSPeak, "cumS ratchet holds after sell");
+
+        // Epoch 2: no cumS growth → no reward
+        _advanceAndFinalize(2);
+        uint256 reward2 = re.owedPartner(vaultAddr);
+        assertEq(reward2, reward1, "after sell without rebuy, no new reward");
+
+        // ── Rebuy past the peak ──────────────────────────────────────────────
+        // Buy just past the peak to get cumS > lastEpochCumS
+        uint256 rebuyAmt = cumSPeak + 100e18; // slightly more than peak
+        _buyViaBuy(partner, pv1, rebuyAmt);
+
+        assertGt(pv1.cumS(), cumSPeak, "rebuy must bring cumS past prior peak");
+
+        _advanceAndFinalize(3);
+        uint256 reward3 = re.owedPartner(vaultAddr);
+        assertGt(reward3, reward1, "new reward after rebuy past peak");
+    }
+
+    /**
+     * @notice Direct ERC-20 transfer to vault address counts as S_eco growth.
+     */
+    function test_directTransfer_countedInSEco() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
+
+        _advanceAndFinalize(0);
+
+        // Customer pays partner directly via ERC-20 transfer to vault address
+        uint256 directPmt = 600e18;
+        deal(address(psre), customer1, directPmt);
+        vm.prank(customer1);
+        IERC20(address(psre)).transfer(vaultAddr, directPmt);
+
+        // Epoch 1: snapshotEpoch detects direct transfer → cumS grows → qualifies
+        _advanceAndFinalize(1);
+
+        assertTrue(re.qualified(vaultAddr), "direct ERC-20 transfer should trigger qualification");
+        assertGt(re.owedPartner(vaultAddr), 0, "direct transfer should earn reward");
+    }
+
+    /**
+     * @notice S_MIN enforcement: vault creation reverts below $500 USDC.
+     */
+    function test_sMin_enforcement() public {
+        uint256 below = 499_000_000; // 499 USDC < S_MIN
+
+        vm.prank(partner);
+        vm.expectRevert("Factory: below S_MIN ($500 USDC)");
+        factory.createVault(below, 1, block.timestamp + 1 hours, 3000);
+    }
+
+    /**
+     * @notice Two vaults: reward split proportional to effectiveCumS delta.
+     */
+    function test_twoVaults_proportionalRewards() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+
+        vm.prank(partner);
+        address vault1 = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vault1);
+
+        vm.prank(partner2);
+        address vault2 = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv2 = PartnerVault(vault2);
+
+        _advanceAndFinalize(0);
+
+        // pv1 buys 2× more than pv2
+        _buyViaBuy(partner,  pv1, PSRE_PER_SWAP * 2);
+        _buyViaBuy(partner2, pv2, PSRE_PER_SWAP);
+
+        _advanceAndFinalize(1);
+
+        uint256 owed1 = re.owedPartner(vault1);
+        uint256 owed2 = re.owedPartner(vault2);
+
+        assertGt(owed1, 0);
+        assertGt(owed2, 0);
+        // pv1 should earn approximately 2× pv2 (both Bronze tier, same multiplier)
+        // owed1 / owed2 ≈ 2 (allow ±5% tolerance)
+        uint256 ratio = (owed1 * 100) / owed2;
+        assertGe(ratio, 190, "pv1 should earn ~2x pv2 (with 5% tolerance)");
+        assertLe(ratio, 210, "pv1 should earn ~2x pv2 (with 5% tolerance)");
+    }
+
+    /**
+     * @notice Invariant: cumS >= initialCumS at all times.
+     */
+    function test_invariant_cumSAlwaysGeInitialCumS() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
+
+        uint256 initCumS = pv1.initialCumS();
+
+        // Multiple operations
+        _advanceAndFinalize(0);
+        _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+        _advanceAndFinalize(1);
+        uint256 sellAmt = psre.balanceOf(vaultAddr);
+        vm.prank(partner);
+        pv1.transferOut(other, sellAmt); // sell all
+        _advanceAndFinalize(2);
+        _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+        _advanceAndFinalize(3);
+
+        // cumS should always be >= initialCumS
+        assertGe(pv1.cumS(), initCumS, "cumS >= initialCumS at all times");
+    }
+
+    /**
+     * @notice Invariant: T (total minted) never exceeds S_EMISSION.
+     */
+    function test_invariant_totalMintedNeverExceedsEmission() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
+
+        for (uint256 eid = 0; eid <= 10; eid++) {
+            if (eid > 0) _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+            _advanceAndFinalize(eid);
+            assertLe(re.T(), re.S_EMISSION(), "T <= S_EMISSION");
         }
+    }
 
-        // Single partner: R1/sumR = 1.0 → always Gold
-        uint256 R1   = rewardEngine.R(vault1);
-        uint256 sumR = rewardEngine.sumR();
-        assertEq(R1, sumR, "single partner should have 100% of sumR");
+    /**
+     * @notice effectiveCumS >= 0 at all times.
+     */
+    function test_invariant_effectiveCumSNonNegative() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
 
-        uint256 share = (R1 * 1e18) / sumR;
-        assertEq(share, 1e18, "single partner share = 100%");
-        assertGe(share, rewardEngine.goldThreshold(), "100% >= goldThreshold");
+        for (uint256 eid = 0; eid <= 5; eid++) {
+            if (eid > 0 && eid % 2 == 0) _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+            _advanceAndFinalize(eid);
+            assertGe(re.effectiveCumSOf(vaultAddr), 0, "effectiveCumS >= 0");
+        }
+    }
+
+    /**
+     * @notice cumulativeRewardMinted is monotonically non-decreasing.
+     */
+    function test_invariant_cumulativeRewardMintedNonDecreasing() public {
+        router.setPsreOut(PSRE_PER_SWAP);
+        vm.prank(partner);
+        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        pv1 = PartnerVault(vaultAddr);
+
+        uint256 prevCrm = 0;
+        for (uint256 eid = 0; eid <= 5; eid++) {
+            if (eid > 0) _buyViaBuy(partner, pv1, PSRE_PER_SWAP);
+            _advanceAndFinalize(eid);
+
+            uint256 crm = re.cumulativeRewardMinted(vaultAddr);
+            assertGe(crm, prevCrm, "cumulativeRewardMinted is non-decreasing");
+            prevCrm = crm;
+        }
+    }
+
+    /**
+     * @notice Factory S_MIN constant is correct (500 USDC, 6 decimals).
+     */
+    function test_factorySMin_isCorrect() public view {
+        assertEq(factory.S_MIN(), 500_000_000);
     }
 }
