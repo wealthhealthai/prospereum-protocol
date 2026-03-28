@@ -92,6 +92,8 @@ Contract rebuild begins immediately. Any spec changes after this point require S
 | Tier floor for enterprise | None. Every partner earns their tier via EMA regardless of platform or commitment size. Protocol is fair and consistent. | Shu | 2026-03-26 |
 | Primary anti-spam mechanism | Reward qualification conditions (no reward on S(N), cumS(M)>S(N) required). NOT the scarcity cap. | Shu | 2026-03-26 |
 | External audit | Yes, required before mainnet. Cantina private review, budget $5-8K. Outreach submitted 2026-03-26. | Shu | 2026-03-26 |
+| UPGRADE_TIMELOCK duration | 7 days. Rationale: Cantina would flag 2 days; RewardEngine upgrades should be rare; stronger security posture at mainnet launch. | Jason | 2026-03-28 |
+| v3.2 Base Sepolia testnet deploy | Deploy green-lit by Jason 2026-03-28. All 8 contracts deployed + Sourcify verified. RewardEngine proxy: `0xe668fE9DbCE8CBbc8b3590100e8c31aA12F5C697` | Jason | 2026-03-28 |
 | Launch target | Mainnet ~April 4-7, 2026. Base Sepolia testnet March 28 (post v3.2 rebuild). | Shu | 2026-03-26 |
 | v3.2 contract rebuild | Full rebuild required. v2.3 contracts (deployed on Base Sepolia) are superseded. Rebuild starts after Jason + Shu approve v3.2 spec. | Kin | 2026-03-26 |
 | finalizeEpoch gas ceiling | At max scale (200 vaults × 1000 CVs = 200K balanceOf calls ≈ 420M gas), a single finalizeEpoch() transaction would exceed block limits. Mitigation before mainnet scale: paginated epoch finalization (split across multiple transactions) or off-chain keeper with merkle proof pattern. Not a current concern at launch scale. | Kin | 2026-03-27 |

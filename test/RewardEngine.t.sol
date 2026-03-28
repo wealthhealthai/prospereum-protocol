@@ -735,7 +735,7 @@ contract RewardEngineTest is Test {
         vm.prank(admin);
         re.scheduleUpgrade(impl);
 
-        vm.warp(block.timestamp + 2 days + 1);
+        vm.warp(block.timestamp + 7 days + 1);
 
         vm.prank(admin);
         vm.expectRevert("RE: upgrade not scheduled");
@@ -748,8 +748,8 @@ contract RewardEngineTest is Test {
         vm.prank(admin);
         re.scheduleUpgrade(impl);
 
-        // Warp exactly 2 days + 1 second past schedule time
-        vm.warp(block.timestamp + 2 days + 1);
+        // Warp exactly 7 days + 1 second past schedule time
+        vm.warp(block.timestamp + 7 days + 1);
 
         // Upgrade should now succeed
         vm.prank(admin);
@@ -773,15 +773,15 @@ contract RewardEngineTest is Test {
         assertEq(re.pendingUpgrade(), address(0));
         assertEq(re.upgradeTimestamp(), 0);
 
-        // Even after 2 days, the upgrade should revert (no longer scheduled)
-        vm.warp(block.timestamp + 2 days + 1);
+        // Even after 7 days, the upgrade should revert (no longer scheduled)
+        vm.warp(block.timestamp + 7 days + 1);
         vm.prank(admin);
         vm.expectRevert("RE: no upgrade scheduled");
         re.upgradeToAndCall(impl, "");
     }
 
-    function test_upgrade_timelockConstantIs2Days() public view {
-        assertEq(re.UPGRADE_TIMELOCK(), 2 days);
+    function test_upgrade_timelockConstantIs7Days() public view {
+        assertEq(re.UPGRADE_TIMELOCK(), 7 days);
     }
 
     function test_renounceOwnership_revertsInRewardEngine() public {

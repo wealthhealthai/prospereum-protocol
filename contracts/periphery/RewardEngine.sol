@@ -163,7 +163,7 @@ contract RewardEngine is
 
     /// @notice Mandatory delay between scheduling and executing a UUPS upgrade.
     ///         Gives users time to exit before a malicious implementation takes effect.
-    uint256 public constant UPGRADE_TIMELOCK = 2 days;
+    uint256 public constant UPGRADE_TIMELOCK = 7 days;
 
     /// @notice Implementation address pending upgrade (zero if no upgrade scheduled).
     address public pendingUpgrade;
@@ -273,12 +273,12 @@ contract RewardEngine is
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // UUPS upgrade authorization — 2-day timelock
+    // UUPS upgrade authorization — 7-day timelock
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * @notice Schedule a UUPS upgrade. Must be called by the owner at least
-     *         UPGRADE_TIMELOCK (2 days) before calling upgradeToAndCall().
+     *         UPGRADE_TIMELOCK (7 days) before calling upgradeToAndCall().
      *         Gives users advance notice and time to exit.
      *
      * @param newImplementation The implementation contract to upgrade to.
@@ -303,7 +303,7 @@ contract RewardEngine is
     }
 
     /**
-     * @notice Enforces the 2-day upgrade timelock. Called internally by upgradeToAndCall().
+     * @notice Enforces the 7-day upgrade timelock. Called internally by upgradeToAndCall().
      *         The upgrade must have been scheduled via scheduleUpgrade() and the timelock
      *         must have elapsed.
      */
