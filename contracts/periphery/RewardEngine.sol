@@ -285,6 +285,7 @@ contract RewardEngine is
      */
     function scheduleUpgrade(address newImplementation) external onlyOwner {
         require(newImplementation != address(0), "RE: zero implementation");
+        require(pendingUpgrade == address(0), "RE: upgrade already scheduled - cancel first");
         pendingUpgrade   = newImplementation;
         upgradeTimestamp = block.timestamp + UPGRADE_TIMELOCK;
         emit UpgradeScheduled(newImplementation, upgradeTimestamp);

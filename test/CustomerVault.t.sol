@@ -308,4 +308,33 @@ contract CustomerVaultTest is Test {
     function test_psreBalance_returnsActualBalance() public view {
         assertEq(cv.psreBalance(), CV_DEPOSIT);
     }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Platform-managed vault (intendedCustomer == address(0))
+    // ────────────────────────────────────────────────────────────────────────
+
+    function test_claimVault_platformManaged_partnerOwnerCanClaim() public {
+        // Deploy a platform-managed CV (intendedCustomer = address(0))
+        CustomerVault pmCv = new CustomerVault();
+        pmCv.initialize(address(vault), address(psre), partner, address(0));
+        factoryMock.setIsCustomerVaultOf(address(pmCv), address(vault));
+
+        // partnerOwner can claim on behalf of a customer
+        vm.prank(partner);
+        pmCv.claimVault(customer);
+        assertEq(pmCv.customer(), customer);
+        assertTrue(pmCv.customerClaimed());
+    }
+
+    function test_claimVault_platformManaged_strangerCannotClaim() public {
+        // Deploy a platform-managed CV (intendedCustomer = address(0))
+        CustomerVault pmCv = new CustomerVault();
+        pmCv.initialize(address(vault), address(psre), partner, address(0));
+        factoryMock.setIsCustomerVaultOf(address(pmCv), address(vault));
+
+        // random stranger cannot claim
+        vm.prank(address(0xDEAD));
+        vm.expectRevert("CustomerVault: unauthorized");
+        pmCv.claimVault(address(0xDEAD));
+    }
 }
