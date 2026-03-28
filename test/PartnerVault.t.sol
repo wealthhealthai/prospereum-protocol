@@ -62,7 +62,8 @@ contract PartnerVaultTest is Test {
     // ── Helper: deploy a fresh CustomerVault ─────────────────────────────────
     function _deployCV() internal returns (CustomerVault cv) {
         cv = new CustomerVault();
-        cv.initialize(address(vault), address(psre), partner);
+        // address(0) = platform-managed vault (no specific intended customer required here)
+        cv.initialize(address(vault), address(psre), partner, address(0));
         // Simulate factory-deployed CV: tell the mock factory this CV belongs to `vault`.
         // Required for PartnerVault.registerCustomerVault() factory-origin check (MAJOR-1).
         factoryStub.setIsCustomerVaultOf(address(cv), address(vault));

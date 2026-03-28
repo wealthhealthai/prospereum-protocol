@@ -153,6 +153,23 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     // Admin
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Ownership safety
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Permanently disabled — renouncing ownership would lock the protocol
+     *         (H-1: pause + renounce = permanent halt).
+     *         Transfer ownership to a new multisig instead.
+     */
+    function renounceOwnership() public override onlyOwner {
+        revert("Factory: renounce disabled -- transfer to new owner instead");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Admin
+    // ─────────────────────────────────────────────────────────────────────────
+
     /// @notice Set the RewardEngine address. Called once after RewardEngine deployment.
     function setRewardEngine(address _rewardEngine) external onlyOwner {
         require(_rewardEngine != address(0), "Factory: zero rewardEngine");
@@ -282,7 +299,8 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         CustomerVault(cv).initialize(
             partnerVault,
             psre,
-            msg.sender // partnerOwner
+            msg.sender, // partnerOwner
+            customer    // intendedCustomer — stored on-chain to prevent front-run claims
         );
 
         // ── Record factory origin BEFORE calling registerCustomerVault ───────

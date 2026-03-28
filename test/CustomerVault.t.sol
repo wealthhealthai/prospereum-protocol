@@ -58,7 +58,7 @@ contract CustomerVaultTest is Test {
 
         // Deploy CustomerVault and register it
         cv = new CustomerVault();
-        cv.initialize(address(vault), address(psre), partner);
+        cv.initialize(address(vault), address(psre), partner, customer);
         // Simulate factory-deployed CV: tell the mock factory this CV belongs to vault (MAJOR-1).
         factoryMock.setIsCustomerVaultOf(address(cv), address(vault));
         vm.prank(partner);
@@ -74,16 +74,17 @@ contract CustomerVaultTest is Test {
     // ────────────────────────────────────────────────────────────────────────
 
     function test_initialize_setsState() public view {
-        assertEq(cv.parentVault(),  address(vault));
-        assertEq(cv.psre(),         address(psre));
-        assertEq(cv.partnerOwner(), partner);
-        assertEq(cv.customer(),     address(0));
+        assertEq(cv.parentVault(),      address(vault));
+        assertEq(cv.psre(),             address(psre));
+        assertEq(cv.partnerOwner(),     partner);
+        assertEq(cv.intendedCustomer(), customer);     // FIX 1: stored on-chain
+        assertEq(cv.customer(),         address(0));
         assertFalse(cv.customerClaimed());
     }
 
     function test_initialize_onlyOnce() public {
         vm.expectRevert("CustomerVault: already initialized");
-        cv.initialize(address(vault), address(psre), partner);
+        cv.initialize(address(vault), address(psre), partner, customer);
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -98,10 +99,10 @@ contract CustomerVaultTest is Test {
         assertTrue(cv.customerClaimed());
     }
 
-    function test_claimVault_requiresCallerIsClaimant() public {
-        // Caller must be the wallet they're asserting ownership of
+    function test_claimVault_requiresCallerIsIntendedCustomerOrPartner() public {
+        // FIX 1: caller must be intendedCustomer or partnerOwner to prevent front-running
         vm.prank(other);
-        vm.expectRevert("CustomerVault: must be called by claimant");
+        vm.expectRevert("CustomerVault: unauthorized");
         cv.claimVault(customer);
     }
 

@@ -687,6 +687,100 @@ contract RewardEngineTest is Test {
     }
 
     // ────────────────────────────────────────────────────────────────────────
+    // UUPS upgrade timelock (FIX 2)
+    // ────────────────────────────────────────────────────────────────────────
+
+    /// @dev Deploy a new implementation to use as the upgrade target in timelock tests.
+    function _newImpl() internal returns (address) {
+        RewardEngine fresh = new RewardEngine();
+        return address(fresh);
+    }
+
+    function test_upgrade_revertsWithoutScheduling() public {
+        // upgradeToAndCall() must revert if scheduleUpgrade() was never called
+        address impl = _newImpl();
+        vm.prank(admin);
+        vm.expectRevert("RE: no upgrade scheduled");
+        re.upgradeToAndCall(impl, "");
+    }
+
+    function test_upgrade_revertsBeforeTimelockElapsed() public {
+        address impl = _newImpl();
+
+        // Schedule the upgrade
+        vm.prank(admin);
+        re.scheduleUpgrade(impl);
+
+        // Attempt to upgrade immediately (timelock not elapsed)
+        vm.prank(admin);
+        vm.expectRevert("RE: timelock not elapsed");
+        re.upgradeToAndCall(impl, "");
+    }
+
+    function test_upgrade_revertsForWrongImplementation() public {
+        address impl  = _newImpl();
+        address impl2 = _newImpl();
+
+        // Schedule impl but attempt to upgrade to impl2
+        vm.prank(admin);
+        re.scheduleUpgrade(impl);
+
+        vm.warp(block.timestamp + 2 days + 1);
+
+        vm.prank(admin);
+        vm.expectRevert("RE: upgrade not scheduled");
+        re.upgradeToAndCall(impl2, "");
+    }
+
+    function test_upgrade_succeedsAfterTimelockElapsed() public {
+        address impl = _newImpl();
+
+        vm.prank(admin);
+        re.scheduleUpgrade(impl);
+
+        // Warp exactly 2 days + 1 second past schedule time
+        vm.warp(block.timestamp + 2 days + 1);
+
+        // Upgrade should now succeed
+        vm.prank(admin);
+        re.upgradeToAndCall(impl, "");
+
+        // pendingUpgrade cleared after upgrade
+        assertEq(re.pendingUpgrade(), address(0));
+        assertEq(re.upgradeTimestamp(), 0);
+    }
+
+    function test_upgrade_cancelBlocksScheduledUpgrade() public {
+        address impl = _newImpl();
+
+        vm.prank(admin);
+        re.scheduleUpgrade(impl);
+
+        // Cancel the upgrade
+        vm.prank(admin);
+        re.cancelUpgrade();
+
+        assertEq(re.pendingUpgrade(), address(0));
+        assertEq(re.upgradeTimestamp(), 0);
+
+        // Even after 2 days, the upgrade should revert (no longer scheduled)
+        vm.warp(block.timestamp + 2 days + 1);
+        vm.prank(admin);
+        vm.expectRevert("RE: no upgrade scheduled");
+        re.upgradeToAndCall(impl, "");
+    }
+
+    function test_upgrade_timelockConstantIs2Days() public view {
+        assertEq(re.UPGRADE_TIMELOCK(), 2 days);
+    }
+
+    function test_renounceOwnership_revertsInRewardEngine() public {
+        vm.prank(admin);
+        vm.expectRevert("RewardEngine: renounce disabled -- transfer to new owner instead");
+        re.renounceOwnership();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
     // Invariants
     // ────────────────────────────────────────────────────────────────────────
 

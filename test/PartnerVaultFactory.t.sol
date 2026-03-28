@@ -242,13 +242,17 @@ contract PartnerVaultFactoryTest is Test {
         vm.prank(partner);
         address vault = factory.createVault(ABOVE_S_MIN, 1, block.timestamp + 1 hours, 3000);
 
+        address customerAddr = makeAddr("customer");
         vm.prank(partner);
-        address cv = factory.deployCustomerVault(vault, makeAddr("customer"));
+        address cv = factory.deployCustomerVault(vault, customerAddr);
 
         assertEq(CustomerVault(cv).parentVault(), vault,
             "CV parentVault should be the partner vault");
         assertEq(CustomerVault(cv).partnerOwner(), partner);
         assertEq(CustomerVault(cv).psre(), address(psre));
+        // FIX 1: intendedCustomer must be stored on-chain to prevent front-running
+        assertEq(CustomerVault(cv).intendedCustomer(), customerAddr,
+            "intendedCustomer must be stored at initialization to block front-run attacks");
     }
 
     function test_deployCustomerVault_recordsInFactory() public {
@@ -316,6 +320,13 @@ contract PartnerVaultFactoryTest is Test {
         vm.prank(other);
         vm.expectRevert();
         factory.setMaxPartners(50);
+    }
+
+    function test_renounceOwnership_revertsInFactory() public {
+        // FIX 3: renounceOwnership is disabled to prevent permanent protocol halt
+        vm.prank(admin);
+        vm.expectRevert("Factory: renounce disabled -- transfer to new owner instead");
+        factory.renounceOwnership();
     }
 
     // ────────────────────────────────────────────────────────────────────────

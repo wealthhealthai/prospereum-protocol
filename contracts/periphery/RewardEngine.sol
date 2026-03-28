@@ -158,6 +158,23 @@ contract RewardEngine is
     mapping(bytes32 => bool) private _stakeClaimed;
 
     // ─────────────────────────────────────────────────────────────────────────
+    // UUPS upgrade timelock
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice Mandatory delay between scheduling and executing a UUPS upgrade.
+    ///         Gives users time to exit before a malicious implementation takes effect.
+    uint256 public constant UPGRADE_TIMELOCK = 2 days;
+
+    /// @notice Implementation address pending upgrade (zero if no upgrade scheduled).
+    address public pendingUpgrade;
+
+    /// @notice Earliest timestamp at which the pending upgrade may be executed.
+    uint256 public upgradeTimestamp;
+
+    event UpgradeScheduled(address indexed newImplementation, uint256 executeAfter);
+    event UpgradeCancelled(address indexed cancelledImplementation);
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Timelock queue
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -256,13 +273,59 @@ contract RewardEngine is
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // UUPS upgrade authorization
+    // UUPS upgrade authorization — 2-day timelock
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice Only the owner (Gnosis Safe) can authorize upgrades.
-    function _authorizeUpgrade(address newImplementation)
-        internal override onlyOwner
-    {}
+    /**
+     * @notice Schedule a UUPS upgrade. Must be called by the owner at least
+     *         UPGRADE_TIMELOCK (2 days) before calling upgradeToAndCall().
+     *         Gives users advance notice and time to exit.
+     *
+     * @param newImplementation The implementation contract to upgrade to.
+     */
+    function scheduleUpgrade(address newImplementation) external onlyOwner {
+        require(newImplementation != address(0), "RE: zero implementation");
+        pendingUpgrade   = newImplementation;
+        upgradeTimestamp = block.timestamp + UPGRADE_TIMELOCK;
+        emit UpgradeScheduled(newImplementation, upgradeTimestamp);
+    }
+
+    /**
+     * @notice Cancel a pending upgrade scheduled via scheduleUpgrade().
+     */
+    function cancelUpgrade() external onlyOwner {
+        address cancelled = pendingUpgrade;
+        pendingUpgrade   = address(0);
+        upgradeTimestamp = 0;
+        emit UpgradeCancelled(cancelled);
+    }
+
+    /**
+     * @notice Enforces the 2-day upgrade timelock. Called internally by upgradeToAndCall().
+     *         The upgrade must have been scheduled via scheduleUpgrade() and the timelock
+     *         must have elapsed.
+     */
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
+        require(upgradeTimestamp > 0,                    "RE: no upgrade scheduled");
+        require(pendingUpgrade == newImplementation,     "RE: upgrade not scheduled");
+        require(block.timestamp >= upgradeTimestamp,     "RE: timelock not elapsed");
+        // Clear pending state — prevents replay
+        pendingUpgrade   = address(0);
+        upgradeTimestamp = 0;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Ownership safety
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Permanently disabled — renouncing ownership would lock the protocol
+     *         (H-1: pause + renounce = permanent halt; no one can unpause or upgrade).
+     *         Transfer ownership to a new multisig instead.
+     */
+    function renounceOwnership() public override onlyOwner {
+        revert("RewardEngine: renounce disabled -- transfer to new owner instead");
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // registerVault() — Called by PartnerVaultFactory at vault creation

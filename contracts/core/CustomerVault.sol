@@ -44,6 +44,10 @@ contract CustomerVault is ReentrancyGuard {
     /// @notice Customer wallet address. address(0) until claimVault() is called.
     address public customer;
 
+    /// @notice Intended customer wallet set at initialization (can be address(0) for platform-managed).
+    ///         If non-zero, only this address (or partnerOwner) may call claimVault().
+    address public intendedCustomer;
+
     /// @notice True once customer has claimed ownership via claimVault().
     bool public customerClaimed;
 
@@ -87,24 +91,29 @@ contract CustomerVault is ReentrancyGuard {
      * @notice Initialize the CustomerVault.
      *         Called by PartnerVaultFactory immediately after clone deployment.
      *
-     * @param _parentVault   Address of the parent PartnerVault.
-     * @param _psre          Address of the PSRE token.
-     * @param _partnerOwner  Address of the partner who controls this vault.
+     * @param _parentVault        Address of the parent PartnerVault.
+     * @param _psre               Address of the PSRE token.
+     * @param _partnerOwner       Address of the partner who controls this vault.
+     * @param _intendedCustomer   Intended customer wallet (can be address(0) for
+     *                            platform-managed vaults). If non-zero, only this
+     *                            address or partnerOwner may call claimVault().
      */
     function initialize(
         address _parentVault,
         address _psre,
-        address _partnerOwner
+        address _partnerOwner,
+        address _intendedCustomer  // ADD THIS — can be address(0) for platform-managed vaults
     ) external {
         require(!_cvInitialized,             "CustomerVault: already initialized");
         require(_parentVault  != address(0), "CustomerVault: zero parentVault");
         require(_psre         != address(0), "CustomerVault: zero psre");
         require(_partnerOwner != address(0), "CustomerVault: zero partnerOwner");
 
-        _cvInitialized = true;
-        parentVault    = _parentVault;
-        psre           = _psre;
-        partnerOwner   = _partnerOwner;
+        _cvInitialized   = true;
+        parentVault      = _parentVault;
+        psre             = _psre;
+        partnerOwner     = _partnerOwner;
+        intendedCustomer = _intendedCustomer; // store intended customer (may be address(0))
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -112,21 +121,26 @@ contract CustomerVault is ReentrancyGuard {
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Customer asserts their wallet address to claim ownership of this vault.
-     *         Can only be called once, before any prior claim.
-     *         After claiming, only the customer can withdraw.
+     * @notice Claim ownership of this vault.
+     *         Only callable by the intendedCustomer (if set at initialization) or
+     *         the partnerOwner. Prevents front-running: an attacker cannot claim
+     *         a vault that was initialized with a specific intended customer.
      *
-     * @param customerWallet The wallet address asserting ownership.
+     * @param newCustomer The wallet address that will own this vault after claiming.
      */
-    function claimVault(address customerWallet) external {
-        require(!customerClaimed,            "CustomerVault: already claimed");
-        require(customerWallet != address(0), "CustomerVault: zero wallet");
-        require(msg.sender == customerWallet, "CustomerVault: must be called by claimant");
+    function claimVault(address newCustomer) external {
+        require(!customerClaimed,             "CustomerVault: already claimed");
+        require(newCustomer != address(0),    "CustomerVault: zero wallet");
+        require(
+            (intendedCustomer != address(0) && msg.sender == intendedCustomer) ||
+            msg.sender == partnerOwner,
+            "CustomerVault: unauthorized"
+        );
 
-        customer        = customerWallet;
+        customer        = newCustomer;
         customerClaimed = true;
 
-        emit CustomerVaultClaimed(address(this), customerWallet);
+        emit CustomerVaultClaimed(address(this), newCustomer);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
