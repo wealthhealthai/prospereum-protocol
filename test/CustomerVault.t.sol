@@ -7,6 +7,7 @@ import "../contracts/core/CustomerVault.sol";
 import "../contracts/core/PSRE.sol";
 import "./mocks/MockERC20.sol";
 import "./mocks/MockSwapRouter.sol";
+import "./mocks/MockVaultFactory.sol";
 
 /**
  * @title CustomerVaultTest v3.2
@@ -25,7 +26,8 @@ contract CustomerVaultTest is Test {
     address public partner      = makeAddr("partner");
     address public customer     = makeAddr("customer");
     address public rewardEngine = makeAddr("rewardEngine");
-    address public factory      = makeAddr("factory");
+    MockVaultFactory public factoryMock;
+    address public factory;   // = address(factoryMock), set in setUp
     address public other        = makeAddr("other");
 
     uint256 public constant INITIAL_PSRE = 1000e18;
@@ -40,6 +42,10 @@ contract CustomerVaultTest is Test {
         router = new MockSwapRouter(address(psre), 1000e18);
         deal(address(psre), address(router), 100_000e18);
 
+        // Use MockVaultFactory so isCustomerVaultOf() can be called (MAJOR-1)
+        factoryMock = new MockVaultFactory();
+        factory     = address(factoryMock);
+
         // Deploy and init PartnerVault
         vault = new PartnerVault();
         vm.prank(factory);
@@ -53,6 +59,8 @@ contract CustomerVaultTest is Test {
         // Deploy CustomerVault and register it
         cv = new CustomerVault();
         cv.initialize(address(vault), address(psre), partner);
+        // Simulate factory-deployed CV: tell the mock factory this CV belongs to vault (MAJOR-1).
+        factoryMock.setIsCustomerVaultOf(address(cv), address(vault));
         vm.prank(partner);
         vault.registerCustomerVault(address(cv));
 

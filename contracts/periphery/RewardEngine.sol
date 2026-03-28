@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable2Step.sol";
+import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -21,6 +22,9 @@ import "../interfaces/IRewardEngine.sol";
  *
  * @dev Dev Spec v3.2, Sections 2.5, 3-11
  *
+ *      UUPS upgradeable: implementation is deployed once; proxy holds all state.
+ *      Use ERC1967Proxy + initialize() for deployment.
+ *
  *      Key v3.2 changes from v2.3:
  *      - Reward basis: effectiveCumS = cumS - cumulativeRewardMinted (anti-compounding)
  *      - Tracks ΔeffectiveCumS per epoch (not ΔcumBuy / ΔTWR)
@@ -35,7 +39,13 @@ import "../interfaces/IRewardEngine.sol";
  *        Silver: 0.10 × 1.00 = 10%
  *        Gold:   0.10 × 1.20 = 12%
  */
-contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step, IRewardEngine {
+contract RewardEngine is
+    UUPSUpgradeable,
+    Ownable2StepUpgradeable,
+    ReentrancyGuard,
+    PausableUpgradeable,
+    IRewardEngine
+{
     using SafeERC20 for IERC20;
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -59,13 +69,16 @@ contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step, IRewardEngine 
     uint256 public constant PARAM_TIMELOCK = 48 hours;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Immutables
+    // State — core protocol references (set in initialize, not immutable)
     // ─────────────────────────────────────────────────────────────────────────
 
-    IPSRE                public immutable psre;
-    IPartnerVaultFactory public immutable factory;
-    IStakingVault        public immutable stakingVault;
-    uint256              public immutable genesisTimestamp;
+    IPSRE                public psre;
+    IPartnerVaultFactory public factory;
+    IStakingVault        public stakingVault;
+    uint256              public genesisTimestamp;
+
+    // Factory registration authority (address form for registerVault check)
+    address public factoryAddress;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Governance parameters (Dev Spec v3.2 §1.3-1.5)
@@ -73,24 +86,24 @@ contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step, IRewardEngine 
 
     /// @notice r_base: base reward rate (10% default per v3.2 spec).
     ///         Named alphaBase for storage consistency with v3.0 layout.
-    uint256 public alphaBase    = 0.10e18;
+    uint256 public alphaBase;
 
     /// @notice Weekly scarcity ceiling (default: 12,600 PSRE/week = 0.001 × S_EMISSION).
-    uint256 public E0           = S_EMISSION / 1000;
+    uint256 public E0;
 
     uint256 public constant k     = 2;       // scarcity exponent, immutable
     uint256 public constant theta = 76_923_076_923_076_923; // 1/13 ≈ 0.0769e18
 
     // Tier thresholds (share of sumR, 1e18-scaled)
-    uint256 public silverThreshold = 0.005e18;  // 0.5%
-    uint256 public goldThreshold   = 0.02e18;   // 2.0%
+    uint256 public silverThreshold;  // 0.5%
+    uint256 public goldThreshold;    // 2.0%
 
     // Tier multipliers (1e18-scaled) — v3.2 corrected values
-    uint256 public mBronze = 0.8e18;   // 8%  effective at alphaBase=10%
-    uint256 public mSilver = 1.0e18;   // 10% effective at alphaBase=10%
-    uint256 public mGold   = 1.2e18;   // 12% effective at alphaBase=10%
+    uint256 public mBronze;   // 8%  effective at alphaBase=10%
+    uint256 public mSilver;   // 10% effective at alphaBase=10%
+    uint256 public mGold;     // 12% effective at alphaBase=10%
 
-    uint256 public partnerSplit = 0.70e18;  // 70% to partners
+    uint256 public partnerSplit;  // 70% to partners
 
     // ─────────────────────────────────────────────────────────────────────────
     // Global emission tracking
@@ -163,9 +176,6 @@ contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step, IRewardEngine 
     uint256 public pendingMSilver;
     uint256 public pendingMGold;
 
-    // Factory registration authority
-    address public immutable factoryAddress;
-
     // ─────────────────────────────────────────────────────────────────────────
     // Events
     // ─────────────────────────────────────────────────────────────────────────
@@ -193,27 +203,70 @@ contract RewardEngine is ReentrancyGuard, Pausable, Ownable2Step, IRewardEngine 
     event ParamUpdated(string param, uint256 oldValue, uint256 newValue);
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Constructor
+    // Constructor — disables initializers on the implementation contract
     // ─────────────────────────────────────────────────────────────────────────
 
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // initialize() — called once via proxy at deployment
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Initialize the RewardEngine proxy.
+     *         Called exactly once via ERC1967Proxy constructor data.
+     *
+     * @param _psre             PSRE token address.
+     * @param _factory          PartnerVaultFactory address.
+     * @param _stakingVault     StakingVault address.
+     * @param _genesisTimestamp Protocol genesis Unix timestamp.
+     * @param _owner            Initial owner (Gnosis Safe multisig).
+     */
+    function initialize(
         address _psre,
         address _factory,
         address _stakingVault,
         uint256 _genesisTimestamp,
-        address _admin
-    ) Ownable(_admin) {
+        address _owner
+    ) external initializer {
         require(_psre         != address(0), "RE: zero psre");
         require(_factory      != address(0), "RE: zero factory");
         require(_stakingVault != address(0), "RE: zero stakingVault");
         require(_genesisTimestamp > 0,       "RE: zero genesis");
+
+        __Ownable_init(_owner);
+        __Ownable2Step_init();
+        __Pausable_init();
+        // ReentrancyGuard uses ERC-7201 namespaced storage in OZ v5 — no init needed.
 
         psre             = IPSRE(_psre);
         factory          = IPartnerVaultFactory(_factory);
         stakingVault     = IStakingVault(_stakingVault);
         genesisTimestamp = _genesisTimestamp;
         factoryAddress   = _factory;
+
+        // Initialize governance parameters (storage is zero on proxy; must set explicitly)
+        alphaBase       = 0.10e18;
+        E0              = S_EMISSION / 1000;
+        silverThreshold = 0.005e18;
+        goldThreshold   = 0.02e18;
+        mBronze         = 0.8e18;
+        mSilver         = 1.0e18;
+        mGold           = 1.2e18;
+        partnerSplit    = 0.70e18;
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // UUPS upgrade authorization
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice Only the owner (Gnosis Safe) can authorize upgrades.
+    function _authorizeUpgrade(address newImplementation)
+        internal override onlyOwner
+    {}
 
     // ─────────────────────────────────────────────────────────────────────────
     // registerVault() — Called by PartnerVaultFactory at vault creation

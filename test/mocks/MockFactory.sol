@@ -9,11 +9,17 @@ contract MockFactory is IPartnerVaultFactory {
     address[] private _vaults;
     mapping(address => address) private _partnerOf;
     mapping(address => bool)    private _isVault;
+    mapping(address => address) private _cvParent;
 
     function addVault(address vault, address partner) external {
         _vaults.push(vault);
         _partnerOf[vault] = partner;
         _isVault[vault]   = true;
+    }
+
+    /// @dev Called by tests before registerCustomerVault() to simulate factory-deployed CV.
+    function setIsCustomerVaultOf(address cv, address parentVault) external {
+        _cvParent[cv] = parentVault;
     }
 
     function getAllVaults() external view override returns (address[] memory) {
@@ -34,5 +40,9 @@ contract MockFactory is IPartnerVaultFactory {
 
     function isRegisteredCustomerVault(address) external pure override returns (address) {
         return address(0);
+    }
+
+    function isCustomerVaultOf(address cv) external view override returns (address) {
+        return _cvParent[cv];
     }
 }

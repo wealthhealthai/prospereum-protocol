@@ -10,6 +10,7 @@ import "../../../contracts/core/CustomerVault.sol";
 import "../../../contracts/periphery/StakingVault.sol";
 import "../../../contracts/periphery/RewardEngine.sol";
 import "../../../contracts/interfaces/IPartnerVault.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import "../mocks/MockERC20.sol";
 import "../mocks/MockRouter.sol";
@@ -111,14 +112,22 @@ contract ProtocolHandler is Test {
             address(this)  // owner
         );
 
-        // ── RewardEngine ──────────────────────────────────────────────────────
-        rewardEngine = new RewardEngine(
-            address(psre),
-            address(factory),
-            address(stakingVault),
-            genesis,
-            address(this)  // owner
-        );
+        // ── RewardEngine — deploy via UUPS proxy (MAJOR-3) ───────────────────
+        {
+            RewardEngine reImpl = new RewardEngine();
+            bytes memory initData = abi.encodeCall(
+                RewardEngine.initialize,
+                (
+                    address(psre),
+                    address(factory),
+                    address(stakingVault),
+                    genesis,
+                    address(this)  // owner
+                )
+            );
+            ERC1967Proxy proxy = new ERC1967Proxy(address(reImpl), initData);
+            rewardEngine = RewardEngine(address(proxy));
+        }
 
         // ── Wire: set RewardEngine on factory and stakingVault ────────────────
         factory.setRewardEngine(address(rewardEngine));

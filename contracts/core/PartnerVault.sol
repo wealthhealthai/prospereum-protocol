@@ -80,6 +80,9 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     // State — CustomerVault registry
     // ─────────────────────────────────────────────────────────────────────────
 
+    /// @notice Maximum number of CustomerVaults per PartnerVault (gas bound for _updateCumS).
+    uint256 public constant MAX_CUSTOMER_VAULTS = 1000;
+
     mapping(address => bool) public registeredCustomerVaults;
     address[] public customerVaultList;
 
@@ -307,7 +310,13 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     /**
      * @notice Register a CustomerVault as part of this vault's ecosystem.
      *         PSRE in registered CustomerVaults counts toward S_eco.
-     *         Called by factory on deployCustomerVault(), or directly by owner.
+     *         Callable by the vault owner OR the factory (factory deploys and registers in one tx).
+     *
+     *         Security: only addresses that the factory deployed as CustomerVaults for THIS vault
+     *         may be registered. Prevents arbitrary wallet registration (e.g. Uniswap pools)
+     *         from inflating cumS. (Dev Spec v3.2, MAJOR-1)
+     *
+     *         Cap: at most MAX_CUSTOMER_VAULTS per vault (bounds _updateCumS gas). (MAJOR-2)
      *
      * @param customerVault Address of the CustomerVault to register.
      */
@@ -315,6 +324,14 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
         require(msg.sender == owner || msg.sender == factory, "PartnerVault: not owner");
         require(customerVault != address(0),              "PartnerVault: zero CV address");
         require(!registeredCustomerVaults[customerVault], "PartnerVault: CV already registered");
+        require(customerVaultList.length < MAX_CUSTOMER_VAULTS, "PartnerVault: max CVs reached");
+
+        // Validate that this CV was deployed by the factory specifically for this vault.
+        // Prevents anyone from registering arbitrary external addresses to inflate cumS.
+        require(
+            IPartnerVaultFactory(factory).isCustomerVaultOf(customerVault) == address(this),
+            "PartnerVault: CV not deployed by factory for this vault"
+        );
 
         registeredCustomerVaults[customerVault] = true;
         customerVaultList.push(customerVault);

@@ -98,6 +98,12 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     /// @notice customerVaultAddress => parentPartnerVaultAddress
     mapping(address => address) public customerVaultParent;
 
+    /// @notice customerVaultAddress => partnerVaultAddress that the CV was deployed for.
+    ///         Set at deployment time so PartnerVault.registerCustomerVault() can validate
+    ///         that the CV was actually deployed by this factory for the calling vault.
+    ///         Implements IPartnerVaultFactory.isCustomerVaultOf().
+    mapping(address => address) public isCustomerVaultOf;
+
     /// @notice All deployed CustomerVaults (for enumeration).
     address[] public allCustomerVaults;
 
@@ -279,11 +285,14 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
             msg.sender // partnerOwner
         );
 
+        // ── Record factory origin BEFORE calling registerCustomerVault ───────
+        // PartnerVault.registerCustomerVault() checks isCustomerVaultOf[cv] == partnerVault.
+        // Must be set first so the validation passes.
+        isCustomerVaultOf[cv]   = partnerVault;
+        customerVaultParent[cv] = partnerVault;
+
         // ── Register CV in parent PartnerVault ──────────────────────────────
         PartnerVault(partnerVault).registerCustomerVault(cv);
-
-        // ── Record in factory registry ───────────────────────────────────────
-        customerVaultParent[cv] = partnerVault;
         allCustomerVaults.push(cv);
 
         emit CustomerVaultDeployed(partnerVault, cv, customer);

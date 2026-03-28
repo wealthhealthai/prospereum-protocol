@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../contracts/core/PartnerVault.sol";
 import "../contracts/core/PSRE.sol";
 import "../contracts/periphery/RewardEngine.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "./mocks/MockERC20.sol";
 import "./mocks/MockSwapRouter.sol";
 import "./mocks/MockStakingVault.sol";
@@ -89,13 +90,14 @@ contract RewardEngineTest is Test {
         mf = new MockFactory();
         factoryAddr = address(mf);
 
-        re = new RewardEngine(
-            address(psre),
-            address(mf),
-            address(sv),
-            genesis,
-            admin
+        // Deploy RewardEngine via UUPS proxy (MAJOR-3)
+        RewardEngine reImpl = new RewardEngine();
+        bytes memory initData = abi.encodeCall(
+            RewardEngine.initialize,
+            (address(psre), address(mf), address(sv), genesis, admin)
         );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(reImpl), initData);
+        re = RewardEngine(address(proxy));
 
         // Grant MINTER_ROLE to RewardEngine
         vm.startPrank(admin);

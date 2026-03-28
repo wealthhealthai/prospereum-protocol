@@ -9,6 +9,7 @@ import "../contracts/core/CustomerVault.sol";
 import "../contracts/periphery/StakingVault.sol";
 import "../contracts/periphery/RewardEngine.sol";
 import "../contracts/periphery/TeamVesting.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "../test/mocks/MockERC20.sol";
 import "../test/mocks/MockSwapRouter.sol";
 
@@ -120,14 +121,14 @@ contract DeployFork is Script {
         );
         console.log("StakingVault:      ", address(stakingVault));
 
-        // ── 9. Deploy RewardEngine ───────────────────────────────────────────
-        RewardEngine rewardEngine = new RewardEngine(
-            address(psre),
-            address(factory),
-            address(stakingVault),
-            genesis,
-            deployer   // admin = deployer
+        // ── 9. Deploy RewardEngine via UUPS proxy (MAJOR-3) ─────────────────
+        RewardEngine reImpl_ = new RewardEngine();
+        bytes memory reInitData_ = abi.encodeCall(
+            RewardEngine.initialize,
+            (address(psre), address(factory), address(stakingVault), genesis, deployer)
         );
+        ERC1967Proxy reProxy_ = new ERC1967Proxy(address(reImpl_), reInitData_);
+        RewardEngine rewardEngine = RewardEngine(address(reProxy_));
         console.log("RewardEngine:      ", address(rewardEngine));
 
         // ── 10. Wire up ──────────────────────────────────────────────────────

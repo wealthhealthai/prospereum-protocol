@@ -8,6 +8,7 @@ import "../contracts/core/CustomerVault.sol";
 import "../contracts/core/PSRE.sol";
 import "../contracts/periphery/RewardEngine.sol";
 import "../contracts/periphery/StakingVault.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "./mocks/MockERC20.sol";
 import "./mocks/MockSwapRouter.sol";
 
@@ -76,10 +77,16 @@ contract IntegrationTest is Test {
             admin
         );
 
-        // RewardEngine
-        re = new RewardEngine(
-            address(psre), address(factory), address(sv), genesis, admin
-        );
+        // RewardEngine — deploy via UUPS proxy (MAJOR-3)
+        {
+            RewardEngine reImpl = new RewardEngine();
+            bytes memory initData = abi.encodeCall(
+                RewardEngine.initialize,
+                (address(psre), address(factory), address(sv), genesis, admin)
+            );
+            ERC1967Proxy proxy = new ERC1967Proxy(address(reImpl), initData);
+            re = RewardEngine(address(proxy));
+        }
 
         // Wire up
         vm.prank(admin);
