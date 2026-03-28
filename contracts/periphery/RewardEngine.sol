@@ -285,6 +285,7 @@ contract RewardEngine is
      */
     function scheduleUpgrade(address newImplementation) external onlyOwner {
         require(newImplementation != address(0), "RE: zero implementation");
+        require(newImplementation.code.length > 0, "RE: implementation must be a contract");
         require(pendingUpgrade == address(0), "RE: upgrade already scheduled - cancel first");
         pendingUpgrade   = newImplementation;
         upgradeTimestamp = block.timestamp + UPGRADE_TIMELOCK;
@@ -433,7 +434,12 @@ contract RewardEngine is
             cumSArr[i] = currentCumS;
 
             // 2. Compute effectiveCumS(t) = cumS(t) - cumulativeRewardMinted[vault]
-            //    Defensive floor at 0 (invariant: cumS >= cumulativeRewardMinted)
+            //    Defensive floor at 0.
+            //    INVARIANT: cumS >= cumulativeRewardMinted holds by construction because:
+            //      - rewards(epoch) = r_base × ΔeffectiveCumS ≤ r_base × ΔcumS
+            //      - r_base ≤ alphaBase_MAX = 0.15e18 (15%) < 1.0e18 (100%)
+            //      - Therefore cumulativeRewardMinted = Σ rewards ≤ Σ(r_base × ΔcumS) = r_base × cumS ≤ cumS
+            //    The floor is a defense-in-depth guard for future upgrade scenarios only.
             uint256 cumRM = cumulativeRewardMinted[vault];
             uint256 effCumS = currentCumS >= cumRM ? currentCumS - cumRM : 0;
             effCumSArr[i] = effCumS;

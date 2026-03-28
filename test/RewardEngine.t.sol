@@ -696,6 +696,16 @@ contract RewardEngineTest is Test {
         return address(fresh);
     }
 
+    function test_scheduleUpgrade_revertsForEOA() public {
+        // scheduleUpgrade() must reject an EOA address — scheduling an EOA as the
+        // implementation would brick the proxy permanently after the 2-day timelock.
+        address eoa = makeAddr("randomEOA");
+        // eoa has no code — code.length == 0
+        vm.prank(admin);
+        vm.expectRevert("RE: implementation must be a contract");
+        re.scheduleUpgrade(eoa);
+    }
+
     function test_upgrade_revertsWithoutScheduling() public {
         // upgradeToAndCall() must revert if scheduleUpgrade() was never called
         address impl = _newImpl();

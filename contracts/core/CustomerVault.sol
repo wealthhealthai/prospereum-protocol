@@ -152,8 +152,12 @@ contract CustomerVault is ReentrancyGuard {
      *         Reduces parent's ecosystemBalance via reportLeakage() — the PSRE
      *         exits the partner ecosystem.
      *
-     * @dev PSRE transfer happens first, then leakage is reported.
-     *      If reportLeakage reverts (e.g., parent is somehow broken), withdrawal reverts.
+     * @dev CEI (Checks-Effects-Interactions) discipline: reportLeakage() is called
+     *      before the ERC-20 transfer. This ensures the parent's state is updated
+     *      (the Effect) before any external token transfer (the Interaction), which
+     *      eliminates a cross-contract reentrancy vector where a malicious PSRE token
+     *      or parentVault could observe stale ecosystemBalance mid-withdrawal.
+     *      Ordering is intentional — do not swap.
      */
     function withdraw(uint256 amount) external onlyCustomer nonReentrant {
         require(amount > 0, "CustomerVault: zero amount");
@@ -162,8 +166,9 @@ contract CustomerVault is ReentrancyGuard {
             "CustomerVault: insufficient balance"
         );
 
-        IERC20(psre).safeTransfer(customer, amount);
+        // CEI: Effect before Interaction — update parent state first, then transfer.
         IPartnerVault(parentVault).reportLeakage(amount);
+        IERC20(psre).safeTransfer(customer, amount);
 
         emit CustomerWithdraw(address(this), customer, amount);
     }
