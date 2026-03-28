@@ -77,9 +77,6 @@ contract RewardEngine is
     IStakingVault        public stakingVault;
     uint256              public genesisTimestamp;
 
-    // Factory registration authority (address form for registerVault check)
-    address public factoryAddress;
-
     // ─────────────────────────────────────────────────────────────────────────
     // Governance parameters (Dev Spec v3.2 §1.3-1.5)
     // ─────────────────────────────────────────────────────────────────────────
@@ -246,7 +243,6 @@ contract RewardEngine is
         factory          = IPartnerVaultFactory(_factory);
         stakingVault     = IStakingVault(_stakingVault);
         genesisTimestamp = _genesisTimestamp;
-        factoryAddress   = _factory;
 
         // Initialize governance parameters (storage is zero on proxy; must set explicitly)
         alphaBase       = 0.10e18;
@@ -286,7 +282,7 @@ contract RewardEngine is
     function registerVault(address vault, uint256 initialCumS_)
         external override
     {
-        require(msg.sender == factoryAddress, "RE: only factory");
+        require(msg.sender == address(factory), "RE: only factory");
         require(vault != address(0),          "RE: zero vault");
         require(initialCumS_ > 0,            "RE: zero initialCumS");
         require(initialCumS[vault] == 0,      "RE: vault already registered");

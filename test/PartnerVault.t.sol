@@ -357,6 +357,25 @@ contract PartnerVaultTest is Test {
         vault.registerCustomerVault(address(cv));
     }
 
+    function test_registerCustomerVault_maxCapRevert() public {
+        // Register exactly MAX_CUSTOMER_VAULTS (1000) CustomerVaults
+        for (uint256 i = 1; i <= 1000; i++) {
+            address cv = address(uint160(0xC0FFEE0000 + i));
+            // Simulate factory-deployed CV for this vault
+            factoryStub.setIsCustomerVaultOf(cv, address(vault));
+            vm.prank(partner);
+            vault.registerCustomerVault(cv);
+        }
+        assertEq(vault.getCustomerVaultCount(), 1000);
+
+        // The 1001st registration must revert
+        address cvExtra = address(uint160(0xC0FFEE0000 + 1001));
+        factoryStub.setIsCustomerVaultOf(cvExtra, address(vault));
+        vm.prank(partner);
+        vm.expectRevert("PartnerVault: max CVs reached");
+        vault.registerCustomerVault(cvExtra);
+    }
+
     // ────────────────────────────────────────────────────────────────────────
     // snapshotEpoch()
     // ────────────────────────────────────────────────────────────────────────
