@@ -1,35 +1,39 @@
-# GOODNIGHT.md — 2026-03-30
+# GOODNIGHT.md — 2026-03-31
 
 ## What Was Done Today
 
-Quiet day — no code, no deploys, no decisions. Second quiet day in a row (March 29–30). Holding pattern while waiting on Cantina and Gnosis Safes.
+- **Epoch keeper spec drafted** — `projects/prospereum/docs/epoch-keeper-spec.md`, commit `1cb957e`
+  - Three options: OpenClaw cron (A), Gelato (B), hybrid C — recommend C for mainnet
+  - Gas estimates, alerting, staleness monitoring, catchup logic, pre-mainnet checklist
+  - First smoke test: Epoch 0 fires ~April 4
+- Morning brief acknowledged; Shiro greenlit idle-time keeper work
 
-Last substantive work: **2026-03-28** — v3.2 full contract rebuild + Base Sepolia deploy (8 contracts, 219 tests, Sourcify verified).
+No new deployments. No new decisions.
 
 ## In Progress / Waiting
 
-- **Cantina audit** — submitted March 26, no response yet. Follow up Tuesday April 1.
-  - If no response by April 1 → contact Sherlock or CodeHawks
-- **Gnosis Safe creation** — Jason + Shu. Hard mainnet blocker. Not yet done.
+- **Cantina follow-up** — due TODAY (April 1, as soon as next session starts). No response since outreach March 26.
+- **Keeper option** — Jason + Shu to pick A/B/C. Must decide before April 4 (Epoch 0 close).
+- **Gnosis Safe creation** — still not done. Hard mainnet blocker.
 
 ## Open Decisions
 
-| Item | Status |
-|---|---|
-| Cantina response / backup auditor | Waiting — follow up April 1 |
-| Gnosis Safe setup (Founder Safe + Treasury Safe) | Jason + Shu action item |
-| Testnet smoke test | Ready — awaiting Jason go-ahead |
-| Epoch keeper design/spec | Ready to draft — idle-time work |
-| Mainnet deploy | Blocked on Cantina + Gnosis Safes |
+| Item | Status | Urgency |
+|---|---|---|
+| Keeper approach (A/B/C) | Awaiting Jason + Shu | 🔴 Before April 4 |
+| Cantina audit response / backup | Follow up April 1 | 🔴 Today |
+| Gnosis Safe creation | Jason + Shu action | 🟠 Before mainnet |
+| Testnet smoke test | Awaiting Jason go | 🟡 This week |
 
 ## Blockers
 
-- **Soft:** Cantina no response — follow up Tuesday
-- **Hard (mainnet):** Gnosis Safes not created — cannot deploy mainnet without these
+- **Cantina silence** — 5 days since submission, no response. Follow up first thing tomorrow.
+- **Gnosis Safes** — hard mainnet blocker, not created yet.
+- **Epoch 0 closes April 4** — keeper must be wired and tested before that date.
 
-## Notes for Tomorrow (Tuesday April 1)
+## Notes for Tomorrow (Wednesday April 1)
 
-1. **Follow up Cantina** — send commit hash `7e96ba9` + Base Sepolia contract addresses + audit scope
-2. If Cantina still silent → reach out to Sherlock (sherlock.xyz) or CodeHawks (codehawks.com)
-3. On Jason's signal: start epoch keeper spec (cron trigger logic, gas funding, alerting, fallback)
-4. Mainnet target holding: **April 4–7**
+1. **FIRST ACTION:** Follow up Cantina — send commit `7e96ba9` + all 8 deployed addresses + scope summary. Keep it short.
+2. If no Cantina response by EOD → contact Sherlock and/or CodeHawks same day.
+3. Wait for Jason + Shu keeper decision (A/B/C) — can wire cron same day once decided.
+4. Mainnet target **April 4–7** — getting tight. Needs Cantina + Gnosis Safes to move fast.
