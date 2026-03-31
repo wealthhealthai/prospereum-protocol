@@ -1,39 +1,34 @@
-# GOODNIGHT.md — 2026-03-31
+# GOODNIGHT.md — 2026-03-30
 
 ## What Was Done Today
 
-- **Epoch keeper spec drafted** — `projects/prospereum/docs/epoch-keeper-spec.md`, commit `1cb957e`
-  - Three options: OpenClaw cron (A), Gelato (B), hybrid C — recommend C for mainnet
-  - Gas estimates, alerting, staleness monitoring, catchup logic, pre-mainnet checklist
-  - First smoke test: Epoch 0 fires ~April 4
-- Morning brief acknowledged; Shiro greenlit idle-time keeper work
-
-No new deployments. No new decisions.
+- **v3.2 deployed to Base Sepolia** — UPGRADE_TIMELOCK locked to 7 days (Jason), all 8 contracts deployed + Sourcify verified, 219/219 tests passing
+- **Audit sourcing in progress** — Cantina ($20-30K, too expensive). BlockApex confirmed budget + April 3 date, formal proposal incoming. Pashov contacted, awaiting quote.
+- **Audit brief drafted** — technical priority memo ready for Shu to send to whichever auditor is chosen
+- Commits: `7e96ba9` (deploy), `5922902` (goodnight), PHOENIX session log
 
 ## In Progress / Waiting
 
-- **Cantina follow-up** — due TODAY (April 1, as soon as next session starts). No response since outreach March 26.
-- **Keeper option** — Jason + Shu to pick A/B/C. Must decide before April 4 (Epoch 0 close).
-- **Gnosis Safe creation** — still not done. Hard mainnet blocker.
+- Pashov quote — ETA unknown, hard deadline EOD 2026-03-30
+- BlockApex formal proposal — review before signing
+- Gnosis Safe creation — Shu said today, not confirmed complete
 
-## Open Decisions
+## Open Decisions (waiting on Jason or Shu)
 
-| Item | Status | Urgency |
+| Decision | Who | Urgency |
 |---|---|---|
-| Keeper approach (A/B/C) | Awaiting Jason + Shu | 🔴 Before April 4 |
-| Cantina audit response / backup | Follow up April 1 | 🔴 Today |
-| Gnosis Safe creation | Jason + Shu action | 🟠 Before mainnet |
-| Testnet smoke test | Awaiting Jason go | 🟡 This week |
+| Sign audit contract (BlockApex or Pashov) | Shu | 🔴 First thing March 31 |
+| Gnosis Safes created? | Shu | 🔴 Needed before mainnet deploy script |
+| Cantina AI audit — worth layering on? | Shu | 🟡 Low urgency |
 
 ## Blockers
 
-- **Cantina silence** — 5 days since submission, no response. Follow up first thing tomorrow.
-- **Gnosis Safes** — hard mainnet blocker, not created yet.
-- **Epoch 0 closes April 4** — keeper must be wired and tested before that date.
+- **Audit not yet signed** — must kick off March 31 to hit April 3 results
+- **Gnosis Safes not confirmed** — blocks mainnet deploy script finalization
 
-## Notes for Tomorrow (Wednesday April 1)
+## Notes for Tomorrow
 
-1. **FIRST ACTION:** Follow up Cantina — send commit `7e96ba9` + all 8 deployed addresses + scope summary. Keep it short.
-2. If no Cantina response by EOD → contact Sherlock and/or CodeHawks same day.
-3. Wait for Jason + Shu keeper decision (A/B/C) — can wire cron same day once decided.
-4. Mainnet target **April 4–7** — getting tight. Needs Cantina + Gnosis Safes to move fast.
+1. **FIRST:** Check if Pashov responded. If yes → take him. If no → sign BlockApex immediately.
+2. Confirm Gnosis Safes with Shu — if not done, nudge him
+3. Once audit signed and auditor has access, I can begin mainnet deploy script prep in parallel
+4. Mainnet target: April 4–7. Audit results needed by April 3.
