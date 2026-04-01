@@ -1,42 +1,34 @@
 # GOODNIGHT.md — 2026-04-01
 
-## What Was Done Today
+## What Was Done Today (2026-03-31)
 
-- Cantina follow-up message drafted (Shu needs to send — commit hash + 8 addresses + scope)
-- No code changes. No new deployments. No new decisions.
-- Last substantive work: March 28 (v3.2 deploy) + March 30 (audit sourcing, BlockApex/Pashov)
+- **Audit sourcing resolved:** Pashov = no-go. Cyberscope = rejected (stamp factory). BlockApex = proposal reviewed, recommended to sign with 3 clarifications.
+- **BlockApex proposal:** $5K, 2 SSAs, 4-5 days, all 7 contracts in scope, correct commit hash, re-review included. Good proposal — 3 open questions for Nadir before signing.
+- **Keeper decision flagged by MACHINE** — not yet discussed with Jason/Shu. Needs resolution before mainnet.
 
-## Audit Status
+## In Progress / Waiting
 
-| Firm | Status | Price | Timeline |
-|---|---|---|---|
-| Cantina | Human audit: $20–30K (over budget). AI audit: pricing TBD. | ❌ Primary ruled out | — |
-| **Pashov** | Quote pending — **preferred if responds** | TBD | April 3? |
-| **BlockApex** | Confirmed $5K + April 3 delivery. Formal proposal pending. | $5K | April 3 ✅ |
+- Shu to reply to Nadir with 3 clarifications → sign SLA → wire 50% (URGENT — April 1)
+- Gnosis Safe creation — Shu, unconfirmed
+- Keeper infra decision — not yet surfaced to Jason/Shu
 
-**Decision rule:** Take Pashov if responds with acceptable price + timeline. Sign BlockApex if not.
-**⚠️ Must be signed NOW** — April 3 results needed for April 4–7 mainnet.
+## Open Decisions (waiting on Jason or Shu)
 
-## Open Decisions
-
-| Item | Who | Urgency |
+| Decision | Who | Urgency |
 |---|---|---|
-| Sign audit contract (Pashov or BlockApex) | Shu | 🔴 NOW |
-| Send Cantina follow-up (draft ready) | Shu | 🔴 Today |
-| Keeper architecture A/B/C | Jason + Shu | 🔴 Before April 4 |
-| Gnosis Safe creation | Jason + Shu | 🔴 Before mainnet |
-| Testnet smoke test | Awaiting Jason go | 🟡 This week |
+| Sign BlockApex SLA | Shu | 🔴 Today (April 1) |
+| Keeper ops plan for finalizeEpoch() | Jason + Shu | 🔴 Before April 4 |
+| Gnosis Safes created? | Shu | 🔴 Blocks mainnet deploy script |
 
 ## Blockers
 
-- **Audit unsigned** — critical path to mainnet. Slipping = mainnet slips.
-- **Gnosis Safes not confirmed** — Shu said he'd create (March 30), not confirmed complete
-- **Epoch 0 closes ~April 4** — keeper must be wired and tested before then
+- **Audit not signed yet** — every day of delay pushes mainnet further
+- **Keeper decision open** — `finalizeEpoch()` is permissionless but needs a reliable caller in prod
+- **Gnosis Safes** — still unconfirmed
 
 ## Notes for Tomorrow
 
-1. Check if Pashov responded — if yes, take them; if no, sign BlockApex immediately
-2. Confirm Gnosis Safes with Shu
-3. Wire keeper cron (Option A at minimum) before April 4
-4. Can start mainnet deploy script once Gnosis Safe addresses are known
-5. Mainnet target **April 4–7** — still achievable if audit signs today/tomorrow
+1. **FIRST:** Ask Shu if BlockApex SLA is signed. If not, push him.
+2. **Raise keeper decision with Jason + Shu** — this is the next open engineering decision before mainnet
+3. Once audit kicks off, start prepping mainnet deploy script (Gnosis Safe addresses needed)
+4. Mainnet target now April 7-10 (sliding due to audit timing)
