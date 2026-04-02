@@ -91,7 +91,7 @@ Contract rebuild begins immediately. Any spec changes after this point require S
 | Enterprise vault management | NOT in protocol. WealthHealth Olympus builds service layer on top. Prospereum stays simple — partnerOwner can be any address. | Shu + Jason | 2026-03-26 |
 | Tier floor for enterprise | None. Every partner earns their tier via EMA regardless of platform or commitment size. Protocol is fair and consistent. | Shu | 2026-03-26 |
 | Primary anti-spam mechanism | Reward qualification conditions (no reward on S(N), cumS(M)>S(N) required). NOT the scarcity cap. | Shu | 2026-03-26 |
-| External audit | Yes, required before mainnet. Cantina private review, budget $5-8K. Outreach submitted 2026-03-26. | Shu | 2026-03-26 |
+| External audit | BlockApex signed 2026-04-01. $5K total, 2 SSAs, ~4-5 days. $2,500 upfront wire due from Shu. Audit running now. Results ~April 7–8. (Cantina $20-30K = over budget. Pashov = unavailable. Cyberscope = rejected.) | Shu | 2026-04-01 |
 | UPGRADE_TIMELOCK duration | 7 days. Rationale: Cantina would flag 2 days; RewardEngine upgrades should be rare; stronger security posture at mainnet launch. | Jason | 2026-03-28 |
 | v3.2 Base Sepolia testnet deploy | Deploy green-lit by Jason 2026-03-28. All 8 contracts deployed + Sourcify verified. RewardEngine proxy: `0xe668fE9DbCE8CBbc8b3590100e8c31aA12F5C697` | Jason | 2026-03-28 |
 | Launch target | Mainnet ~April 4-7, 2026. Base Sepolia testnet March 28 (post v3.2 rebuild). | Shu | 2026-03-26 |
