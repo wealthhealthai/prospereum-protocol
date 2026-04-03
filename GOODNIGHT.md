@@ -1,40 +1,49 @@
-# GOODNIGHT.md — 2026-04-02 (covers work done 2026-04-01)
+# GOODNIGHT.md — 2026-04-03
 
 ## What Was Done Today
 
-- **BlockApex SLA signed** ✅ — April 1, 2026. Shu signed, BlockApex starting April 2.
-- **Contract review (2 rounds):**
-  - v1: Flagged Section 19 non-compete (too broad) + §4.ii.b payment on initial vs final report
-  - v2: All 3 changes made — Section 2 proposal reference added, §4.ii.b fixed to final report, §19 narrowed with avoidance-of-doubt carve-out. Clean. Signed.
-- **$2,500 first-half wire:** Shu sending tomorrow (April 2)
-- **Audit underway:** BlockApex commit hash `7e96ba9`, 2 SSAs, starting April 2
+- **LP pool spec drafted** — `projects/prospereum/docs/lp-pool-spec.md` (commit `026a100`)
+  - $40K genesis liquidity, $0.10 launch price, Uniswap v3 1%, $0.04–$0.50 range, 24mo Unicrypt lock
+  - Execution steps, treasury requirements ($20.5K USDC + 200K PSRE), pre-mainnet checklist
+- **decisions.md updated** — BlockApex audit entry corrected (commit `e880e0a`)
+- BlockApex audit running — 2 SSAs on commit `7e96ba9`, started April 2
+
+## ⚠️ EPOCH 0 CLOSES TOMORROW
+
+`finalizeEpoch(0)` callable in ~24h. Keeper cron still NOT wired.
+If nothing calls it, the epoch just goes unfinalized — harmless on testnet today, catastrophic habit for mainnet.
+
+**Minimum action:** Wire Option A (OpenClaw cron) first thing tomorrow. 30 minutes.
 
 ## Audit Timeline
 
 | Milestone | Date |
 |---|---|
-| Audit start | April 2 |
-| Initial report | ~April 8-9 |
-| Fixes submitted | ~April 11 |
-| Final report | ~April 13-14 |
-| Mainnet deploy | **April 14-16** |
+| Audit start | April 2 ✅ |
+| Initial report | ~April 8–9 |
+| Fix submission | ~April 11 |
+| Final report | ~April 13–14 |
+| **Mainnet target** | **April 14–16** |
 
-## Open Decisions (waiting on Jason or Shu)
+## Open Decisions
 
-| Decision | Who | Urgency |
+| Item | Who | Urgency |
 |---|---|---|
-| Wire $2,500 first payment to BlockApex | Shu | 🔴 April 2 |
-| Keeper ops plan for `finalizeEpoch()` | Jason + Shu | 🔴 Resolve during audit window |
-| Gnosis Safes created? (Founder + Treasury) | Shu | 🔴 Blocks mainnet deploy script |
+| Keeper A/B/C — wire TODAY | Jason + Shu | 🔴 TOMORROW LATEST |
+| Confirm $2,500 wire to BlockApex | Shu | 🔴 Should be done |
+| Gnosis Safe creation (Founder + Treasury) | Shu | 🔴 Blocks mainnet script |
+| Testnet smoke test | Jason go-ahead | 🟡 This week |
 
 ## Blockers
 
-- **Keeper decision** — `finalizeEpoch()` needs a reliable caller in prod. Options: cron job from ops wallet, Gelato, Chainlink Automation, or community-run. Need decision before mainnet.
-- **Gnosis Safe addresses** — needed before I can finalize mainnet deploy script
+- **Keeper unwired** — Epoch 0 closes ~April 4
+- **Gnosis Safes not created** — blocks mainnet deploy script finalization
+- **sqrtPriceX96 / tick math** — needs precise computation before LP seeding
 
-## Notes for Tomorrow (During Audit Window)
+## Notes for Tomorrow
 
-1. Finalize mainnet deploy script — waiting on Gnosis Safe addresses from Shu
-2. Raise keeper decision with Jason + Shu — need resolution this week
-3. Plan LP pool setup: PSRE/USDC Uniswap v3 on Base, $40K genesis liquidity, $0.10 launch price
-4. Monitor BlockApex — if no communication by April 4, ping Nadir to confirm they're started
+1. **FIRST:** Wire Option A keeper cron — even before Shu makes the A/B/C call
+2. Confirm BlockApex $2,500 wire sent
+3. Push Shu on Gnosis Safe creation — this has been open for 3+ weeks
+4. Start mainnet deploy script scaffolding once Safe addresses land
+5. Mainnet April 14–16 holds if audit is clean — keep the window clear
