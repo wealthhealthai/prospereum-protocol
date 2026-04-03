@@ -270,9 +270,36 @@ If the keeper is offline for multiple epochs (e.g., host offline for 2+ weeks):
 
 ---
 
-## 10. Pre-Mainnet Checklist
+## 10. Deployed Keeper (Base Sepolia — Option A)
 
-- [ ] Jason confirms keeper approach (Option A / B / C)
+**Status:** LIVE ✅ — wired 2026-04-03
+
+| Item | Value |
+|---|---|
+| Keeper script | `scripts/epoch-keeper.sh` |
+| Cron ID | `3fc22360-5453-4ee8-a09d-914a214a98c3` |
+| Schedule | Every Saturday 20:00 UTC (`0 20 * * 6`) |
+| First run | 2026-04-04 20:00 UTC (13:00 PDT) — 17 min after Epoch 0 close |
+| RewardEngine proxy | `0xe668fE9DbCE8CBbc8b3590100e8c31aA12F5C697` (Base Sepolia) |
+| Ops key | `DEPLOYER_PK` in `.env` (testnet throwaway, no real funds) |
+
+On-chain semantics confirmed (2026-04-03):
+- `lastFinalizedEpoch = N` means "next to finalize is epoch N"
+- First valid call: `finalizeEpoch(0)` (confirmed via dry-run revert "must start at epoch 0")
+- Epoch 0 closes: 2026-04-04 19:43 UTC
+
+---
+
+## 11. Pre-Mainnet Checklist
+
+- [x] Jason confirms keeper approach → **Option A wired for testnet; Option C (hybrid) for mainnet**
+- [x] Keeper script written and dry-run tested
+- [x] OpenClaw cron registered (ID: 3fc22360)
+- [ ] Ops wallet ETH funded on Base **mainnet** (≥ 0.01 ETH)
+- [ ] `.env` updated with mainnet `BASE_RPC_URL` and mainnet `OPS_PRIVATE_KEY`
+- [ ] First live run verified on Base Sepolia (Epoch 0, April 4)
+- [ ] (Mainnet) Gelato task registered as backup
+- [ ] (Mainnet) `KeeperWrapper` deployed and verified
 - [ ] Ops wallet ETH funded on Base mainnet (≥ 0.01 ETH)
 - [ ] OpenClaw cron job created for `epoch-keeper.sh` (testnet first, then mainnet)
 - [ ] `$BASE_RPC_URL` and `$OPS_PRIVATE_KEY` set in `.env` (gitignored)
