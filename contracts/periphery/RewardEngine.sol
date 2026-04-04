@@ -59,6 +59,9 @@ contract RewardEngine is
     /// @notice Epochs of no cumS growth before a vault is marked inactive.
     uint256 public constant INACTIVE_THRESHOLD = 52;
 
+    /// @notice Maximum epochs auto-finalized per lazy trigger (gas ceiling).
+    uint256 public constant AUTO_FINALIZE_MAX_EPOCHS = 10;
+
     // Governance bounds
     uint256 public constant ALPHA_MIN  = 0.05e18;
     uint256 public constant ALPHA_MAX  = 0.15e18;
@@ -400,7 +403,40 @@ contract RewardEngine is
         }
         require(!epochFinalized[epochId],   "RE: already finalized");
         require(currentEpochId() > epochId, "RE: epoch not ended yet");
+        _finalizeSingleEpoch(epochId);
+    }
 
+    /**
+     * @notice Lazily finalize up to AUTO_FINALIZE_MAX_EPOCHS pending epochs.
+     *         Called automatically by vault interactions (createVault, buy) so that
+     *         partner activity drives epoch finalization — no dedicated keeper required.
+     *         Also callable by anyone directly (permissionless).
+     * @dev    Safe to call when no epochs are pending (no-op).
+     */
+    function autoFinalizeEpochs() external nonReentrant whenNotPaused {
+        if (currentEpochId() == 0) return;                                              // before first epoch ends
+        if (firstEpochFinalized && lastFinalizedEpoch + 1 >= currentEpochId()) return;  // all caught up
+        if (!firstEpochFinalized && currentEpochId() == 0) return;                     // epoch 0 not ended
+
+        uint256 current = currentEpochId();
+        uint256 next = firstEpochFinalized ? lastFinalizedEpoch + 1 : 0;
+        uint256 count = 0;
+        while (next < current && count < AUTO_FINALIZE_MAX_EPOCHS) {
+            _finalizeSingleEpoch(next);
+            next++;
+            count++;
+        }
+    }
+
+    /**
+     * @notice Internal: execute epoch finalization logic for a single epoch.
+     *         Called by finalizeEpoch() (with guards) and autoFinalizeEpochs() (sequentially).
+     *
+     * @dev Assumes caller has already validated epoch ordering and end-time.
+     *      autoFinalizeEpochs() guarantees sequential ordering via its while loop.
+     *      finalizeEpoch() enforces ordering with explicit require guards.
+     */
+    function _finalizeSingleEpoch(uint256 epochId) internal {
         // ── Snapshot staking vault ───────────────────────────────────────────
         stakingVault.snapshotEpoch(epochId);
 

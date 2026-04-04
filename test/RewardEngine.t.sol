@@ -3,6 +3,8 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "../contracts/core/PartnerVault.sol";
+import "../contracts/core/CustomerVault.sol";
+import "../contracts/core/PartnerVaultFactory.sol";
 import "../contracts/core/PSRE.sol";
 import "../contracts/periphery/RewardEngine.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -805,5 +807,130 @@ contract RewardEngineTest is Test {
             // effectiveCumS should always be >= 0 (guarded by subtraction underflow check)
             assertGe(eff, 0, "effectiveCumS must be non-negative");
         }
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // autoFinalizeEpochs() — lazy epoch finalization
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @dev Calling autoFinalizeEpochs() when no epochs are pending must be a no-op (no revert).
+     *      Covers: still in epoch 0, and after all pending epochs are already finalized.
+     */
+    function test_autoFinalizeEpochs_noOp_whenNoPendingEpochs() public {
+        // Case 1: still within epoch 0 (currentEpochId == 0 → early return guard)
+        re.autoFinalizeEpochs(); // must not revert
+        assertFalse(re.firstEpochFinalized(), "no epoch finalized - guard fired");
+
+        // Case 2: epoch 0 ended and already finalized manually → caught up
+        vm.warp(genesis + 8 days);
+        re.finalizeEpoch(0);
+        assertTrue(re.epochFinalized(0));
+
+        re.autoFinalizeEpochs(); // must not revert — all caught up
+        assertEq(re.lastFinalizedEpoch(), 0, "lastFinalizedEpoch unchanged");
+    }
+
+    /**
+     * @dev autoFinalizeEpochs() finalizes exactly one pending epoch when called 8 days in.
+     */
+    function test_autoFinalizeEpochs_finalizesOnePendingEpoch() public {
+        // Epoch 0 has ended (8 days in); nothing finalized yet
+        vm.warp(genesis + 8 days);
+        assertFalse(re.epochFinalized(0), "epoch 0 not yet finalized");
+
+        re.autoFinalizeEpochs();
+
+        assertTrue(re.epochFinalized(0), "epoch 0 should be finalized");
+        assertTrue(re.firstEpochFinalized(), "firstEpochFinalized flag should be set");
+        assertEq(re.lastFinalizedEpoch(), 0, "lastFinalizedEpoch should be 0");
+    }
+
+    /**
+     * @dev autoFinalizeEpochs() must stop after AUTO_FINALIZE_MAX_EPOCHS epochs even
+     *      when more are pending. Warp 15 weeks → 15 pending epochs; expect exactly 10.
+     */
+    function test_autoFinalizeEpochs_capsAtMaxEpochs() public {
+        // 15 weeks elapsed → currentEpochId() == 15 → epochs 0..14 are all ended
+        vm.warp(genesis + 15 weeks);
+        assertEq(re.currentEpochId(), 15, "should be in epoch 15");
+
+        re.autoFinalizeEpochs();
+
+        uint256 cap = re.AUTO_FINALIZE_MAX_EPOCHS(); // 10
+        // Epochs 0..9 should be finalized (cap = 10)
+        assertTrue(re.epochFinalized(cap - 1), "epoch 9 should be finalized");
+        assertEq(re.lastFinalizedEpoch(), cap - 1, "lastFinalizedEpoch should be 9");
+        // Epoch 10 must NOT be finalized
+        assertFalse(re.epochFinalized(cap), "epoch 10 must NOT be finalized - cap enforced");
+    }
+
+    /**
+     * @dev createVault() on the real PartnerVaultFactory triggers autoFinalizeEpochs()
+     *      so that vault creation activity drives epoch finalization.
+     *      Uses a fresh RE+factory stack to isolate factory authorization.
+     */
+    function test_createVault_triggersAutoFinalize() public {
+        // ── Deploy a full stack: freshRe wired to realFactory ────────────────
+        PartnerVault pvImpl2 = new PartnerVault();
+        CustomerVault cvImpl = new CustomerVault();
+        PartnerVaultFactory realFactory = new PartnerVaultFactory(
+            address(pvImpl2),
+            address(cvImpl),
+            address(psre),
+            address(router),
+            address(usdc),
+            admin
+        );
+
+        RewardEngine freshReImpl = new RewardEngine();
+        bytes memory initData2 = abi.encodeCall(
+            RewardEngine.initialize,
+            (address(psre), address(realFactory), address(sv), genesis, admin)
+        );
+        ERC1967Proxy proxy2 = new ERC1967Proxy(address(freshReImpl), initData2);
+        RewardEngine freshRe = RewardEngine(address(proxy2));
+
+        // IMPORTANT: evaluate role constant before prank to avoid consuming prank.
+        bytes32 minterRole = psre.MINTER_ROLE();
+        vm.prank(admin);
+        psre.grantRole(minterRole, address(freshRe));
+        vm.prank(admin);
+        realFactory.setRewardEngine(address(freshRe));
+
+        // ── Fund partner and approve ─────────────────────────────────────────
+        usdc.mint(partner, 1000e6);
+        vm.prank(partner);
+        usdc.approve(address(realFactory), type(uint256).max);
+
+        // ── Advance to after epoch 0 ends ────────────────────────────────────
+        vm.warp(genesis + 8 days);
+        assertFalse(freshRe.epochFinalized(0), "epoch 0 not yet finalized");
+
+        // ── createVault() should trigger autoFinalizeEpochs() ────────────────
+        vm.prank(partner);
+        realFactory.createVault(500e6, 1, block.timestamp + 1 hours, 3000);
+
+        assertTrue(freshRe.epochFinalized(0),
+            "epoch 0 should be auto-finalized by createVault()");
+    }
+
+    /**
+     * @dev buy() on a PartnerVault triggers autoFinalizeEpochs() so that partner
+     *      trading activity drives epoch finalization.
+     */
+    function test_buy_triggersAutoFinalize() public {
+        // Set up vault using existing mock factory + real RE
+        PartnerVault pv = _createVault(partner, INITIAL_PSRE);
+
+        // Advance to after epoch 0 ends
+        vm.warp(genesis + 8 days);
+        assertFalse(re.epochFinalized(0), "epoch 0 not yet finalized");
+
+        // buy() should trigger autoFinalizeEpochs() → epoch 0 finalized
+        _buyPSRE(partner, pv, PSRE_OUT);
+
+        assertTrue(re.epochFinalized(0),
+            "epoch 0 should be auto-finalized by buy()");
     }
 }

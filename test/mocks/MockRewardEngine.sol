@@ -13,6 +13,11 @@ contract MockRewardEngine is IRewardEngine {
         registeredVaults.push(vault);
     }
 
+    /// @dev No-op implementation for tests; real finalization is not needed in factory unit tests.
+    function autoFinalizeEpochs() external override {
+        // no-op in mock
+    }
+
     function getRegisteredVaultCount() external view returns (uint256) {
         return registeredVaults.length;
     }

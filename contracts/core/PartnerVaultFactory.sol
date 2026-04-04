@@ -221,6 +221,9 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         require(minPsreOut > 0,                          "Factory: slippage protection required");
         require(deadline >= block.timestamp,             "Factory: expired deadline");
 
+        // Lazy epoch finalization: partner activity drives keeper-less epoch closing
+        IRewardEngine(rewardEngine).autoFinalizeEpochs();
+
         // ── Deploy vault clone ───────────────────────────────────────────────
         vault = vaultImplementation.clone();
 

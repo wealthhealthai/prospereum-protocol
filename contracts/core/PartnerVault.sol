@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IPartnerVault.sol";
 import "../interfaces/IPartnerVaultFactory.sol";
+import "../interfaces/IRewardEngine.sol";
 
 /// @dev Minimal Uniswap v3 SwapRouter interface (Base mainnet)
 interface ISwapRouter {
@@ -197,6 +198,9 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
         require(amountIn     > 0,                "PartnerVault: zero amountIn");
         require(minAmountOut > 0,                "PartnerVault: slippage protection required");
         require(deadline >= block.timestamp,     "PartnerVault: expired deadline");
+
+        // Lazy epoch finalization
+        IRewardEngine(rewardEngine).autoFinalizeEpochs();
 
         IERC20(inputToken).safeTransferFrom(msg.sender, address(this), amountIn);
         IERC20(inputToken).forceApprove(router, amountIn);

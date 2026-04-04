@@ -8,6 +8,7 @@ import "../contracts/core/PSRE.sol";
 import "./mocks/MockERC20.sol";
 import "./mocks/MockSwapRouter.sol";
 import "./mocks/MockVaultFactory.sol";
+import "./mocks/MockRewardEngine.sol";
 
 /**
  * @title CustomerVaultTest v3.2
@@ -25,7 +26,7 @@ contract CustomerVaultTest is Test {
     address public teamVesting  = makeAddr("teamVesting");
     address public partner      = makeAddr("partner");
     address public customer     = makeAddr("customer");
-    address public rewardEngine = makeAddr("rewardEngine");
+    address public rewardEngine; // set to MockRewardEngine in setUp so buy() can call autoFinalizeEpochs()
     MockVaultFactory public factoryMock;
     address public factory;   // = address(factoryMock), set in setUp
     address public other        = makeAddr("other");
@@ -45,6 +46,9 @@ contract CustomerVaultTest is Test {
         // Use MockVaultFactory so isCustomerVaultOf() can be called (MAJOR-1)
         factoryMock = new MockVaultFactory();
         factory     = address(factoryMock);
+
+        // Deploy MockRewardEngine so vault.buy() can call autoFinalizeEpochs() (no-op in mock).
+        rewardEngine = address(new MockRewardEngine());
 
         // Deploy and init PartnerVault
         vault = new PartnerVault();
