@@ -416,7 +416,6 @@ contract RewardEngine is
     function autoFinalizeEpochs() external nonReentrant whenNotPaused {
         if (currentEpochId() == 0) return;                                              // before first epoch ends
         if (firstEpochFinalized && lastFinalizedEpoch + 1 >= currentEpochId()) return;  // all caught up
-        if (!firstEpochFinalized && currentEpochId() == 0) return;                     // epoch 0 not ended
 
         uint256 current = currentEpochId();
         uint256 next = firstEpochFinalized ? lastFinalizedEpoch + 1 : 0;
@@ -437,6 +436,9 @@ contract RewardEngine is
      *      finalizeEpoch() enforces ordering with explicit require guards.
      */
     function _finalizeSingleEpoch(uint256 epochId) internal {
+        // Defense-in-depth: prevent double-finalization regardless of caller.
+        require(!epochFinalized[epochId], "RE: already finalized");
+
         // ── Snapshot staking vault ───────────────────────────────────────────
         stakingVault.snapshotEpoch(epochId);
 
