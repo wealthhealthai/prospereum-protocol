@@ -1,31 +1,31 @@
-# GOODNIGHT.md — 2026-04-04
+# GOODNIGHT.md — 2026-04-05 (EOD April 4)
 
 ## What Was Done Today
 
-**Epoch Keeper WIRED ✅** — `scripts/epoch-keeper.sh` + OpenClaw cron `3fc22360`
-- Schedule: every Saturday 20:00 UTC
-- First run: **today at 1:00 PM PDT** (17 min after Epoch 0 closes at 12:43 PM PDT)
-- Dry-run verified clean; on-chain semantics confirmed
-- decisions.md + epoch-keeper-spec.md updated; committed `a742a57`
+**Epoch 0 finalized ✅** — keeper cron fired exactly on schedule at 1:00 PM PDT. Tx confirmed on-chain (block 39,782,260). 0 PSRE minted (no active vaults — correct). Keeper pipeline proven.
 
-BlockApex audit running. No other code changes.
+**Lazy auto-finalization shipped** — `autoFinalizeEpochs()` added to RewardEngine (Shu decision, commits `1acd719` + ADJUDICATOR fix `2073cfe`). Partners' own `createVault()` / `buy()` calls now trigger epoch finalization automatically. Keeper is now belt-and-suspenders, not critical path.
 
-## Epoch 0 — Fires Today
+Note: New feature is in git but **not yet deployed to Base Sepolia.** Live contracts still have pre-autoFinalize bytecode.
 
-| Event | Time |
+## Keeper Status
+
+| Item | Status |
 |---|---|
-| Epoch 0 closes | 12:43 PM PDT (19:43 UTC) |
-| Keeper cron fires | 1:00 PM PDT (20:00 UTC) |
-| Expected | 0 active vaults → 0 PSRE minted → pipeline verified |
+| Epoch 0 | ✅ Finalized, 0 PSRE minted |
+| Epoch 1 | Closes ~April 11 19:43 UTC |
+| Next cron run | April 11 20:00 UTC (Saturday) |
+| Cron job | `3fc22360` — live, next run confirmed |
 
-**Next session:** Check `cron runs` for job `3fc22360` to confirm it fired.
-
-## Audit Timeline
+## Audit Status
 
 | Milestone | Date |
 |---|---|
+| BlockApex started | April 2 ✅ |
+| Audit scope | Commit `7e96ba9` (pre-autoFinalize) |
+| ⚠️ New feature | `autoFinalizeEpochs` not in scope — decide: add or separate? |
 | Initial report | ~April 8–9 |
-| Fix submission | ~April 11 |
+| Fixes | ~April 11 |
 | Final report | ~April 13–14 |
 | **Mainnet target** | **April 14–16** |
 
@@ -33,21 +33,21 @@ BlockApex audit running. No other code changes.
 
 | Item | Who | Urgency |
 |---|---|---|
-| Gnosis Safe creation (Founder + Treasury) | Jason + Shu | 🔴 NOW — 3+ weeks open |
-| Confirm $2,500 wire to BlockApex | Shu | 🔴 Was due April 2 |
-| OPENAI + APOLLO + APIFY key rotation | Jason | 🔴 8-9 days exposed |
-| Mainnet deploy script | Kin — blocked on Safe addresses | 🟠 |
-| Testnet smoke test | Jason go-ahead | 🟡 |
-| Gelato backup keeper (mainnet) | Kin — post-audit | 🟡 |
+| Gnosis Safe creation | Jason + Shu | 🔴 3+ weeks, hard blocker |
+| Confirm $2,500 BlockApex wire | Shu | 🔴 Due April 2, unconfirmed |
+| BlockApex scope: include autoFinalizeEpochs? | Shu | 🟠 Before initial report |
+| Redeploy v3.2 + autoFinalize to Base Sepolia | Kin — on Jason's go | 🟠 |
+| Mainnet deploy script | Kin — blocked on Gnosis Safes | 🟠 |
+| Jason surgery April 7 | Jason | ℹ️ 3 days, hold non-urgent |
 
 ## Blockers
 
-- **Gnosis Safes** — longest-running open item (3+ weeks). Blocks mainnet deploy script entirely.
-- **Audit** — on track, nothing blocking. Results April 8–9.
+- **Gnosis Safes** — still not created, blocks mainnet deploy script entirely
+- **BlockApex scope question** — new feature may need to be in scope before initial report
 
 ## Notes for Tomorrow
 
-1. Check keeper cron run result (job `3fc22360`) — did Epoch 0 finalize?
-2. Nudge Shu on Gnosis Safes and $2,500 wire
-3. If Safe addresses land → start mainnet deploy script immediately
-4. Mainnet April 14–16 is the target — hold the window
+1. Confirm `forge test` passes after new commits (run test suite)
+2. Ask Shu: does BlockApex need to see `autoFinalizeEpochs`? If yes, share commit hash + context
+3. Push Gnosis Safe creation — this is the longest-running blocker
+4. Jason pre-surgery: capture any decisions needed before April 7
