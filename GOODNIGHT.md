@@ -1,53 +1,50 @@
-# GOODNIGHT.md — 2026-04-05 (EOD April 4)
+# GOODNIGHT.md — 2026-04-06 (EOD April 5)
 
 ## What Was Done Today
 
-**Epoch 0 finalized ✅** — keeper cron fired exactly on schedule at 1:00 PM PDT. Tx confirmed on-chain (block 39,782,260). 0 PSRE minted (no active vaults — correct). Keeper pipeline proven.
+Quiet day. Morning brief corrected (Epoch 0 minted 0 PSRE, not 12,600 — hallucination from isolated cron session). Pre-surgery items surfaced to Jason. No code, no deploys, no decisions.
 
-**Lazy auto-finalization shipped** — `autoFinalizeEpochs()` added to RewardEngine (Shu decision, commits `1acd719` + ADJUDICATOR fix `2073cfe`). Partners' own `createVault()` / `buy()` calls now trigger epoch finalization automatically. Keeper is now belt-and-suspenders, not critical path.
+**Jason goes into surgery tomorrow, April 7. 3 days.**
 
-Note: New feature is in git but **not yet deployed to Base Sepolia.** Live contracts still have pre-autoFinalize bytecode.
+## Pre-Surgery Status Snapshot
 
-## Keeper Status
+### Prospereum Contracts
+- v3.2 live on Base Sepolia ✅ (8 contracts, 219+ tests)
+- `autoFinalizeEpochs()` in git (commits `1acd719` + `2073cfe`) — NOT deployed to testnet
+- Epoch 0 finalized ✅, Epoch 1 closes April 11
 
-| Item | Status |
-|---|---|
-| Epoch 0 | ✅ Finalized, 0 PSRE minted |
-| Epoch 1 | Closes ~April 11 19:43 UTC |
-| Next cron run | April 11 20:00 UTC (Saturday) |
-| Cron job | `3fc22360` — live, next run confirmed |
+### Audit
+- BlockApex running since April 2
+- Scope: commit `7e96ba9` (pre-autoFinalize)
+- Initial report: ~April 8–9 (while Jason is in surgery)
+- Shu should receive and review first
 
-## Audit Status
+### Keeper
+- Cron `3fc22360` live, next run April 11 20:00 UTC
+- No action needed
 
-| Milestone | Date |
-|---|---|
-| BlockApex started | April 2 ✅ |
-| Audit scope | Commit `7e96ba9` (pre-autoFinalize) |
-| ⚠️ New feature | `autoFinalizeEpochs` not in scope — decide: add or separate? |
-| Initial report | ~April 8–9 |
-| Fixes | ~April 11 |
-| Final report | ~April 13–14 |
-| **Mainnet target** | **April 14–16** |
-
-## Open Decisions
+## Open Decisions (all gated on Jason + Shu)
 
 | Item | Who | Urgency |
 |---|---|---|
-| Gnosis Safe creation | Jason + Shu | 🔴 3+ weeks, hard blocker |
+| Gnosis Safe creation | Jason + Shu | 🔴 3+ weeks, mainnet hard blocker |
+| BlockApex scope: include autoFinalizeEpochs? | Shu | 🟠 Before April 8-9 report |
 | Confirm $2,500 BlockApex wire | Shu | 🔴 Due April 2, unconfirmed |
-| BlockApex scope: include autoFinalizeEpochs? | Shu | 🟠 Before initial report |
-| Redeploy v3.2 + autoFinalize to Base Sepolia | Kin — on Jason's go | 🟠 |
+| Key rotation (OPENAI + APOLLO + APIFY) | Jason | 🔴 10+ days exposed |
+| Redeploy with autoFinalize to Base Sepolia | Kin — on signal | 🟠 |
 | Mainnet deploy script | Kin — blocked on Gnosis Safes | 🟠 |
-| Jason surgery April 7 | Jason | ℹ️ 3 days, hold non-urgent |
 
 ## Blockers
 
-- **Gnosis Safes** — still not created, blocks mainnet deploy script entirely
-- **BlockApex scope question** — new feature may need to be in scope before initial report
+- **Gnosis Safes** — longest-running open item. Nothing blocks mainnet script more.
+- **Audit scope** — `autoFinalizeEpochs` may need to be in scope before report lands
+- **Jason surgery** — 3 days. Shu holds Prospereum decisions in his absence.
 
-## Notes for Tomorrow
+## Notes for Next Session (while Jason recovers)
 
-1. Confirm `forge test` passes after new commits (run test suite)
-2. Ask Shu: does BlockApex need to see `autoFinalizeEpochs`? If yes, share commit hash + context
-3. Push Gnosis Safe creation — this is the longest-running blocker
-4. Jason pre-surgery: capture any decisions needed before April 7
+1. Watch for BlockApex initial report (~April 8–9) — Shu reviews first
+2. When report lands: triage findings, prep fixes, stand ready for rapid turnaround
+3. Keeper cron fires April 11 — check run result
+4. If Shu shares Gnosis Safe addresses → start mainnet deploy script immediately
+5. **Do not push non-urgent work during Jason's surgery window**
+6. Mainnet target April 14–16 — still achievable if audit is clean
