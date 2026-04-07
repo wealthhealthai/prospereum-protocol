@@ -225,6 +225,8 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault 
      */
     function recordStakeTime(uint256 epochId) external {
         require(currentEpochId() > epochId,                        "StakingVault: epoch not ended");
+        // Fix #1: block post-snapshot injection — attacker cannot pump numerator into frozen denominator
+        require(!epochSnapshotted[epochId],                        "StakingVault: epoch already snapshotted");
         require(userStakeTimeByEpoch[epochId][msg.sender] == 0,   "StakingVault: already recorded");
         _checkpointUser(msg.sender);
 
@@ -244,9 +246,12 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault 
         uint256 st = s.accStakeTime < maxEpochStakeTime ? s.accStakeTime : maxEpochStakeTime;
         userStakeTimeByEpoch[epochId][msg.sender] = st;
 
-        // Reset accumulator so next epoch starts fresh.
-        // Without this, accStakeTime grows unboundedly across epochs.
-        s.accStakeTime = 0;
+        // Fix #20: targeted subtraction instead of blanket reset.
+        // Only deduct the stakeTime recorded for this specific epoch so that
+        // stakeTime from other (past or future) unrecorded epochs is preserved.
+        // Without this, a user who records epoch N loses all accumulated stakeTime
+        // for epochs N-1, N-2, etc. that they haven't recorded yet.
+        s.accStakeTime = s.accStakeTime > st ? s.accStakeTime - st : 0;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

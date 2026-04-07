@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../interfaces/IPSRE.sol";
+import "../interfaces/IPausableToken.sol";
 import "../interfaces/IPartnerVault.sol";
 import "../interfaces/IPartnerVaultFactory.sol";
 import "../interfaces/IStakingVault.sol";
@@ -628,6 +629,10 @@ contract RewardEngine is
         uint256 mintAmount = P < remaining ? P : remaining;
 
         if (mintAmount > 0) {
+            // Fix #16: if PSRE transfers are paused, mints would succeed but claims would fail,
+            // consuming emission budget with tokens nobody can receive. Revert instead.
+            // Use Pausable interface directly; paused() is not on IPSRE to avoid diamond conflict.
+            require(!IPausableToken(address(psre)).paused(), "RE: PSRE transfers paused");
             psre.mint(address(this), mintAmount);
             T += mintAmount;
             assert(T <= S_EMISSION);
@@ -660,10 +665,12 @@ contract RewardEngine is
      *
      * @param vault  Address of the PartnerVault to claim rewards for.
      */
-    function claimPartnerReward(address vault) external nonReentrant {
-        // Verify caller is vault owner
+    function claimPartnerReward(address vault) external nonReentrant whenNotPaused {
+        // Fix #8: query vault's current owner directly instead of factory.partnerOf(),
+        // which goes stale after updateOwner/acceptOwnership vault transfers.
+        // Fix #18: whenNotPaused — pausing RE must freeze reward outflows, not just new epochs.
         require(
-            factory.partnerOf(vault) == msg.sender,
+            IPartnerVault(vault).owner() == msg.sender,
             "RE: not vault owner"
         );
         uint256 owed = owedPartner[vault];
@@ -681,7 +688,8 @@ contract RewardEngine is
      * @notice Claim staker reward for a specific epoch.
      * @param epochId  The epoch to claim staker reward for.
      */
-    function claimStake(uint256 epochId) external nonReentrant {
+    function claimStake(uint256 epochId) external nonReentrant whenNotPaused {
+        // Fix #18: whenNotPaused — pausing RE must freeze staker reward outflows.
         require(epochFinalized[epochId], "RE: epoch not finalized");
 
         bytes32 key = keccak256(abi.encodePacked(epochId, msg.sender));

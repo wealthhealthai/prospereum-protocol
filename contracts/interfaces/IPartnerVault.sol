@@ -7,6 +7,12 @@ pragma solidity ^0.8.24;
  * @dev Dev Spec v3.2, Section 2.3
  */
 interface IPartnerVault {
+    // ── Ownership ──────────────────────────────────────────────────────────
+    /// @notice Returns the current owner of the vault.
+    ///         Used by RewardEngine and Factory to authorize actions after
+    ///         ownership transfer (fix #8: partnerOf stale after vault transfer).
+    function owner() external view returns (address);
+
     // ── v3.2 snapshotEpoch (replaces cumBuy read) ──────────────────────────
     /// @notice Called by RewardEngine at epoch finalization.
     ///         Runs _updateCumS() then returns deltaCumS = cumS - lastEpochCumS

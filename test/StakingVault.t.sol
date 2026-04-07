@@ -314,20 +314,19 @@ contract StakingVaultTest is Test {
         stakingVault.unstakePSRE(1); // checkpoint
 
         vm.warp(genesis + EPOCH + 1);
-        vm.prank(rewardEngine);
-        stakingVault.snapshotEpoch(0);
 
-        // Alice records her stake time for epoch 0 (after epoch ended)
+        // Fix #1: recordStakeTime must be called BEFORE snapshotEpoch.
+        // Post-snapshot recordStakeTime is now blocked (attack vector closed).
         vm.prank(alice);
         stakingVault.recordStakeTime(0);
+
+        vm.prank(rewardEngine);
+        stakingVault.snapshotEpoch(0);
 
         uint256 aliceST = stakingVault.stakeTimeOf(alice, 0);
         uint256 total   = stakingVault.totalStakeTime(0);
         assertGt(aliceST, 0, "Alice stakeTime should be > 0");
         assertGt(total, 0, "Total stakeTime should be > 0");
-        // Note: aliceST is recorded at EPOCH+1 (after snapshot) so may exceed the snapshotted total.
-        // This is a known v1 design limitation — recordStakeTime uses current accStakeTime, not the
-        // epoch-bounded value. The key invariant is both are > 0 and proportional reward is computable.
         assertApproxEqRel(aliceST, total, 0.01e18, "Alice stakeTime should be within 1% of total (sole staker)");
     }
 

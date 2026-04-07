@@ -5,6 +5,8 @@ pragma solidity ^0.8.24;
  * @title IPSRE
  * @notice Interface for the PSRE token as consumed by RewardEngine.
  * @dev Extracted from RewardEngine.sol inline definition — pre-audit hygiene fix.
+ *      paused() is intentionally NOT declared here to avoid diamond conflict with
+ *      OZ Pausable in PSRE.sol. Use IPausableToken for pause state checks.
  */
 interface IPSRE {
     /**

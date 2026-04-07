@@ -18,6 +18,11 @@ contract MockRewardEngine is IRewardEngine {
         // no-op in mock
     }
 
+    /// @dev Returns false by default (mock only). Tests that need qualified=true may override.
+    function qualified(address) external pure override returns (bool) {
+        return false;
+    }
+
     function getRegisteredVaultCount() external view returns (uint256) {
         return registeredVaults.length;
     }

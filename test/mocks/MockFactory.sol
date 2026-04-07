@@ -42,6 +42,10 @@ contract MockFactory is IPartnerVaultFactory {
         return address(0);
     }
 
+    function isRegisteredCV(address cv) external view override returns (bool) {
+        return _cvParent[cv] != address(0);
+    }
+
     function isCustomerVaultOf(address cv) external view override returns (address) {
         return _cvParent[cv];
     }
