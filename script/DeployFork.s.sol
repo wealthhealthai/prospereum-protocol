@@ -197,7 +197,7 @@ contract DeployFork is Script {
         // ── (f) Warp 7 days + 1 second ───────────────────────────────────────
         //    NOTE: vm.warp is only available in Test context, not Script context.
         //    In a broadcast script we cannot warp time. Instead, we call
-        //    recordStakeTime and finalizeEpoch at the natural block timestamp.
+        //    checkpointUser and finalizeEpoch at the natural block timestamp.
         //    To test epoch finalization we need to either:
         //    (1) Use vm.warp in a non-broadcast context, or
         //    (2) Actually wait 7 days (not practical)
@@ -211,14 +211,15 @@ contract DeployFork is Script {
         vm.warp(genesis + EPOCH + 1);
         console.log("[PASS] Time warped to epoch 1 boundary");
 
-        // Checkpoint staker accumulator before recording stakeTime
-        // Unstake 1 wei to trigger _checkpointUser
+        // Checkpoint staker accumulator before epoch snapshot.
+        // In StakingVault v2, checkpointing is automatic on stake/unstake,
+        // but we can also call checkpointUser() explicitly.
         vm.startPrank(deployer);
-        stakingVault.unstakePSRE(1);
-        // Record stakeTime for epoch 0
-        stakingVault.recordStakeTime(0);
+        stakingVault.unstakePSRE(1); // triggers _checkpoint, attributing stakeTime to epoch 0
         vm.stopPrank();
-        console.log("[PASS] StakeTime recorded for epoch 0");
+        // Also explicitly checkpoint to ensure contributions are recorded.
+        stakingVault.checkpointUser(deployer);
+        console.log("[PASS] Staker checkpointed for epoch 0");
 
         // ── (g) Call rewardEngine.finalizeEpoch(0) ────────────────────────────
         rewardEngine.finalizeEpoch(0);

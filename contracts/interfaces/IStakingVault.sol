@@ -4,10 +4,23 @@ pragma solidity ^0.8.24;
 /**
  * @title IStakingVault
  * @notice Interface for StakingVault as consumed by RewardEngine.
- * @dev Extracted from RewardEngine.sol inline definition — pre-audit hygiene fix.
+ *
+ * @dev Updated for StakingVault v2.0 (epoch-aware checkpointing):
+ *      - snapshotEpoch(): finalize an epoch (no new contributions accepted after this)
+ *      - distributeStakerRewards(): fund the reward pools for a finalized epoch
+ *
+ *      The old totalStakeTime() and stakeTimeOf() view helpers are no longer part of
+ *      the RewardEngine interface — reward calculation and distribution is now handled
+ *      entirely within StakingVault. Users claim via StakingVault.claimStake(epochId).
  */
 interface IStakingVault {
+    /// @notice Finalize an epoch. Called by RewardEngine during _finalizeSingleEpoch().
+    ///         After this call, no new stakeTime contributions are accepted for epochId.
     function snapshotEpoch(uint256 epochId) external;
-    function totalStakeTime(uint256 epochId) external view returns (uint256);
-    function stakeTimeOf(address user, uint256 epochId) external view returns (uint256);
+
+    /// @notice Fund the PSRE and LP reward pools for a finalized epoch.
+    ///         Pulls `totalStakerPool` PSRE from RewardEngine via safeTransferFrom.
+    ///         RewardEngine must approve this contract for totalStakerPool before calling.
+    ///         Called by RewardEngine immediately after snapshotEpoch in _finalizeSingleEpoch().
+    function distributeStakerRewards(uint256 epochId, uint256 totalStakerPool) external;
 }

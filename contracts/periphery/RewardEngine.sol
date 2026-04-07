@@ -158,8 +158,7 @@ contract RewardEngine is
     mapping(uint256 => uint256) public epochMinted;
     mapping(uint256 => uint256) public epochDeltaEffectiveCumSTotal;
 
-    // Staker double-claim prevention
-    mapping(bytes32 => bool) private _stakeClaimed;
+    // Staker double-claim prevention handled in StakingVault v2 (hasClaimed mapping).
 
     // ─────────────────────────────────────────────────────────────────────────
     // UUPS upgrade timelock
@@ -213,7 +212,7 @@ contract RewardEngine is
                                uint256 cumS_, uint256 initialCumS_);
     event PartnerRewardAccrued(uint256 indexed epochId, address indexed vault, uint256 amount);
     event PartnerRewardClaimed(address indexed vault, uint256 amount);
-    event StakeClaimed(uint256 indexed epochId, address indexed user, uint256 stakeTime, uint256 reward);
+    // StakeClaimed event moved to StakingVault v2.
     event VaultRegistered(address indexed vault, uint256 initialCumS_);
     event VaultMarkedInactive(address indexed vault, uint256 indexed epochId);
     event VaultReactivated(address indexed vault, uint256 indexed epochId);
@@ -622,7 +621,9 @@ contract RewardEngine is
         }
 
         // ── Staker pool ──────────────────────────────────────────────────────
-        uint256 P_stakers = stakingVault.totalStakeTime(epochId) > 0 ? B_stakers : 0;
+        // StakingVault v2: always fund the full staker budget — users claim directly
+        // from StakingVault via claimStake(epochId) based on their epoch stakeTime.
+        uint256 P_stakers = B_stakers;
 
         // ── Mint ─────────────────────────────────────────────────────────────
         uint256 P          = P_partners + P_stakers;
@@ -636,6 +637,15 @@ contract RewardEngine is
             psre.mint(address(this), mintAmount);
             T += mintAmount;
             assert(T <= S_EMISSION);
+        }
+
+        // ── Transfer staker pool to StakingVault ─────────────────────────────
+        // StakingVault v2: distributeStakerRewards pulls funds from RE via safeTransferFrom.
+        // Approve then call — StakingVault splits the pool between PSRE and LP stakers.
+        uint256 actualStakerMint = mintAmount > P_partners ? mintAmount - P_partners : 0;
+        if (actualStakerMint > 0) {
+            IERC20(address(psre)).forceApprove(address(stakingVault), actualStakerMint);
+            stakingVault.distributeStakerRewards(epochId, actualStakerMint);
         }
 
         // ── Record epoch ─────────────────────────────────────────────────────
@@ -684,31 +694,8 @@ contract RewardEngine is
         emit PartnerRewardClaimed(vault, owed);
     }
 
-    /**
-     * @notice Claim staker reward for a specific epoch.
-     * @param epochId  The epoch to claim staker reward for.
-     */
-    function claimStake(uint256 epochId) external nonReentrant whenNotPaused {
-        // Fix #18: whenNotPaused — pausing RE must freeze staker reward outflows.
-        require(epochFinalized[epochId], "RE: epoch not finalized");
-
-        bytes32 key = keccak256(abi.encodePacked(epochId, msg.sender));
-        require(!_stakeClaimed[key], "RE: already claimed");
-
-        uint256 totalST = stakingVault.totalStakeTime(epochId);
-        require(totalST > 0, "RE: no staking activity");
-
-        uint256 userST = stakingVault.stakeTimeOf(msg.sender, epochId);
-        require(userST > 0, "RE: no stake this epoch");
-
-        uint256 reward = (epochStakersPool[epochId] * userST) / totalST;
-        require(reward > 0, "RE: zero reward");
-
-        _stakeClaimed[key] = true;
-        IERC20(address(psre)).safeTransfer(msg.sender, reward);
-
-        emit StakeClaimed(epochId, msg.sender, userST, reward);
-    }
+    // Note: claimStake() has been moved to StakingVault v2.
+    // Users call StakingVault.claimStake(epochId) directly.
 
     // ─────────────────────────────────────────────────────────────────────────
     // Governance: timelock param updates (Dev Spec v3.2 §10)

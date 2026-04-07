@@ -2,26 +2,34 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IStakingVault.sol";
 
 /**
- * @title StakingVault
+ * @title StakingVault v2.0 — Epoch-Aware Checkpointing
  * @notice Time-weighted staking for PSRE tokens and PSRE/USDC LP tokens.
- *         Staking rewards are pull-based: RewardEngine computes owed amounts
- *         using stakeTimeOf() and totalStakeTime() snapshots.
+ *         Implements two separate reward sub-pools within the 30% staker allocation:
+ *           - PSRE pool: rewards for PSRE stakers
+ *           - LP pool:   rewards for LP token stakers
+ *         Default split: 50% / 50%, governance-adjustable via setSplit().
  *
- * @dev Dev Spec v2.3, Section 2.4 and 7
- *      - PSRE staking and LP staking treated equivalently (no weighting multiplier)
- *      - stakeTime = stakeAmount × stakingDuration (in token-seconds)
- *      - Snapshots are taken at epoch boundaries for reward computation
- *      - Pull-based: RewardEngine calls claimStake(epochId) on behalf of user
- *        (or users call directly)
+ *         Epoch-aware checkpointing (Synthetix-style):
+ *           - _checkpoint() attributes time-weighted balance to each epoch correctly
+ *           - No cross-epoch contamination: time is attributed to the epoch it was earned in
+ *           - MAX_CHECKPOINT_EPOCHS (52) cap prevents gas exhaustion for dormant stakers
+ *
+ *         Pull-based claiming: users call claimStake(epochId) after epoch is snapshotted
+ *         and rewards are distributed by RewardEngine via distributeStakerRewards().
+ *
+ * @dev Fixes #5, #9, #13, #15, #20 from BlockApex audit:
+ *      - #5: epoch boundary contamination → fixed by per-epoch time attribution
+ *      - #9: stakeTime cross-epoch accumulation → fixed by epoch-aware _checkpoint
+ *      - #13: single global totalStakeTime → fixed by per-epoch mappings
+ *      - #15: recordStakeTime() manual injection → removed, automatic checkpointing
+ *      - #20: accStakeTime partial deduction issue → removed, new epoch-attributed model
  */
-contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault {
+contract StakingVault is ReentrancyGuard, IStakingVault {
     using SafeERC20 for IERC20;
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -29,6 +37,13 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault 
     // ─────────────────────────────────────────────────────────────────────────
 
     uint256 public constant EPOCH_DURATION = 7 days;
+
+    /// @notice Governance precision (1e18 = 100%).
+    uint256 public constant PRECISION = 1e18;
+
+    /// @notice Maximum epochs to look back during _checkpoint (gas safety).
+    ///         Stakers who go dormant for >52 epochs forfeit contributions for skipped epochs.
+    uint256 public constant MAX_CHECKPOINT_EPOCHS = 52;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Immutables
@@ -39,43 +54,70 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault 
     uint256 public immutable genesisTimestamp;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Per-user state
+    // Sub-pool split (within the 30% staker allocation)
+    // psreSplit + lpSplit must always == PRECISION (1e18)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    uint256 public psreSplit = 0.5e18;   // 50% to PSRE stakers
+    uint256 public lpSplit   = 0.5e18;   // 50% to LP stakers
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Per-user staking state
     // ─────────────────────────────────────────────────────────────────────────
 
     struct UserStake {
-        uint256 psreBalance;          // PSRE tokens staked
-        uint256 lpBalance;            // LP tokens staked
-        uint256 lastUpdateTimestamp;  // last time accStakeTime was updated
-        uint256 accStakeTime;         // token-seconds accumulated in current epoch
+        uint256 psreBalance;              // PSRE tokens currently staked
+        uint256 lpBalance;                // LP tokens currently staked
+        uint256 lastCheckpointTimestamp;  // timestamp of last _checkpoint call
+        uint256 lastCheckpointEpoch;      // epoch of last _checkpoint call
     }
 
     mapping(address => UserStake) public userStakes;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Epoch snapshots
+    // Per-epoch time-weighted totals
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice Total stakeTime accumulated by all users in a finalized epoch.
-    mapping(uint256 => uint256) public totalStakeTimeByEpoch;
+    /// @notice Total PSRE stakeTime in epoch e = Σ(psreBalance × seconds) across all stakers.
+    mapping(uint256 => uint256) public totalPSREStakedTime;
 
-    /// @notice Per-user stakeTime in a finalized epoch.
-    mapping(uint256 => mapping(address => uint256)) public userStakeTimeByEpoch;
+    /// @notice Total LP stakeTime in epoch e = Σ(lpBalance × seconds) across all stakers.
+    mapping(uint256 => uint256) public totalLPStakedTime;
 
-    /// @notice Tracks the epoch each user's accumulator was last snapshotted.
-    mapping(address => uint256) public userLastSnapshotEpoch;
+    /// @notice Per-user PSRE stakeTime contribution to epoch e.
+    mapping(uint256 => mapping(address => uint256)) public userPSREStakedTime;
 
-    /// @notice Running total stakeTime for the current (unfinalized) epoch.
-    uint256 public currentEpochTotalStakeTime;
+    /// @notice Per-user LP stakeTime contribution to epoch e.
+    mapping(uint256 => mapping(address => uint256)) public userLPStakedTime;
 
-    /// @notice Tracks which epochs have already been snapshotted (prevents re-snapshot).
-    /// @dev Replaces the broken `lastSnapshotEpoch == 0` guard that allowed epoch 0 re-snapshot.
+    // ─────────────────────────────────────────────────────────────────────────
+    // Epoch reward pools (set by RewardEngine via distributeStakerRewards)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice PSRE reward pool for epoch e (PSRE-pool portion of staker allocation).
+    mapping(uint256 => uint256) public epochPSREPool;
+
+    /// @notice LP reward pool for epoch e (LP-pool portion of staker allocation).
+    mapping(uint256 => uint256) public epochLPPool;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Claim tracking & snapshot state
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice True once a user has claimed rewards for an epoch (prevents double-claim).
+    mapping(uint256 => mapping(address => bool)) public hasClaimed;
+
+    /// @notice True once snapshotEpoch() has been called for an epoch.
+    ///         After snapshotting, no new contributions are accepted for that epoch.
     mapping(uint256 => bool) public epochSnapshotted;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // RewardEngine
+    // Governance & access control
     // ─────────────────────────────────────────────────────────────────────────
 
+    address public owner;
     address public rewardEngine;
+    bool    private rewardEngineSet;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Events
@@ -85,8 +127,21 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault 
     event PSREUnstaked(address indexed user, uint256 amount);
     event LPStaked(address indexed user, uint256 amount);
     event LPUnstaked(address indexed user, uint256 amount);
-    event EpochSnapshotted(uint256 indexed epochId, uint256 totalStakeTime);
-    event RewardEngineSet(address indexed rewardEngine);
+    event EpochSnapshotted(uint256 indexed epochId);
+    event StakerRewardsDistributed(uint256 indexed epochId, uint256 psrePool, uint256 lpPool);
+    event StakeRewardClaimed(address indexed user, uint256 indexed epochId,
+                              uint256 psreReward, uint256 lpReward);
+    event SplitUpdated(uint256 psreSplit_, uint256 lpSplit_);
+    event RewardEngineSet(address indexed rewardEngine_);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Modifiers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "StakingVault: not owner");
+        _;
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Constructor
@@ -96,30 +151,16 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault 
         address _psre,
         address _lpToken,
         uint256 _genesisTimestamp,
-        address _admin
-    ) Ownable(_admin) {
-        require(_psre      != address(0), "StakingVault: zero psre");
-        require(_lpToken   != address(0), "StakingVault: zero lp");
-        require(_genesisTimestamp > 0,    "StakingVault: zero genesis");
-
+        address _owner
+    ) {
+        require(_psre    != address(0), "StakingVault: zero addr");
+        require(_lpToken != address(0), "StakingVault: zero addr");
+        require(_genesisTimestamp > 0,  "StakingVault: zero genesis");
         psre             = _psre;
         lpToken          = _lpToken;
         genesisTimestamp = _genesisTimestamp;
+        owner            = _owner;
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Admin
-    // ─────────────────────────────────────────────────────────────────────────
-
-    function setRewardEngine(address _rewardEngine) external onlyOwner {
-        require(_rewardEngine != address(0), "StakingVault: zero rewardEngine");
-        require(rewardEngine  == address(0), "StakingVault: already set");
-        rewardEngine = _rewardEngine;
-        emit RewardEngineSet(_rewardEngine);
-    }
-
-    function pause()   external onlyOwner { _pause(); }
-    function unpause() external onlyOwner { _unpause(); }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Epoch helpers
@@ -130,30 +171,36 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault 
         return (block.timestamp - genesisTimestamp) / EPOCH_DURATION;
     }
 
+    function epochStart(uint256 epochId) public view returns (uint256) {
+        return genesisTimestamp + epochId * EPOCH_DURATION;
+    }
+
+    function epochEnd(uint256 epochId) public view returns (uint256) {
+        return genesisTimestamp + (epochId + 1) * EPOCH_DURATION;
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Staking: PSRE
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Stake PSRE tokens.
-     * @param amount Amount of PSRE to stake.
+     * @notice Stake PSRE tokens. Checkpoints the caller before updating balance.
      */
-    function stakePSRE(uint256 amount) external nonReentrant whenNotPaused {
+    function stakePSRE(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
-        _checkpointUser(msg.sender);
+        _checkpoint(msg.sender);
         IERC20(psre).safeTransferFrom(msg.sender, address(this), amount);
         userStakes[msg.sender].psreBalance += amount;
         emit PSREStaked(msg.sender, amount);
     }
 
     /**
-     * @notice Unstake PSRE tokens.
-     * @param amount Amount of PSRE to unstake.
+     * @notice Unstake PSRE tokens. Checkpoints the caller before updating balance.
      */
     function unstakePSRE(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
-        require(userStakes[msg.sender].psreBalance >= amount, "StakingVault: insufficient PSRE");
-        _checkpointUser(msg.sender);
+        require(userStakes[msg.sender].psreBalance >= amount, "StakingVault: insufficient balance");
+        _checkpoint(msg.sender);
         userStakes[msg.sender].psreBalance -= amount;
         IERC20(psre).safeTransfer(msg.sender, amount);
         emit PSREUnstaked(msg.sender, amount);
@@ -164,146 +211,271 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step, IStakingVault 
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Stake LP tokens. Treated equivalently to PSRE for stakeTime accounting.
-     *         stakeTime = lpAmount × duration (no weighting multiplier per spec §2.4).
-     * @param amount Amount of LP tokens to stake.
+     * @notice Stake LP tokens. Checkpoints the caller before updating balance.
      */
-    function stakeLP(uint256 amount) external nonReentrant whenNotPaused {
+    function stakeLP(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
-        _checkpointUser(msg.sender);
+        _checkpoint(msg.sender);
         IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
         userStakes[msg.sender].lpBalance += amount;
         emit LPStaked(msg.sender, amount);
     }
 
     /**
-     * @notice Unstake LP tokens.
-     * @param amount Amount of LP tokens to unstake.
+     * @notice Unstake LP tokens. Checkpoints the caller before updating balance.
      */
     function unstakeLP(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
-        require(userStakes[msg.sender].lpBalance >= amount, "StakingVault: insufficient LP");
-        _checkpointUser(msg.sender);
+        require(userStakes[msg.sender].lpBalance >= amount, "StakingVault: insufficient balance");
+        _checkpoint(msg.sender);
         userStakes[msg.sender].lpBalance -= amount;
         IERC20(lpToken).safeTransfer(msg.sender, amount);
         emit LPUnstaked(msg.sender, amount);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Epoch snapshot (called by RewardEngine at finalization)
+    // snapshotEpoch — called by RewardEngine at epoch finalization
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Snapshot the current epoch's total stakeTime.
-     *         Called by RewardEngine during finalizeEpoch().
-     *         Commits currentEpochTotalStakeTime to totalStakeTimeByEpoch[epochId].
-     *
-     * @param epochId The epoch being finalized.
+     * @notice Snapshot (finalize) an epoch. Called only by RewardEngine.
+     *         After this call, no new contributions are accepted for epochId.
+     *         Must be called before distributeStakerRewards for the same epoch.
      */
-    function snapshotEpoch(uint256 epochId) external {
-        require(msg.sender == rewardEngine,      "StakingVault: only rewardEngine");
-        require(!epochSnapshotted[epochId],      "StakingVault: already snapshotted");
-        require(currentEpochId() > epochId,      "StakingVault: epoch not ended");
-
-        epochSnapshotted[epochId]          = true;
-        totalStakeTimeByEpoch[epochId]     = currentEpochTotalStakeTime;
-        currentEpochTotalStakeTime         = 0; // reset for next epoch
-
-        emit EpochSnapshotted(epochId, totalStakeTimeByEpoch[epochId]);
+    function snapshotEpoch(uint256 epochId) external override {
+        require(msg.sender == rewardEngine,   "StakingVault: only rewardEngine");
+        require(!epochSnapshotted[epochId],   "StakingVault: already snapshotted");
+        epochSnapshotted[epochId] = true;
+        emit EpochSnapshotted(epochId);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Claim: staker records their personal stakeTime (for RewardEngine)
+    // distributeStakerRewards — called by RewardEngine after snapshotEpoch
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Record a user's stakeTime for a specific epoch.
-     *         Users must call this BEFORE the epoch snapshot to have their
-     *         stakeTime recorded. RewardEngine reads userStakeTimeByEpoch[epochId][user].
+     * @notice Fund the reward pools for a finalized epoch.
+     *         Pulls `totalStakerPool` PSRE from RewardEngine (caller must have approved this
+     *         contract for at least `totalStakerPool` before calling).
+     *         Splits the pool between PSRE stakers (psreSplit) and LP stakers (lpSplit).
      *
-     * @param epochId The epoch to record stakeTime for.
+     * @param epochId         The epoch to fund rewards for.
+     * @param totalStakerPool Total PSRE to distribute across both sub-pools.
      */
-    function recordStakeTime(uint256 epochId) external {
-        require(currentEpochId() > epochId,                        "StakingVault: epoch not ended");
-        // Fix #1: block post-snapshot injection — attacker cannot pump numerator into frozen denominator
-        require(!epochSnapshotted[epochId],                        "StakingVault: epoch already snapshotted");
-        require(userStakeTimeByEpoch[epochId][msg.sender] == 0,   "StakingVault: already recorded");
-        _checkpointUser(msg.sender);
+    function distributeStakerRewards(uint256 epochId, uint256 totalStakerPool)
+        external override
+    {
+        require(msg.sender == rewardEngine,                              "StakingVault: only rewardEngine");
+        require(epochSnapshotted[epochId],                               "StakingVault: not snapshotted");
+        require(epochPSREPool[epochId] == 0 && epochLPPool[epochId] == 0, "StakingVault: already distributed");
+        require(totalStakerPool > 0,                                     "StakingVault: zero pool");
 
-        // Cap stakeTime to the epoch window to prevent unbounded accStakeTime overflow.
-        // An epoch spans [epochStart, epochEnd). We cap at the duration of one full epoch.
-        // This prevents a staker calling recordStakeTime 52 epochs late from claiming 52x rewards.
-        uint256 epochEnd      = genesisTimestamp + (epochId + 1) * EPOCH_DURATION;
-        uint256 epochStart    = genesisTimestamp + epochId * EPOCH_DURATION;
-        uint256 epochDuration = epochEnd - epochStart; // always = EPOCH_DURATION
+        epochPSREPool[epochId] = totalStakerPool * psreSplit / PRECISION;
+        epochLPPool[epochId]   = totalStakerPool * lpSplit   / PRECISION;
 
-        UserStake storage s       = userStakes[msg.sender];
-        uint256 totalStake        = s.psreBalance + s.lpBalance;
-        uint256 maxEpochStakeTime = totalStake * epochDuration; // theoretical max for this epoch
+        IERC20(psre).safeTransferFrom(rewardEngine, address(this), totalStakerPool);
 
-        // Recorded stakeTime = min(accStakeTime, maxEpochStakeTime).
-        // accStakeTime may exceed one epoch if user never checkpointed; we cap it.
-        uint256 st = s.accStakeTime < maxEpochStakeTime ? s.accStakeTime : maxEpochStakeTime;
-        userStakeTimeByEpoch[epochId][msg.sender] = st;
-
-        // Fix #20: targeted subtraction instead of blanket reset.
-        // Only deduct the stakeTime recorded for this specific epoch so that
-        // stakeTime from other (past or future) unrecorded epochs is preserved.
-        // Without this, a user who records epoch N loses all accumulated stakeTime
-        // for epochs N-1, N-2, etc. that they haven't recorded yet.
-        s.accStakeTime = s.accStakeTime > st ? s.accStakeTime - st : 0;
+        emit StakerRewardsDistributed(epochId, epochPSREPool[epochId], epochLPPool[epochId]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // View helpers (called by RewardEngine)
+    // claimStake — user pulls their reward for a specific epoch
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice Total stakeTime for a finalized epoch. Called by RewardEngine.
-    function totalStakeTime(uint256 epochId) external view returns (uint256) {
-        return totalStakeTimeByEpoch[epochId];
+    /**
+     * @notice Claim staking rewards for a finalized epoch.
+     *         Caller must have stakeTime recorded for epochId (via prior checkpoints
+     *         made BEFORE the epoch was snapshotted).
+     *
+     *         Calls _checkpoint to finalize any pending contributions for the current
+     *         (ongoing) epoch, but contributions to already-snapshotted epochs are ignored.
+     *
+     * @param epochId The finalized epoch to claim rewards for.
+     */
+    function claimStake(uint256 epochId) external nonReentrant {
+        require(epochSnapshotted[epochId],              "StakingVault: epoch not finalized");
+        require(!hasClaimed[epochId][msg.sender],       "StakingVault: already claimed");
+
+        // Checkpoint to finalize contributions for any ongoing (non-snapshotted) epochs.
+        // Contributions to already-snapshotted epochs are blocked inside _addContribution.
+        _checkpoint(msg.sender);
+
+        uint256 psreReward = 0;
+        uint256 lpReward   = 0;
+
+        uint256 userPSRE  = userPSREStakedTime[epochId][msg.sender];
+        uint256 totalPSRE = totalPSREStakedTime[epochId];
+        if (totalPSRE > 0 && userPSRE > 0) {
+            psreReward = epochPSREPool[epochId] * userPSRE / totalPSRE;
+        }
+
+        uint256 userLP  = userLPStakedTime[epochId][msg.sender];
+        uint256 totalLP = totalLPStakedTime[epochId];
+        if (totalLP > 0 && userLP > 0) {
+            lpReward = epochLPPool[epochId] * userLP / totalLP;
+        }
+
+        uint256 total = psreReward + lpReward;
+        require(total > 0, "StakingVault: nothing to claim");
+
+        hasClaimed[epochId][msg.sender] = true;
+        IERC20(psre).safeTransfer(msg.sender, total);
+
+        emit StakeRewardClaimed(msg.sender, epochId, psreReward, lpReward);
     }
 
-    /// @notice A specific user's stakeTime for a finalized epoch.
-    function stakeTimeOf(address user, uint256 epochId) external view returns (uint256) {
-        return userStakeTimeByEpoch[epochId][user];
+    // ─────────────────────────────────────────────────────────────────────────
+    // checkpointUser — anyone can trigger a checkpoint for any user
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Externally trigger a checkpoint for any user.
+     *         Useful for keepers to finalize staker contributions just before
+     *         RewardEngine calls snapshotEpoch(), ensuring contributions are captured.
+     *
+     * @param user  The user to checkpoint.
+     */
+    function checkpointUser(address user) external {
+        _checkpoint(user);
     }
 
-    /// @notice Current total stake (PSRE + LP) for a user.
+    // ─────────────────────────────────────────────────────────────────────────
+    // Governance
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Update the PSRE/LP split within the staker allocation.
+     *         Both splits must sum to exactly PRECISION (1e18 = 100%).
+     */
+    function setSplit(uint256 _psreSplit, uint256 _lpSplit) external onlyOwner {
+        require(_psreSplit + _lpSplit == PRECISION, "StakingVault: splits must sum to 1e18");
+        psreSplit = _psreSplit;
+        lpSplit   = _lpSplit;
+        emit SplitUpdated(_psreSplit, _lpSplit);
+    }
+
+    /**
+     * @notice Set the RewardEngine address. One-time, immutable after setting.
+     */
+    function setRewardEngine(address _rewardEngine) external onlyOwner {
+        require(!rewardEngineSet,              "StakingVault: already set");
+        require(_rewardEngine != address(0),   "StakingVault: zero addr");
+        rewardEngine    = _rewardEngine;
+        rewardEngineSet = true;
+        emit RewardEngineSet(_rewardEngine);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // View helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice Current staked balances for a user.
     function totalStakeOf(address user) external view returns (uint256 psreBal, uint256 lpBal) {
         return (userStakes[user].psreBalance, userStakes[user].lpBalance);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Internal: checkpoint a user's stakeTime accumulator
+    // Internal: epoch-aware checkpointing
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @dev Updates a user's accStakeTime based on elapsed time × total stake.
-     *      Called before any state change (stake, unstake).
+     * @dev Core checkpoint logic. Attributes time-weighted balance to the correct epoch(s)
+     *      since the last checkpoint, respecting epoch boundaries.
      *
-     *      stakeTime += (psreBalance + lpBalance) × (now - lastUpdateTimestamp)
+     *      First interaction: records timestamp only (no contribution yet, as no time has elapsed).
      *
-     *      Both PSRE and LP contribute equally per spec §2.4 (no weighting multiplier).
+     *      Subsequent calls: attributes `balance × elapsed` to each epoch proportionally.
+     *      If the user spans multiple epochs since last checkpoint, each epoch gets its
+     *      correct slice (no cross-epoch contamination).
+     *
+     *      Gas cap: if toEpoch - fromEpoch > MAX_CHECKPOINT_EPOCHS, the oldest epochs
+     *      are skipped (user forfeits those contributions). Prevents gas DoS for dormant stakers.
+     *
+     *      Post-snapshot guard: contributions to already-snapshotted epochs are silently
+     *      dropped inside _addContribution, preventing post-snapshot inflation.
      */
-    function _checkpointUser(address user) internal {
+    function _checkpoint(address user) internal {
         UserStake storage s = userStakes[user];
-        uint256 epoch = currentEpochId();
 
-        // If user crosses an epoch boundary since last checkpoint,
-        // we need to finalize their stakeTime for the previous epoch first.
-        // For simplicity in v1, we accumulate across the current epoch only.
-        // The snapshot mechanism handles epoch boundaries.
-
-        if (s.lastUpdateTimestamp > 0 && block.timestamp > s.lastUpdateTimestamp) {
-            uint256 elapsed   = block.timestamp - s.lastUpdateTimestamp;
-            uint256 totalStake = s.psreBalance + s.lpBalance;
-            uint256 delta     = totalStake * elapsed;
-
-            s.accStakeTime             += delta;
-            currentEpochTotalStakeTime += delta;
+        // First interaction: just record the starting timestamp.
+        // No elapsed time yet, so no stakeTime to attribute.
+        if (s.lastCheckpointTimestamp == 0) {
+            s.lastCheckpointTimestamp = block.timestamp;
+            s.lastCheckpointEpoch     = currentEpochId();
+            return;
         }
 
-        s.lastUpdateTimestamp = block.timestamp;
-        userLastSnapshotEpoch[user] = epoch;
+        uint256 fromTime  = s.lastCheckpointTimestamp;
+        uint256 fromEpoch = s.lastCheckpointEpoch;
+        uint256 toTime    = block.timestamp;
+        uint256 toEpoch   = currentEpochId();
+
+        // Same block — nothing to do.
+        if (fromTime >= toTime) {
+            return;
+        }
+
+        // Cap epoch range to MAX_CHECKPOINT_EPOCHS to prevent gas exhaustion.
+        // User forfeits stakeTime contributions for epochs beyond the cap.
+        if (toEpoch > fromEpoch + MAX_CHECKPOINT_EPOCHS) {
+            fromEpoch = toEpoch - MAX_CHECKPOINT_EPOCHS;
+            fromTime  = epochStart(fromEpoch);
+        }
+
+        uint256 psreBal = s.psreBalance;
+        uint256 lpBal   = s.lpBalance;
+
+        if (fromEpoch == toEpoch) {
+            // Simple case: all elapsed time is within the same epoch.
+            _addContribution(fromEpoch, user, psreBal, lpBal, toTime - fromTime);
+        } else {
+            // Straddles multiple epochs — attribute time to each epoch correctly.
+
+            // 1. Remainder of fromEpoch (fromTime → epochEnd(fromEpoch))
+            uint256 endOfFrom = epochEnd(fromEpoch);
+            if (endOfFrom > fromTime) {
+                _addContribution(fromEpoch, user, psreBal, lpBal, endOfFrom - fromTime);
+            }
+
+            // 2. Full epochs between fromEpoch+1 and toEpoch-1
+            for (uint256 e = fromEpoch + 1; e < toEpoch; e++) {
+                _addContribution(e, user, psreBal, lpBal, EPOCH_DURATION);
+            }
+
+            // 3. Partial current epoch (epochStart(toEpoch) → toTime)
+            uint256 startOfTo = epochStart(toEpoch);
+            if (toTime > startOfTo) {
+                _addContribution(toEpoch, user, psreBal, lpBal, toTime - startOfTo);
+            }
+        }
+
+        s.lastCheckpointTimestamp = toTime;
+        s.lastCheckpointEpoch     = toEpoch;
+    }
+
+    /**
+     * @dev Record a user's balance × elapsed contribution to an epoch.
+     *      Silently skips already-snapshotted epochs (post-snapshot manipulation guard).
+     */
+    function _addContribution(
+        uint256 epochId,
+        address user,
+        uint256 psreBal,
+        uint256 lpBal,
+        uint256 elapsed
+    ) internal {
+        // Post-snapshot guard: contributions to finalized epochs are rejected.
+        if (epochSnapshotted[epochId]) return;
+
+        if (psreBal > 0) {
+            uint256 contrib = psreBal * elapsed;
+            userPSREStakedTime[epochId][user] += contrib;
+            totalPSREStakedTime[epochId]      += contrib;
+        }
+        if (lpBal > 0) {
+            uint256 contrib = lpBal * elapsed;
+            userLPStakedTime[epochId][user] += contrib;
+            totalLPStakedTime[epochId]      += contrib;
+        }
     }
 }

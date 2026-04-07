@@ -382,7 +382,7 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
 
     /**
      * @notice Snapshot cumS for this epoch. Called only by RewardEngine.
-     *         Runs _updateCumS() to capture any direct ERC-20 transfers not yet reflected.
+     *         Runs _updateCumS() to advance the cumS ratchet from ecosystemBalance.
      *         Returns deltaCumS = cumS - lastEpochCumS, then commits lastEpochCumS = cumS.
      */
     function snapshotEpoch()
@@ -400,31 +400,27 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @dev Scans all registered CustomerVault balances to compute total ecosystem balance.
-     *      Updates ecosystemBalance if the live scan reveals direct ERC-20 transfers
-     *      not tracked by the running counter. Then advances cumS ratchet.
+     * @dev Advances the cumS ratchet from the running ecosystemBalance counter.
      *
-     *      Per spec §5.1: cumS is monotonically non-decreasing. This function may only
-     *      increase cumS, never decrease it.
+     *      Fix #3 (BlockApex audit): removed live balanceOf() scan.
+     *      The old implementation scanned on-chain PSRE balances of this vault and all
+     *      registered CustomerVaults. An attacker could flash-loan PSRE, transfer it
+     *      directly to the vault address, trigger buy() → _updateCumS(), inflate cumS,
+     *      then withdraw. Because cumS is a ratchet (never decreases), the inflated score
+     *      persisted and earned rewards indefinitely.
      *
-     *      Gas note: O(|customerVaultList|). Capped by maxPartners at the factory level.
+     *      The fix: ecosystemBalance is ONLY updated through explicit protocol flows:
+     *        - buy():                  ecosystemBalance += psreOut
+     *        - distributeToCustomer(): ecosystemBalance unchanged (PSRE stays in ecosystem)
+     *        - reportLeakage():        ecosystemBalance -= amount
+     *        - transferOut():          ecosystemBalance -= amount
+     *      Direct ERC-20 transfers to vault/CV addresses are ignored.
+     *
+     *      Per spec §5.1: cumS is monotonically non-decreasing.
      */
     function _updateCumS() internal {
-        // Compute actual total ecosystem balance from on-chain balances
-        uint256 ownBalance = IERC20(psre).balanceOf(address(this));
-        uint256 totalEcosystem = ownBalance;
-        uint256 n = customerVaultList.length;
-        for (uint256 i = 0; i < n; i++) {
-            totalEcosystem += IERC20(psre).balanceOf(customerVaultList[i]);
-        }
-
-        // Update ecosystemBalance if live scan reveals direct transfers not captured
-        // by the running counter (e.g., customer sends PSRE directly to vault address)
-        if (totalEcosystem > ecosystemBalance) {
-            ecosystemBalance = totalEcosystem;
-        }
-
-        // Advance cumS ratchet — only ever increases
+        // cumS ratchet: monotonically advance to current ecosystemBalance.
+        // No balanceOf() scan — ecosystemBalance tracks only explicit protocol flows.
         if (ecosystemBalance > cumS) {
             cumS = ecosystemBalance;
         }

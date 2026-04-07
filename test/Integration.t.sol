@@ -317,9 +317,11 @@ contract IntegrationTest is Test {
     }
 
     /**
-     * @notice Direct ERC-20 transfer to vault address counts as S_eco growth.
+     * @notice Fix #3: direct ERC-20 transfer to vault address must NOT inflate cumS.
+     *         The old behavior (balanceOf scan in _updateCumS) was a flash-loan attack vector.
+     *         After the fix, only explicit buy() calls advance ecosystemBalance and cumS.
      */
-    function test_directTransfer_countedInSEco() public {
+    function test_directTransfer_doesNotInflateCumS() public {
         router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
         address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
@@ -327,17 +329,26 @@ contract IntegrationTest is Test {
 
         _advanceAndFinalize(0);
 
-        // Customer pays partner directly via ERC-20 transfer to vault address
+        uint256 cumSBefore   = pv1.cumS();
+        uint256 ecoBalBefore = pv1.ecosystemBalance();
+
+        // Attacker transfers PSRE directly to vault (flash-loan attack attempt)
         uint256 directPmt = 600e18;
         deal(address(psre), customer1, directPmt);
         vm.prank(customer1);
         IERC20(address(psre)).transfer(vaultAddr, directPmt);
 
-        // Epoch 1: snapshotEpoch detects direct transfer → cumS grows → qualifies
+        // Epoch 1: _updateCumS no longer scans balanceOf — direct transfer ignored
         _advanceAndFinalize(1);
 
-        assertTrue(re.qualified(vaultAddr), "direct ERC-20 transfer should trigger qualification");
-        assertGt(re.owedPartner(vaultAddr), 0, "direct transfer should earn reward");
+        assertEq(pv1.cumS(), cumSBefore,
+            "Fix #3: cumS must NOT grow from direct ERC-20 transfer");
+        assertEq(pv1.ecosystemBalance(), ecoBalBefore,
+            "Fix #3: ecosystemBalance must NOT change from direct transfer");
+        assertFalse(re.qualified(vaultAddr),
+            "Fix #3: vault must NOT qualify from direct transfer alone");
+        assertEq(re.owedPartner(vaultAddr), 0,
+            "Fix #3: no reward should be earned from direct transfer");
     }
 
     /**

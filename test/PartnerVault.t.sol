@@ -432,24 +432,30 @@ contract PartnerVaultTest is Test {
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // _updateCumS: direct ERC-20 transfer to vault captured
+    // Fix #3: direct ERC-20 transfer to vault must NOT inflate cumS
     // ────────────────────────────────────────────────────────────────────────
 
-    function test_directTransferToVault_capturedBySnapshotEpoch() public {
+    // Fix #3: direct ERC-20 transfer to vault must NOT inflate cumS
+    // (old behavior was a flash-loan attack vector — removed by audit fix)
+    function test_directTransferToVault_doesNotInflateCumS() public {
         uint256 directAmt = 300e18;
         deal(address(psre), partner, directAmt);
         vm.prank(partner);
-        // Direct ERC-20 transfer to vault address (customer paying partner)
+        // Direct ERC-20 transfer to vault address (e.g., attacker flash-loan attack)
         IERC20(address(psre)).transfer(address(vault), directAmt);
 
         uint256 cumSBefore = vault.cumS(); // = INITIAL_PSRE
+        uint256 ecoBalBefore = vault.ecosystemBalance();
 
         vm.prank(rewardEngine);
         uint256 delta = vault.snapshotEpoch();
 
-        // _updateCumS scans balanceOf(vault) and captures the direct transfer
-        assertGt(vault.cumS(), cumSBefore, "cumS should capture direct ERC-20 transfer");
-        assertEq(delta, directAmt, "delta should equal the direct transfer amount");
+        // Fix #3: _updateCumS no longer scans balanceOf — cumS must NOT change
+        assertEq(vault.cumS(), cumSBefore,
+            "cumS must NOT be inflated by direct ERC-20 transfer (Fix #3)");
+        assertEq(vault.ecosystemBalance(), ecoBalBefore,
+            "ecosystemBalance must NOT change from direct transfer");
+        assertEq(delta, 0, "delta must be zero (no explicit buy)");
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -477,25 +483,30 @@ contract PartnerVaultTest is Test {
         assertEq(delta, PSRE_OUT, "delta should reflect buy growth");
     }
 
-    function test_directTransferToCV_capturedByCumS() public {
+    // Fix #3: direct ERC-20 transfer to CV must NOT inflate parent vault's cumS
+    function test_directTransferToCV_doesNotInflateCumS() public {
         CustomerVault cv = _deployCV();
         vm.prank(partner);
         vault.registerCustomerVault(address(cv));
 
-        // Someone directly transfers PSRE to CV address
+        // Someone directly transfers PSRE to CV address (attack vector)
         uint256 cvDirectAmt = 400e18;
         deal(address(psre), other, cvDirectAmt);
         vm.prank(other);
         IERC20(address(psre)).transfer(address(cv), cvDirectAmt);
 
-        uint256 cumSBefore = vault.cumS(); // = INITIAL_PSRE
+        uint256 cumSBefore    = vault.cumS();
+        uint256 ecoBalBefore  = vault.ecosystemBalance();
 
-        // snapshotEpoch → _updateCumS scans CV balance too
+        // snapshotEpoch → _updateCumS (Fix #3: no balanceOf scan)
         vm.prank(rewardEngine);
         uint256 delta = vault.snapshotEpoch();
 
-        assertGt(vault.cumS(), cumSBefore, "cumS should capture direct transfer to CV");
-        assertEq(delta, cvDirectAmt, "delta should equal CV direct transfer amount");
+        assertEq(vault.cumS(), cumSBefore,
+            "cumS must NOT be inflated by direct transfer to CV (Fix #3)");
+        assertEq(vault.ecosystemBalance(), ecoBalBefore,
+            "ecosystemBalance must NOT change from direct CV transfer");
+        assertEq(delta, 0, "delta must be zero (no explicit buy)");
     }
 
     // ────────────────────────────────────────────────────────────────────────

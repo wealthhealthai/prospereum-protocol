@@ -4,26 +4,21 @@ pragma solidity ^0.8.24;
 import "../../contracts/interfaces/IStakingVault.sol";
 
 /// @dev Mock StakingVault for RewardEngine tests.
-///      Returns zero stakeTime by default (no stakers), or configured values.
+///      Implements IStakingVault v2 interface (epoch-aware checkpointing).
+///      distributeStakerRewards() is a no-op (no token transfers in mock).
 contract MockStakingVault is IStakingVault {
-    mapping(uint256 => uint256) public _totalStakeTime;
-    mapping(uint256 => mapping(address => uint256)) public _userStakeTime;
+    // Track snapshotted epochs
+    mapping(uint256 => bool) public snapshotted;
 
-    function setTotalStakeTime(uint256 epochId, uint256 amount) external {
-        _totalStakeTime[epochId] = amount;
+    // Track distributed rewards per epoch
+    mapping(uint256 => uint256) public distributedAmount;
+
+    function snapshotEpoch(uint256 epochId) external override {
+        snapshotted[epochId] = true;
     }
 
-    function setUserStakeTime(uint256 epochId, address user, uint256 amount) external {
-        _userStakeTime[epochId][user] = amount;
-    }
-
-    function snapshotEpoch(uint256) external pure override {}
-
-    function totalStakeTime(uint256 epochId) external view override returns (uint256) {
-        return _totalStakeTime[epochId];
-    }
-
-    function stakeTimeOf(address user, uint256 epochId) external view override returns (uint256) {
-        return _userStakeTime[epochId][user];
+    function distributeStakerRewards(uint256 epochId, uint256 amount) external override {
+        distributedAmount[epochId] = amount;
+        // No actual token transfer in mock
     }
 }
