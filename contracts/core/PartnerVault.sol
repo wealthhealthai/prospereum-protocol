@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IPartnerVault.sol";
 import "../interfaces/IPartnerVaultFactory.sol";
 import "../interfaces/IRewardEngine.sol";
+import "../interfaces/ICustomerVault.sol";
 
 /// @dev Minimal Uniswap v3 SwapRouter interface (Base mainnet)
 interface ISwapRouter {
@@ -256,6 +257,31 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // reclaimFromCV() — Reclaim PSRE from an abandoned CustomerVault (Fix #10)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Reclaim unclaimed PSRE from an abandoned CustomerVault back into this vault.
+     *         Calls CustomerVault.reclaimUnclaimed(amount) which requires msg.sender == parentVault
+     *         (i.e., address(this)). This function fixes the permanently-unreachable path where
+     *         funds distributed to a CV with no customer claim were locked forever.
+     *
+     * @dev    PSRE stays within the ecosystem boundary — ecosystemBalance is unchanged.
+     *         Only callable while the CV's customer has NOT yet claimed ownership.
+     *         Note: the audit spec assumed reclaimUnclaimed() takes no args; the actual
+     *         CustomerVault implementation requires an explicit amount for caller precision.
+     *
+     * @param customerVault  Address of the registered CustomerVault to reclaim from.
+     * @param amount         Amount of PSRE to reclaim (must be <= CV's PSRE balance).
+     */
+    function reclaimFromCV(address customerVault, uint256 amount)
+        external onlyOwner nonReentrant
+    {
+        require(registeredCustomerVaults[customerVault], "PartnerVault: CV not registered");
+        ICustomerVault(customerVault).reclaimUnclaimed(amount);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // transferOut() — Send PSRE to an unregistered address (exits ecosystem)
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -273,6 +299,13 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
         require(
             IPartnerVaultFactory(factory).isRegisteredVault(to) == false,
             "PartnerVault: cannot transferOut to registered vault"
+        );
+        // Fix #14: also block CVs registered under any vault (not just this one).
+        // Without this check, an attacker could transferOut to a CV registered under a
+        // different vault, inflating that vault's ecosystemBalance and cumS for free.
+        require(
+            !IPartnerVaultFactory(factory).isRegisteredCV(to),
+            "PartnerVault: cannot transferOut to customer vault"
         );
         require(amount > 0, "PartnerVault: zero amount");
         require(ecosystemBalance >= amount, "PartnerVault: exceeds ecosystemBalance");
@@ -421,7 +454,16 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
 
     function getCumS()            external view override returns (uint256) { return cumS; }
     function getInitialCumS()     external view override returns (uint256) { return initialCumS; }
-    function isQualified()        external view override returns (bool)    { return qualified; }
+
+    /// @notice Fix #21: delegate to RewardEngine for the authoritative qualification status.
+    ///         The `qualified` storage variable is kept for internal compatibility but
+    ///         external callers should always see the RE-tracked value.
+    ///         (The `qualified` storage var is set to false in factoryInit and never updated
+    ///         by PartnerVault itself — RE is the source of truth.)
+    function isQualified() external view override returns (bool) {
+        return IRewardEngine(rewardEngine).qualified(address(this));
+    }
+
     function getCustomerVaultCount() external view returns (uint256) { return customerVaultList.length; }
 
     function psreBalance() external view returns (uint256) {

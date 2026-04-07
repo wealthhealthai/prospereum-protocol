@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IPartnerVaultFactory.sol";
+import "../interfaces/IPartnerVault.sol";
 import "../interfaces/IRewardEngine.sol";
 import "./PartnerVault.sol";
 import "./CustomerVault.sol";
@@ -294,7 +295,9 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         address partnerVault,
         address customer
     ) external nonReentrant returns (address cv) {
-        require(partnerOf[partnerVault] == msg.sender, "Factory: not vault owner");
+        // Fix #8: query vault's current owner directly so that after updateOwner/acceptOwnership
+        // the new owner can deploy CVs (partnerOf[vault] would still point to old owner).
+        require(IPartnerVault(partnerVault).owner() == msg.sender, "Factory: not vault owner");
 
         // ── Deploy CustomerVault clone ───────────────────────────────────────
         cv = customerVaultImplementation.clone();
@@ -334,6 +337,13 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         external view override returns (address parentVault_)
     {
         return customerVaultParent[cv];
+    }
+
+    /// @notice Fix #14: returns true if cv is a CustomerVault deployed by this factory.
+    ///         Used by PartnerVault.transferOut() to block PSRE from being sent to any
+    ///         registered CustomerVault, preventing cross-vault cumS inflation.
+    function isRegisteredCV(address cv) external view override returns (bool) {
+        return customerVaultParent[cv] != address(0);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
