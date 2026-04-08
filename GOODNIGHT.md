@@ -1,43 +1,60 @@
 # GOODNIGHT.md — 2026-04-07
 
-## What Was Done Today (2026-04-06)
+## What Was Done Today
 
-- **BlockApex preliminary audit report received** — 22 findings: 3 Critical, 3 High, 11 Medium, 4 Low, 1 Informational
-- **Full triage completed** — categorized every finding as design issue vs. implementation bug, identified fix approach for each
-- **Key insight:** StakingVault accounting architecture is fundamentally broken (accStakeTime pattern) — issues #1, #5, #9, #15, #20 all stem from the same root cause. Needs major refactor.
-- **Critical flash loan vector (#3):** live balanceOf scanning in _updateCumS must be replaced with explicit deposit tracking
+**Major audit fix day.** Surgery day for Jason, but the protocol kept moving.
 
-## Audit Fix Plan (prioritized)
+### Commits
+| Commit | Description |
+|---|---|
+| `303cd2f` | Fix #1 #8 #16 #18 #20 — initial easy patches (Kin, morning) |
+| `44f17d8` | Batch 1 full: #1 #8 #10 #14 #16 #18 #20 #21 — all easy patches done |
+| `6a3dda8` | StakingVault v2 refactor — fix #3 #5 #9 #15 + cumS explicit tracking |
 
-### Easy patches (1-5 lines each):
-- #1: `require(!epochSnapshotted[epochId])` in recordStakeTime
-- #8: `vault.owner()` instead of `factory.partnerOf()` for auth
-- #10: `reclaimFromCV()` in PartnerVault
-- #14: CV check in transferOut guard
-- #16: `require(!psre.paused())` before mint in finalizeEpoch
-- #18: `whenNotPaused` on claimPartnerReward + claimStake
-- #20: `accStakeTime -= st` instead of `= 0`
-- #21: delegate `isQualified()` to RewardEngine
+**Test count: 224 → 234 (all passing)**
 
-### Significant refactors:
-- #3: _updateCumS architecture — explicit deposit tracking only
-- #4/#6: createVault slippage — fee tier whitelist + minimum PSRE floor
-- #2: finalizeEpoch pagination
-- #5/#9/#15: StakingVault full accounting refactor (Synthetix-style)
-- #19: Two-pass EMA in finalizeEpoch
+### What's Fixed
+- ✅ #1 — post-snapshot recordStakeTime drain (CRITICAL)
+- ✅ #3 — flash loan cumS inflation via balanceOf (CRITICAL) — explicit tracking only now
+- ✅ #5/#9/#15 — cross-epoch stakeTime contamination (HIGH) — Synthetix-style v2
+- ✅ #8 — partnerOf stale after ownership transfer
+- ✅ #10 — reclaimUnclaimed dead code → reclaimFromCV()
+- ✅ #14 — transferOut CV bypass
+- ✅ #16 — ghost emission when PSRE paused
+- ✅ #18 — claims not gated by pause
+- ✅ #20 — accStakeTime blanket reset
+- ✅ #21 — qualified flag always false
 
-## Open Decisions (waiting on Jason or Shu)
-
-| Decision | Who | Urgency |
+### What's Still Open
+| Finding | Status | Notes |
 |---|---|---|
-| LP 1:1 weighting (#13) — keep or change? | Jason + Shu | 🔴 Before fixes start |
-| Revised mainnet timeline — accept April 18-21? | Jason + Shu | 🔴 This week |
-| Notify BlockApex to extend engagement for fix round | Shu | 🔴 Today |
-| Gnosis Safes creation | Shu | 🟡 Before mainnet deploy script |
+| #2 — O(V×C) gas pagination | 🔄 | Known design issue, long-term |
+| #4/#6 — createVault fee tier whitelist | 🔄 | minPsreOut enforced, whitelist pending |
+| #13 — LP 1:1 weighting | 🔄 | Spec decision — Jason + Shu |
+| #19 — two-pass EMA (sumR in-loop) | 🔄 | Medium priority |
+
+## Codebase State
+
+**v3.2 + audit fixes — 234/234 tests passing**
+- Deployed to Base Sepolia: pre-fix bytecode still live (needs redeploy after fixes complete)
+- Keeper: cron `3fc22360`, next run April 11 20:00 UTC (Epoch 1)
+- BlockApex: reviewing commit `7e96ba9` — need to share updated commit for re-review
+
+## Open Decisions
+
+| Item | Who | Urgency |
+|---|---|---|
+| LP 1:1 weighting (#13) — keep or change? | Jason + Shu | 🔴 Before re-audit |
+| Share updated commit with BlockApex | Shu | 🟠 This week |
+| Gnosis Safe creation | Jason + Shu | 🟠 Blocks mainnet deploy script |
+| Redeploy to Base Sepolia with fixes | Kin — on signal | 🟠 |
+| Fee tier whitelist (#4/#6) | Kin | 🟠 Next |
+| Two-pass EMA (#19) | Kin | 🟡 Medium priority |
 
 ## Notes for Tomorrow
 
-1. **Start easy patches immediately** — #1, #8, #10, #14, #16, #18, #20, #21 can all be done in one HEPHAESTUS run
-2. **Design the StakingVault refactor** before touching any code — get Shu/Jason sign-off first
-3. **Design the _updateCumS fix** for #3 — explicit deposit tracking approach
-4. Mainnet target now **April 18-21 at earliest**
+1. Implement fee tier whitelist (#4/#6) — next code task
+2. Implement two-pass EMA (#19)
+3. When both done → redeploy to Base Sepolia + share commit with BlockApex for re-review
+4. Mainnet target: **April 18–21** — still on track given today's velocity
+5. Jason recovers — light session through April 10
