@@ -83,6 +83,12 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     /// @notice Maximum number of registered partners (bounds finalizeEpoch gas).
     uint256 public maxPartners = 200;
 
+    /// @notice Fix #4/#6: whitelist of permitted Uniswap v3 fee tiers for createVault swaps.
+    ///         Prevents partner from routing the initial buy through an attacker-controlled
+    ///         pool at an unlisted fee tier. Only standard Uniswap v3 tiers are allowed.
+    ///         Governance can add/remove tiers via setAllowedFeeTier().
+    mapping(uint24 => bool) public allowedFeeTiers;
+
     // ─────────────────────────────────────────────────────────────────────────
     // Registries
     // ─────────────────────────────────────────────────────────────────────────
@@ -116,6 +122,7 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     event CustomerVaultDeployed(address indexed partnerVault, address indexed customerVault, address customer);
     event RewardEngineSet(address indexed rewardEngine);
     event MaxPartnersUpdated(uint256 oldMax, uint256 newMax);
+    event FeeTierUpdated(uint24 indexed feeTier, bool allowed);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Constructor
@@ -148,11 +155,25 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         psre                        = _psre;
         router                      = _router;
         inputToken                  = _inputToken;
+
+        // Fix #4/#6: initialise whitelist with all standard Uniswap v3 fee tiers.
+        // Only these four pools can be used for the createVault initial buy.
+        allowedFeeTiers[100]   = true;   // 0.01% — stable pairs
+        allowedFeeTiers[500]   = true;   // 0.05%
+        allowedFeeTiers[3000]  = true;   // 0.3%  — standard
+        allowedFeeTiers[10000] = true;   // 1%    — exotic / wide spread
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Admin
     // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice Fix #4/#6: add or remove a Uniswap v3 fee tier from the createVault whitelist.
+    ///         Only owner (governance multisig on mainnet) can modify.
+    function setAllowedFeeTier(uint24 feeTier, bool allowed) external onlyOwner {
+        allowedFeeTiers[feeTier] = allowed;
+        emit FeeTierUpdated(feeTier, allowed);
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Ownership safety
@@ -221,6 +242,9 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         require(usdcAmountIn >= S_MIN,                   "Factory: below S_MIN ($500 USDC)");
         require(minPsreOut > 0,                          "Factory: slippage protection required");
         require(deadline >= block.timestamp,             "Factory: expired deadline");
+        // Fix #4/#6: only allow whitelisted Uniswap v3 fee tiers to prevent routing
+        // the initial buy through an attacker-controlled pool at a custom fee tier.
+        require(allowedFeeTiers[fee],                    "Factory: fee tier not whitelisted");
 
         // Lazy epoch finalization: partner activity drives keeper-less epoch closing
         IRewardEngine(rewardEngine).autoFinalizeEpochs();

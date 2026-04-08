@@ -452,11 +452,16 @@ contract RewardEngine is
         uint256[] memory rewardArr    = new uint256[](nVaults); // to update cumulativeRewardMinted later
         uint256[] memory cumSArr      = new uint256[](nVaults);
         uint256[] memory effCumSArr   = new uint256[](nVaults);
+        // Fix #19: two-pass EMA — store R_new per vault so tier assignment uses
+        // the fully-updated sumR (stable denominator) rather than a sliding one.
+        uint256[] memory rNewArr      = new uint256[](nVaults);
 
         uint256 W                       = 0;
         uint256 deltaEffectiveCumSTotal = 0;
+        // Fix #19: accumulate new sumR locally; write to state after pass 1.
+        uint256 sumR_new = sumR;
 
-        // ── Pass 1: compute effectiveCumS deltas, EMA, tiers, weights ────────
+        // ── Pass 1: compute effectiveCumS deltas, EMA (no tier yet) ──────────
         for (uint256 i = 0; i < nVaults; i++) {
             address vault = vaults[i];
 
@@ -506,36 +511,15 @@ contract RewardEngine is
 
             deltaEffArr[i] = delta;
 
-            // 5. EMA update on deltaEffectiveCumS (per spec §5.5)
+            // 5. EMA update on deltaEffectiveCumS (per spec §5.5).
+            //    Fix #19: store R_new locally; do NOT write to sumR/R[vault] yet.
+            //    Tier assignment in pass 2 uses the fully-updated sumR_new so all
+            //    vaults see the same stable denominator (no sliding sumR bias).
             uint256 R_old = R[vault];
             uint256 R_new = (R_old * (PRECISION - theta) + delta * theta) / PRECISION;
-            sumR = sumR - R_old + R_new;
-            R[vault] = R_new;
+            rNewArr[i]  = R_new;
+            sumR_new    = sumR_new - R_old + R_new;   // accumulate locally
 
-            // 6. Tier assignment based on share of sumR
-            uint256 mult;
-            if (sumR > 0) {
-                uint256 s = (R_new * PRECISION) / sumR;
-                if (s >= goldThreshold) {
-                    mult = mGold;
-                } else if (s >= silverThreshold) {
-                    mult = mSilver;
-                } else {
-                    mult = mBronze;
-                }
-            } else {
-                // §1.9: sumR == 0 → Bronze for all active qualifying vaults
-                mult = mBronze;
-            }
-
-            // alpha_p = r_base × tier_multiplier / 1e18
-            uint256 alpha_p = (alphaBase * mult) / PRECISION;
-            alphaArr[i] = alpha_p;
-
-            // 7. Weight: w_p = alpha_p × deltaEffectiveCumS / 1e18
-            uint256 w_p = (alpha_p * delta) / PRECISION;
-            weightArr[i]            = w_p;
-            W                       += w_p;
             deltaEffectiveCumSTotal += delta;
 
             // Accumulate vault activity
@@ -553,6 +537,38 @@ contract RewardEngine is
                     emit VaultMarkedInactive(vault, epochId);
                 }
             }
+        }
+
+        // ── Pass 1.5: write stable EMA state + assign tiers (fix #19) ─────────
+        // sumR_new is now fully computed (all vaults processed). Write to state
+        // and compute per-vault tiers using the stable denominator so that vault
+        // order does not affect tier assignment.
+        sumR = sumR_new;
+        for (uint256 i = 0; i < nVaults; i++) {
+            address vault = vaults[i];
+            if (initialCumS[vault] == 0) continue;
+
+            uint256 R_new = rNewArr[i];
+            R[vault] = R_new;
+
+            // Tier assignment based on share of stable sumR_new
+            uint256 mult;
+            if (sumR_new > 0) {
+                uint256 s = (R_new * PRECISION) / sumR_new;
+                if (s >= goldThreshold)        { mult = mGold; }
+                else if (s >= silverThreshold) { mult = mSilver; }
+                else                           { mult = mBronze; }
+            } else {
+                mult = mBronze; // §1.9: sumR == 0 → Bronze for all
+            }
+
+            uint256 alpha_p = (alphaBase * mult) / PRECISION;
+            alphaArr[i] = alpha_p;
+
+            uint256 delta   = deltaEffArr[i];
+            uint256 w_p     = (alpha_p * delta) / PRECISION;
+            weightArr[i]    = w_p;
+            W              += w_p;
         }
 
         // ── Compute budget ──────────────────────────────────────────────────
