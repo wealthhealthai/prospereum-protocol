@@ -99,6 +99,8 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
                               uint256 ecosystemBalance, uint256 cumS);
     event PSRELeaked(address indexed vault, uint256 amount, uint256 ecosystemBalance, uint256 cumS);
     event CustomerVaultRegistered(address indexed parentVault, address indexed customerVault);
+    /// @notice Emitted when a CustomerVault is deregistered. Fix #11.
+    event CustomerVaultDeregistered(address indexed vault, address indexed customerVault);
     event OwnershipTransferStarted(address indexed currentOwner, address indexed pendingOwner);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -374,6 +376,43 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
         customerVaultList.push(customerVault);
 
         emit CustomerVaultRegistered(address(this), customerVault);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // deregisterCustomerVault() — Remove a CV from this vault's ecosystem
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Deregister an empty CustomerVault from this partner's ecosystem.
+     *         Uses swap-and-pop for O(1) removal from customerVaultList.
+     *         Fix #11: allows partners to clean up abandoned/empty CVs without
+     *         permanently growing the customerVaultList array.
+     *
+     *         Requires CV balance to be zero — funds must be reclaimed first via
+     *         reclaimFromCV() before deregistration is permitted.
+     *
+     * @param customerVault  Address of the CustomerVault to deregister.
+     */
+    function deregisterCustomerVault(address customerVault) external onlyOwner {
+        require(registeredCustomerVaults[customerVault], "PartnerVault: CV not registered");
+        require(
+            IERC20(psre).balanceOf(customerVault) == 0,
+            "PartnerVault: CV must be empty before deregistration"
+        );
+
+        registeredCustomerVaults[customerVault] = false;
+
+        // Swap-and-pop O(1) removal from customerVaultList
+        uint256 len = customerVaultList.length;
+        for (uint256 i = 0; i < len; i++) {
+            if (customerVaultList[i] == customerVault) {
+                customerVaultList[i] = customerVaultList[len - 1];
+                customerVaultList.pop();
+                break;
+            }
+        }
+
+        emit CustomerVaultDeregistered(address(this), customerVault);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

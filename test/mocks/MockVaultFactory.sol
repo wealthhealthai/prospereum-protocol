@@ -42,4 +42,9 @@ contract MockVaultFactory is IPartnerVaultFactory {
     function isCustomerVaultOf(address cv) external view override returns (address) {
         return _cvParent[cv];
     }
+
+    /// @dev Fix #12: all registered vaults are active in mock (no decommission in unit tests).
+    function isActiveVault(address vault) external view override returns (bool) {
+        return _isVault[vault];
+    }
 }

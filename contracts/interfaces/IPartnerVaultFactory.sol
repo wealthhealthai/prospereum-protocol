@@ -21,4 +21,9 @@ interface IPartnerVaultFactory {
     ///         Returns address(0) if cv was not deployed by the factory.
     ///         Used by PartnerVault.registerCustomerVault() to validate factory origin.
     function isCustomerVaultOf(address cv) external view returns (address partnerVault);
+
+    /// @notice Returns true if vault is an active (non-decommissioned) PartnerVault.
+    ///         Used by RewardEngine._finalizeSingleEpoch() to skip decommissioned vaults.
+    ///         Fix #12: decommissioned vaults are excluded from epoch finalization loops.
+    function isActiveVault(address vault) external view returns (bool);
 }

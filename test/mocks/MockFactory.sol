@@ -9,12 +9,19 @@ contract MockFactory is IPartnerVaultFactory {
     address[] private _vaults;
     mapping(address => address) private _partnerOf;
     mapping(address => bool)    private _isVault;
+    mapping(address => bool)    private _activeVault; // Fix #12: decommission support
     mapping(address => address) private _cvParent;
 
     function addVault(address vault, address partner) external {
         _vaults.push(vault);
         _partnerOf[vault] = partner;
         _isVault[vault]   = true;
+        _activeVault[vault] = true; // Fix #12: active by default
+    }
+
+    /// @dev Fix #12: allow tests to simulate vault decommission.
+    function decommissionVault(address vault) external {
+        _activeVault[vault] = false;
     }
 
     /// @dev Called by tests before registerCustomerVault() to simulate factory-deployed CV.
@@ -48,5 +55,10 @@ contract MockFactory is IPartnerVaultFactory {
 
     function isCustomerVaultOf(address cv) external view override returns (address) {
         return _cvParent[cv];
+    }
+
+    /// @dev Fix #12: returns true for active (non-decommissioned) vaults.
+    function isActiveVault(address vault) external view override returns (bool) {
+        return _activeVault[vault];
     }
 }

@@ -83,6 +83,14 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     /// @notice Maximum number of registered partners (bounds finalizeEpoch gas).
     uint256 public maxPartners = 200;
 
+    // Fix #12: track decommissioned vaults so they can be skipped in finalization.
+    /// @notice True if the vault was created by this factory and has NOT been decommissioned.
+    mapping(address => bool) public vaultActive;
+
+    /// @notice Count of non-decommissioned vaults. Used for maxPartners capacity check
+    ///         so decommissioned slots can be reclaimed by new partners.
+    uint256 public activeVaultCount;
+
     /// @notice Fix #4/#6: whitelist of permitted Uniswap v3 fee tiers for createVault swaps.
     ///         Prevents partner from routing the initial buy through an attacker-controlled
     ///         pool at an unlisted fee tier. Only standard Uniswap v3 tiers are allowed.
@@ -123,6 +131,8 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     event RewardEngineSet(address indexed rewardEngine);
     event MaxPartnersUpdated(uint256 oldMax, uint256 newMax);
     event FeeTierUpdated(uint24 indexed feeTier, bool allowed);
+    /// @notice Emitted when a vault is decommissioned. Fix #12.
+    event VaultDecommissioned(address indexed vault);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Constructor
@@ -207,6 +217,21 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         maxPartners = _max;
     }
 
+    /// @notice Decommission a PartnerVault from the active partner set.
+    ///         Fix #12: marks vault inactive so it is skipped in RewardEngine finalization
+    ///         and its slot is freed for a new partner (activeVaultCount check).
+    ///         The vault address remains in allVaults[] for historical auditability.
+    ///         onlyOwner: decommission is a governance action (owner = multisig).
+    ///
+    /// @param vault  Address of the PartnerVault to decommission.
+    function decommissionVault(address vault) external onlyOwner {
+        require(partnerOf[vault] != address(0), "Factory: vault not registered");
+        require(vaultActive[vault],             "Factory: vault already decommissioned");
+        vaultActive[vault] = false;
+        activeVaultCount--;
+        emit VaultDecommissioned(vault);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // createVault()
     // ─────────────────────────────────────────────────────────────────────────
@@ -238,7 +263,8 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     ) external nonReentrant returns (address vault) {
         require(rewardEngine != address(0),              "Factory: rewardEngine not set");
         require(vaultOf[msg.sender] == address(0),       "Factory: vault already exists");
-        require(allVaults.length < maxPartners,          "Factory: max partners reached");
+        // Fix #12: check against activeVaultCount so decommissioned slots can be reused.
+        require(activeVaultCount < maxPartners,          "Factory: max partners reached");
         require(usdcAmountIn >= S_MIN,                   "Factory: below S_MIN ($500 USDC)");
         require(minPsreOut > 0,                          "Factory: slippage protection required");
         require(deadline >= block.timestamp,             "Factory: expired deadline");
@@ -294,6 +320,9 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         vaultOf[msg.sender] = vault;
         partnerOf[vault]    = msg.sender;
         allVaults.push(vault);
+        // Fix #12: mark vault active and increment active count
+        vaultActive[vault] = true;
+        activeVaultCount++;
 
         // Compute epoch ID for the event (informational)
         uint256 epochId = _currentEpochId();
@@ -353,6 +382,12 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     /// @notice Returns true if the given address is a registered PartnerVault.
     function isRegisteredVault(address vault) external view override returns (bool) {
         return partnerOf[vault] != address(0);
+    }
+
+    /// @notice Returns true if vault is an active (non-decommissioned) PartnerVault.
+    ///         Fix #12: used by RewardEngine._finalizeSingleEpoch() to skip decommissioned vaults.
+    function isActiveVault(address vault) external view override returns (bool) {
+        return vaultActive[vault];
     }
 
     /// @notice Returns the parent PartnerVault address if cv is a registered CustomerVault.

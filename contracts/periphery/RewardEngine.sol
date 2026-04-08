@@ -63,6 +63,13 @@ contract RewardEngine is
     /// @notice Maximum epochs auto-finalized per lazy trigger (gas ceiling).
     uint256 public constant AUTO_FINALIZE_MAX_EPOCHS = 10;
 
+    /// @notice Fix #2: maximum vault count supported by _finalizeSingleEpoch() in a single call.
+    ///         Fix #3 (commit 6a3dda8) eliminated the O(V×C) loop from _updateCumS() —
+    ///         the finalization loop is now O(V) not O(V×C).  At v1 scale (< 200 vaults)
+    ///         this is perfectly fine.  If vault count ever exceeds this limit, callers
+    ///         must use the forward-compatibility stub finalizeEpochChunk() (v2 deferred).
+    uint256 public constant MAX_VAULTS_PER_FINALIZE = 200;
+
     // Governance bounds
     uint256 public constant ALPHA_MIN  = 0.05e18;
     uint256 public constant ALPHA_MAX  = 0.15e18;
@@ -113,6 +120,11 @@ contract RewardEngine is
     uint256 public T;                   // cumulative PSRE minted by this engine
     uint256 public lastFinalizedEpoch;
     bool    public firstEpochFinalized;
+
+    /// @notice Fix #7/#17: transient storage — how many epochs are in the current
+    ///         autoFinalizeEpochs() batch.  Set before the loop, cleared after.
+    ///         0 when finalizeEpoch() is called directly (scarcity multiplier = 1×).
+    uint256 private _autoFinalizeCount;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Partner accounting — by vault address (v3.2)
@@ -218,6 +230,8 @@ contract RewardEngine is
     event VaultReactivated(address indexed vault, uint256 indexed epochId);
     event ParamUpdateQueued(string param, uint256 value, uint256 readyAt);
     event ParamUpdated(string param, uint256 oldValue, uint256 newValue);
+    /// @notice Fix #22: emitted when a queued governance parameter update is cancelled.
+    event ParamUpdateCancelled(string param, uint256 cancelledValue);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Constructor — disables initializers on the implementation contract
@@ -419,12 +433,28 @@ contract RewardEngine is
 
         uint256 current = currentEpochId();
         uint256 next = firstEpochFinalized ? lastFinalizedEpoch + 1 : 0;
+
+        // Fix #7/#17: pre-count this batch so _finalizeSingleEpoch() can scale
+        // the E_scarcity ceiling by the number of compressed epochs.
+        // When K epochs are finalized together, the first epoch's snapshotEpoch()
+        // captures ALL K epochs of cumS growth (delta = K epochs' worth), while
+        // subsequent epochs see delta = 0.  Scaling E_scarcity by K ensures the
+        // full accumulated growth can earn rewards instead of being capped at 1×.
+        uint256 batchSize = 0;
+        uint256 countPtr = next;
+        while (countPtr < current && batchSize < AUTO_FINALIZE_MAX_EPOCHS) {
+            batchSize++;
+            countPtr++;
+        }
+        _autoFinalizeCount = batchSize; // set before loop (read by _finalizeSingleEpoch)
+
         uint256 count = 0;
         while (next < current && count < AUTO_FINALIZE_MAX_EPOCHS) {
             _finalizeSingleEpoch(next);
             next++;
             count++;
         }
+        _autoFinalizeCount = 0; // clear after loop
     }
 
     /**
@@ -445,6 +475,10 @@ contract RewardEngine is
         // ── Per-vault reward computation ─────────────────────────────────────
         address[] memory vaults = factory.getAllVaults();
         uint256 nVaults = vaults.length;
+        // Fix #2: O(V) safety guard. Fix #3 (commit 6a3dda8) eliminated O(V×C);
+        // loop is now O(V). At v1 scale this guard is never hit.
+        // If vault growth ever exceeds this limit, use finalizeEpochChunk() (v2).
+        require(nVaults <= MAX_VAULTS_PER_FINALIZE, "RE: too many vaults, use paginated finalize");
 
         uint256[] memory deltaEffArr  = new uint256[](nVaults);
         uint256[] memory alphaArr     = new uint256[](nVaults);
@@ -467,6 +501,8 @@ contract RewardEngine is
 
             // Skip unregistered vaults (initialCumS not set)
             if (initialCumS[vault] == 0) continue;
+            // Fix #12: skip decommissioned vaults (factory.decommissionVault was called)
+            if (!factory.isActiveVault(vault)) continue;
 
             // 1. Snapshot epoch → get raw deltaCumS (cumS − lastEpochCumS)
             //    Also updates lastEpochCumS in the vault.
@@ -547,6 +583,8 @@ contract RewardEngine is
         for (uint256 i = 0; i < nVaults; i++) {
             address vault = vaults[i];
             if (initialCumS[vault] == 0) continue;
+            // Fix #12: skip decommissioned vaults
+            if (!factory.isActiveVault(vault)) continue;
 
             uint256 R_new = rNewArr[i];
             R[vault] = R_new;
@@ -588,7 +626,13 @@ contract RewardEngine is
         }
 
         // B = min(E_demand, E_scarcity, remaining)  (§5.8)
-        uint256 B = _min3(E_demand, E_scarcity, remaining);
+        // Fix #7/#17: when autoFinalizeEpochs() processes K pending epochs, the first
+        // epoch's snapshotEpoch() captures ALL K epochs of cumS growth while subsequent
+        // epochs get delta = 0.  Scale the scarcity ceiling by K so the full accumulated
+        // growth earns its fair share rather than being capped at a single epoch's limit.
+        // _autoFinalizeCount is 0 when finalizeEpoch() is called directly → multiplier 1×.
+        uint256 scarcityCeiling = E_scarcity * (_autoFinalizeCount > 0 ? _autoFinalizeCount : 1);
+        uint256 B = _min3(E_demand, scarcityCeiling, remaining);
 
         // Split  (§5.9)
         uint256 B_partners = (B * partnerSplit) / PRECISION;
@@ -626,6 +670,8 @@ contract RewardEngine is
         for (uint256 i = 0; i < nVaults; i++) {
             address vault = vaults[i];
             if (initialCumS[vault] == 0) continue;
+            // Fix #12: skip decommissioned vaults
+            if (!factory.isActiveVault(vault)) continue;
 
             // Update cumulativeRewardMinted AFTER reward computation
             if (rewardArr[i] > 0) {
@@ -681,6 +727,27 @@ contract RewardEngine is
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // finalizeEpochChunk() — Paginated stub (Fix #2, v2 forward-compatibility)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice Paginated variant — process vaultStartIdx..vaultEndIdx for epochId.
+    ///         Use when vault count exceeds MAX_VAULTS_PER_FINALIZE.
+    ///         Must be called sequentially with correct indices.
+    ///         WARNING: Partial finalization leaves epoch in intermediate state.
+    ///         Full pagination refactor planned for v2 at scale.
+    ///
+    /// @dev This is a forward-compatibility stub — full paginated state machine in v2.
+    ///      For v1 scale (< 200 vaults), _finalizeSingleEpoch handles all vaults atomically.
+    ///      Reverts intentionally to prevent callers from accidentally leaving partial state.
+    function finalizeEpochChunk(uint256 /*epochId*/, uint256 /*startIdx*/, uint256 /*endIdx*/)
+        external nonReentrant whenNotPaused
+    {
+        // Forward-compatibility stub. Full paginated finalize deferred to v2.
+        // For v1 scale (< 200 vaults), use finalizeEpoch() for atomic processing.
+        revert("RE: use finalizeEpoch for v1; paginated finalize in v2");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Claims
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -719,8 +786,18 @@ contract RewardEngine is
 
     function queueAlphaBase(uint256 v) external onlyOwner {
         require(v >= ALPHA_MIN && v <= ALPHA_MAX, "RE: out of bounds");
+        // Fix #22: prevent queueing over an in-flight update without explicit cancel
+        require(pendingAlphaBase.readyAt == 0, "RE: param already queued, cancel first");
         pendingAlphaBase = PendingParam(v, block.timestamp + PARAM_TIMELOCK);
         emit ParamUpdateQueued("alphaBase", v, pendingAlphaBase.readyAt);
+    }
+
+    /// @notice Cancel a pending alphaBase update. Fix #22.
+    function cancelAlphaBase() external onlyOwner {
+        require(pendingAlphaBase.readyAt != 0, "RE: no pending update");
+        uint256 cancelledValue = pendingAlphaBase.value;
+        pendingAlphaBase = PendingParam(0, 0);
+        emit ParamUpdateCancelled("alphaBase", cancelledValue);
     }
 
     function applyAlphaBase() external onlyOwner {
@@ -733,8 +810,18 @@ contract RewardEngine is
 
     function queueE0(uint256 v) external onlyOwner {
         require(v >= E0_MIN && v <= E0_MAX, "RE: out of bounds");
+        // Fix #22: prevent queueing over an in-flight update without explicit cancel
+        require(pendingE0.readyAt == 0, "RE: param already queued, cancel first");
         pendingE0 = PendingParam(v, block.timestamp + PARAM_TIMELOCK);
         emit ParamUpdateQueued("E0", v, pendingE0.readyAt);
+    }
+
+    /// @notice Cancel a pending E0 update. Fix #22.
+    function cancelE0() external onlyOwner {
+        require(pendingE0.readyAt != 0, "RE: no pending update");
+        uint256 cancelledValue = pendingE0.value;
+        pendingE0 = PendingParam(0, 0);
+        emit ParamUpdateCancelled("E0", cancelledValue);
     }
 
     function applyE0() external onlyOwner {
@@ -747,8 +834,18 @@ contract RewardEngine is
 
     function queuePartnerSplit(uint256 v) external onlyOwner {
         require(v >= SPLIT_MIN && v <= SPLIT_MAX, "RE: out of bounds");
+        // Fix #22: prevent queueing over an in-flight update without explicit cancel
+        require(pendingPartnerSplit.readyAt == 0, "RE: param already queued, cancel first");
         pendingPartnerSplit = PendingParam(v, block.timestamp + PARAM_TIMELOCK);
         emit ParamUpdateQueued("partnerSplit", v, pendingPartnerSplit.readyAt);
+    }
+
+    /// @notice Cancel a pending partnerSplit update. Fix #22.
+    function cancelPartnerSplit() external onlyOwner {
+        require(pendingPartnerSplit.readyAt != 0, "RE: no pending update");
+        uint256 cancelledValue = pendingPartnerSplit.value;
+        pendingPartnerSplit = PendingParam(0, 0);
+        emit ParamUpdateCancelled("partnerSplit", cancelledValue);
     }
 
     function applyPartnerSplit() external onlyOwner {
@@ -766,6 +863,8 @@ contract RewardEngine is
     ) external onlyOwner {
         require(_goldTh > _silverTh,      "RE: invalid thresholds");
         require(_mG >= _mS && _mS >= _mB, "RE: invalid multipliers");
+        // Fix #22: prevent queueing over an in-flight update without explicit cancel
+        require(pendingTierParams.readyAt == 0, "RE: param already queued, cancel first");
         pendingSilverTh   = _silverTh;
         pendingGoldTh     = _goldTh;
         pendingMBronze    = _mB;
@@ -773,6 +872,15 @@ contract RewardEngine is
         pendingMGold      = _mG;
         pendingTierParams = PendingParam(1, block.timestamp + PARAM_TIMELOCK);
         emit ParamUpdateQueued("tierParams", 1, pendingTierParams.readyAt);
+    }
+
+    /// @notice Cancel a pending tierParams update. Fix #22.
+    function cancelTierParams() external onlyOwner {
+        require(pendingTierParams.readyAt != 0, "RE: no pending update");
+        pendingTierParams = PendingParam(0, 0);
+        // pendingSilverTh / pendingGoldTh / pendingMBronze etc. are stale but harmless
+        // (they'll only be applied if pendingTierParams.readyAt != 0)
+        emit ParamUpdateCancelled("tierParams", 1);
     }
 
     /// @notice Apply queued tier parameter update.
