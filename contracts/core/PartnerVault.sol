@@ -101,6 +101,7 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     event CustomerVaultRegistered(address indexed parentVault, address indexed customerVault);
     /// @notice Emitted when a CustomerVault is deregistered. Fix #11.
     event CustomerVaultDeregistered(address indexed vault, address indexed customerVault);
+    event TokenRecovered(address indexed token, uint256 amount, address indexed to);
     event OwnershipTransferStarted(address indexed currentOwner, address indexed pendingOwner);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -318,6 +319,42 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
         IERC20(psre).safeTransfer(to, amount);
 
         emit PSREExitedEcosystem(address(this), to, amount, ecosystemBalance, cumS);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // recoverToken() — Rescue accidentally sent tokens (BlockApex #3 follow-up)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Recover ERC20 tokens accidentally sent to this vault.
+     *         For PSRE: only the untracked excess above ecosystemBalance may be recovered
+     *         (i.e., PSRE that arrived via direct transfer, not through buy()).
+     *         For any other ERC20: full requested amount may be recovered.
+     * @param  token   ERC20 token address to recover.
+     * @param  amount  Amount to transfer out.
+     * @param  to      Recipient address (must not be a registered vault or CV).
+     */
+    function recoverToken(address token, uint256 amount, address to)
+        external onlyOwner nonReentrant
+    {
+        require(to != address(0),                                   "PartnerVault: zero recipient");
+        require(amount > 0,                                         "PartnerVault: zero amount");
+        require(
+            !IPartnerVaultFactory(factory).isRegisteredVault(to) &&
+            !IPartnerVaultFactory(factory).isRegisteredCV(to),
+            "PartnerVault: cannot recover to registered vault/CV"
+        );
+
+        if (token == psre) {
+            // For PSRE: only allow recovery of tokens above the tracked ecosystemBalance.
+            // This prevents accidental removal of legitimately earned PSRE.
+            uint256 vaultBal = IERC20(psre).balanceOf(address(this));
+            uint256 excess   = vaultBal > ecosystemBalance ? vaultBal - ecosystemBalance : 0;
+            require(amount <= excess, "PartnerVault: amount exceeds untracked PSRE surplus");
+        }
+
+        IERC20(token).safeTransfer(to, amount);
+        emit TokenRecovered(token, amount, to);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
