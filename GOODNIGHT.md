@@ -1,60 +1,35 @@
-# GOODNIGHT.md — 2026-04-07
+# GOODNIGHT.md — 2026-04-09
 
-## What Was Done Today
+## What Was Done Today (2026-04-08)
 
-**Major audit fix day.** Surgery day for Jason, but the protocol kept moving.
+- **All 22 BlockApex audit findings fixed** across 5 commit batches
+- Final commit: `7c13690` — 234/234 tests passing
+- Final issue tracker updated and sent to Discord for BlockApex submission
+- Shu confirmed all 3 key architectural decisions: cumS explicit tracking, StakingVault two-pool rebuild, LP staking kept
 
-### Commits
-| Commit | Description |
+## Audit Fix Summary
+
+| Commit | Issues |
 |---|---|
-| `303cd2f` | Fix #1 #8 #16 #18 #20 — initial easy patches (Kin, morning) |
-| `44f17d8` | Batch 1 full: #1 #8 #10 #14 #16 #18 #20 #21 — all easy patches done |
-| `6a3dda8` | StakingVault v2 refactor — fix #3 #5 #9 #15 + cumS explicit tracking |
+| `303cd2f` | #1, #16, #18, #20 |
+| `44f17d8` | #8, #10, #14, #21 |
+| `6a3dda8` | #3, #5, #9, #13, #15 |
+| `d2d04ad` | #4, #6, #19 |
+| `7c13690` | #2, #7, #11, #12, #17, #22 |
 
-**Test count: 224 → 234 (all passing)**
-
-### What's Fixed
-- ✅ #1 — post-snapshot recordStakeTime drain (CRITICAL)
-- ✅ #3 — flash loan cumS inflation via balanceOf (CRITICAL) — explicit tracking only now
-- ✅ #5/#9/#15 — cross-epoch stakeTime contamination (HIGH) — Synthetix-style v2
-- ✅ #8 — partnerOf stale after ownership transfer
-- ✅ #10 — reclaimUnclaimed dead code → reclaimFromCV()
-- ✅ #14 — transferOut CV bypass
-- ✅ #16 — ghost emission when PSRE paused
-- ✅ #18 — claims not gated by pause
-- ✅ #20 — accStakeTime blanket reset
-- ✅ #21 — qualified flag always false
-
-### What's Still Open
-| Finding | Status | Notes |
-|---|---|---|
-| #2 — O(V×C) gas pagination | 🔄 | Known design issue, long-term |
-| #4/#6 — createVault fee tier whitelist | 🔄 | minPsreOut enforced, whitelist pending |
-| #13 — LP 1:1 weighting | 🔄 | Spec decision — Jason + Shu |
-| #19 — two-pass EMA (sumR in-loop) | 🔄 | Medium priority |
-
-## Codebase State
-
-**v3.2 + audit fixes — 234/234 tests passing**
-- Deployed to Base Sepolia: pre-fix bytecode still live (needs redeploy after fixes complete)
-- Keeper: cron `3fc22360`, next run April 11 20:00 UTC (Epoch 1)
-- BlockApex: reviewing commit `7e96ba9` — need to share updated commit for re-review
-
-## Open Decisions
+## Open Items
 
 | Item | Who | Urgency |
 |---|---|---|
-| LP 1:1 weighting (#13) — keep or change? | Jason + Shu | 🔴 Before re-audit |
-| Share updated commit with BlockApex | Shu | 🟠 This week |
-| Gnosis Safe creation | Jason + Shu | 🟠 Blocks mainnet deploy script |
-| Redeploy to Base Sepolia with fixes | Kin — on signal | 🟠 |
-| Fee tier whitelist (#4/#6) | Kin | 🟠 Next |
-| Two-pass EMA (#19) | Kin | 🟡 Medium priority |
+| Forward final tracker to Nadir (BlockApex) | Shu | 🔴 Today |
+| 3 HEPHAESTUS flags — confirm decommission behavior | Shu | 🟡 Before next audit round |
+| Gnosis Safe creation (Founder + Treasury) | Shu | 🔴 Last mainnet blocker |
+| Spec + whitepaper update for StakingVault v2 + cumS | Kin | 🟡 This week |
+| Mainnet deploy script finalization | Kin | ⏳ After Gnosis Safe addresses |
 
 ## Notes for Tomorrow
 
-1. Implement fee tier whitelist (#4/#6) — next code task
-2. Implement two-pass EMA (#19)
-3. When both done → redeploy to Base Sepolia + share commit with BlockApex for re-review
-4. Mainnet target: **April 18–21** — still on track given today's velocity
-5. Jason recovers — light session through April 10
+1. Draft spec/whitepaper updates for the architectural changes
+2. If BlockApex responds with re-review timeline — note it and plan accordingly
+3. Mainnet target: April 18–21 pending BlockApex final report
+4. Jason back April 10+ — update him on all 22 findings resolved
