@@ -3,10 +3,10 @@
 # Calls RewardEngine.finalizeEpoch(epochId) after each 7-day epoch closes.
 # Safe to run any time — no-ops if nothing is ready.
 #
-# Contract semantics (confirmed via on-chain dry-run 2026-04-03):
-#   lastFinalizedEpoch = N means "next epoch to finalize is N"
-#   Initial value 0 → first call must be finalizeEpoch(0)
-#   After epoch 0: lastFinalizedEpoch=1 → call finalizeEpoch(1), etc.
+# Contract semantics (corrected 2026-04-11 after epoch 1 miss):
+#   firstEpochFinalized=false → epoch 0 not done → NEXT=0
+#   firstEpochFinalized=true  → last done = lastFinalizedEpoch → NEXT=last+1
+#   Initial assumption (NEXT=lastFinalizedEpoch) was wrong after epoch 0.
 #
 # Usage: ./epoch-keeper.sh [--dry-run]
 
@@ -36,7 +36,9 @@ strip() { awk '{print $1}'; }
 
 log "Checking RewardEngine @ $REWARD_ENGINE"
 
-NEXT=$("$CAST" call "$REWARD_ENGINE" "lastFinalizedEpoch()(uint256)" \
+LAST=$("$CAST" call "$REWARD_ENGINE" "lastFinalizedEpoch()(uint256)" \
+    --rpc-url "$RPC_URL" 2>/dev/null | strip)
+FIRST_DONE=$("$CAST" call "$REWARD_ENGINE" "firstEpochFinalized()(bool)" \
     --rpc-url "$RPC_URL" 2>/dev/null | strip)
 GENESIS=$("$CAST" call "$REWARD_ENGINE" "genesisTimestamp()(uint256)" \
     --rpc-url "$RPC_URL" 2>/dev/null | strip)
@@ -47,7 +49,16 @@ NOW=$("$CAST" block latest --rpc-url "$RPC_URL" --field timestamp 2>/dev/null | 
 [[ -z "$GENESIS" || -z "$EPOCH_DUR" || -z "$NOW" ]] && \
     err "Failed to read chain state. Check RPC: $RPC_URL"
 
-log "lastFinalizedEpoch (next to finalize): $NEXT"
+# Fix (2026-04-11): lastFinalizedEpoch semantics:
+#   firstEpochFinalized=false → epoch 0 not yet done → NEXT=0
+#   firstEpochFinalized=true  → last done = LAST    → NEXT=LAST+1
+if [[ "$FIRST_DONE" == "false" ]]; then
+    NEXT=0
+else
+    NEXT=$(( LAST + 1 ))
+fi
+
+log "lastFinalizedEpoch: $LAST | firstEpochFinalized: $FIRST_DONE | nextToFinalize: $NEXT"
 log "genesisTimestamp: $GENESIS | EPOCH_DURATION: $EPOCH_DUR | now: $NOW"
 
 # ── Finalize ready epochs ─────────────────────────────────────────────────────
