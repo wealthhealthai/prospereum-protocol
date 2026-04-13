@@ -1,35 +1,37 @@
-# GOODNIGHT.md — 2026-04-09
+# GOODNIGHT.md — 2026-04-13
 
-## What Was Done Today (2026-04-08)
+## What Was Done Today
 
-- **All 22 BlockApex audit findings fixed** across 5 commit batches
-- Final commit: `7c13690` — 234/234 tests passing
-- Final issue tracker updated and sent to Discord for BlockApex submission
-- Shu confirmed all 3 key architectural decisions: cumS explicit tracking, StakingVault two-pool rebuild, LP staking kept
+Quiet day — holding for BlockApex final report. Morning brief acknowledged, three open items surfaced to Jason. No new commits.
 
-## Audit Fix Summary
+**Code is clean:** 22/22 findings addressed, 234/234 tests passing, `recoverToken()` added, dev spec v3.3 DRAFT written.
 
-| Commit | Issues |
+## Waiting On
+
+### 🔴 Blocking Everything
+- **BlockApex final report** — expected today or tomorrow. The moment it arrives: read, triage, patch same day, redeploy.
+- **Gnosis Safe** — Jason + Shu, app.safe.global. 4+ weeks open. Zero mainnet deploy without it.
+
+### 🟠 Decisions Before Final Report
+- **LP 1:1 weighting (#13):** Keep as spec design? Need a written "yes/no" from Shu for the BlockApex response.
+- **autoFinalizeEpochs scope:** Communicate the new feature to Nadir before he finalizes the report, or leave for post-audit? Jason's call.
+- **Dev spec v3.3:** Shu reviewed, Jason sign-off needed.
+
+## Protocol State
+
+| Item | Status |
 |---|---|
-| `303cd2f` | #1, #16, #18, #20 |
-| `44f17d8` | #8, #10, #14, #21 |
-| `6a3dda8` | #3, #5, #9, #13, #15 |
-| `d2d04ad` | #4, #6, #19 |
-| `7c13690` | #2, #7, #11, #12, #17, #22 |
-
-## Open Items
-
-| Item | Who | Urgency |
-|---|---|---|
-| Forward final tracker to Nadir (BlockApex) | Shu | 🔴 Today |
-| 3 HEPHAESTUS flags — confirm decommission behavior | Shu | 🟡 Before next audit round |
-| Gnosis Safe creation (Founder + Treasury) | Shu | 🔴 Last mainnet blocker |
-| Spec + whitepaper update for StakingVault v2 + cumS | Kin | 🟡 This week |
-| Mainnet deploy script finalization | Kin | ⏳ After Gnosis Safe addresses |
+| All 22 audit findings | ✅ Addressed |
+| Test suite | ✅ 234/234 |
+| Base Sepolia contracts | ⚠️ Pre-fix bytecode — needs redeploy |
+| Epoch 2 | Closes April 18 19:43 UTC — keeper auto-fires |
+| Mainnet target | **April 18–21** |
+| Gnosis Safe | ❌ Not created — hard blocker |
 
 ## Notes for Tomorrow
 
-1. Draft spec/whitepaper updates for the architectural changes
-2. If BlockApex responds with re-review timeline — note it and plan accordingly
-3. Mainnet target: April 18–21 pending BlockApex final report
-4. Jason back April 10+ — update him on all 22 findings resolved
+1. Watch for BlockApex final report — respond fast
+2. If clean → redeploy to Base Sepolia, update deployments.md
+3. If new findings → patch same day, re-run full test suite
+4. Nudge Gnosis Safe if no movement — mainnet window is 5 days away
+5. LP weighting and spec v3.3 decisions can't wait past this week
