@@ -1,37 +1,34 @@
-# GOODNIGHT.md — 2026-04-13
+# GOODNIGHT.md — 2026-04-14
 
 ## What Was Done Today
 
-Quiet day — holding for BlockApex final report. Morning brief acknowledged, three open items surfaced to Jason. No new commits.
+**StakingVault v3 shipped** — Synthetix passive settlement model. Stake once, earn forever. Full rebuild, ADJUDICATOR reviewed and fixed. Audit response spreadsheets v2 committed. 234 → **247 tests passing**.
 
-**Code is clean:** 22/22 findings addressed, 234/234 tests passing, `recoverToken()` added, dev spec v3.3 DRAFT written.
-
-## Waiting On
-
-### 🔴 Blocking Everything
-- **BlockApex final report** — expected today or tomorrow. The moment it arrives: read, triage, patch same day, redeploy.
-- **Gnosis Safe** — Jason + Shu, app.safe.global. 4+ weeks open. Zero mainnet deploy without it.
-
-### 🟠 Decisions Before Final Report
-- **LP 1:1 weighting (#13):** Keep as spec design? Need a written "yes/no" from Shu for the BlockApex response.
-- **autoFinalizeEpochs scope:** Communicate the new feature to Nadir before he finalizes the report, or leave for post-audit? Jason's call.
-- **Dev spec v3.3:** Shu reviewed, Jason sign-off needed.
-
-## Protocol State
-
-| Item | Status |
+| Commit | What |
 |---|---|
-| All 22 audit findings | ✅ Addressed |
-| Test suite | ✅ 234/234 |
-| Base Sepolia contracts | ⚠️ Pre-fix bytecode — needs redeploy |
-| Epoch 2 | Closes April 18 19:43 UTC — keeper auto-fires |
-| Mainnet target | **April 18–21** |
-| Gnosis Safe | ❌ Not created — hard blocker |
+| `c538bc9` | Epoch-aware PSRE mint + setMaxPartners guard |
+| `0859369` | StakingVault v3 — Synthetix settlement (passive staking) |
+| `7c92921` | Audit response spreadsheets v1/v2 final + mock update |
+| `601d0a0` | StakingVault v3 ADJUDICATOR fixes (stranded pool handling) |
+
+## Current Protocol State
+
+- **Tests:** 247/247 ✅
+- **All audit findings:** Addressed ✅
+- **Base Sepolia contracts:** Still pre-fix bytecode — redeploy pending
+- **BlockApex final report:** Confirm status with Shu
+- **Epoch 2 closes:** April 18 19:43 UTC — keeper auto-fires
+- **Mainnet target:** April 18–21
+
+## The Two Gates Left
+
+**1. BlockApex final report** — clean = redeploy + launch
+**2. Gnosis Safe** — Jason + Shu, app.safe.global. 4+ weeks open. Cannot finalize mainnet deploy script without Safe addresses. This is the last thing standing.
 
 ## Notes for Tomorrow
 
-1. Watch for BlockApex final report — respond fast
-2. If clean → redeploy to Base Sepolia, update deployments.md
-3. If new findings → patch same day, re-run full test suite
-4. Nudge Gnosis Safe if no movement — mainnet window is 5 days away
-5. LP weighting and spec v3.3 decisions can't wait past this week
+1. **Confirm BlockApex final report** with Shu — received? clean?
+2. **If clean:** redeploy all 8 contracts to Base Sepolia, update deployments.md
+3. **Gnosis Safe:** one more hard push — April 18 is 4 days away
+4. Dev spec v3.3 needs Jason sign-off (Shu reviewed)
+5. Mainnet deploy script ready to finalize in ~1 hour once Safe addresses land
