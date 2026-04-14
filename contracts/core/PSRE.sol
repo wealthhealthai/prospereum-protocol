@@ -121,6 +121,20 @@ contract PSRE is ERC20, AccessControl, Pausable, IPSRE {
      *         This is a circuit-breaker independent of RewardEngine logic.
      */
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
+        _mintWithEpoch(to, amount, _currentEpochId());
+    }
+
+    /**
+     * @notice Epoch-aware mint for batch finalization (BlockApex fix Vuln 4).
+     *         Charges the rate limiter against `historicalEpochId` instead of the
+     *         current wall-clock epoch.  Used by RewardEngine.autoFinalizeEpochs()
+     *         so that K back-to-back epoch mints each draw from their own budget.
+     */
+    function mintForEpoch(address to, uint256 amount, uint256 historicalEpochId) external onlyRole(MINTER_ROLE) {
+        _mintWithEpoch(to, amount, historicalEpochId);
+    }
+
+    function _mintWithEpoch(address to, uint256 amount, uint256 epochId) internal {
         require(to != address(0), "PSRE: mint to zero");
         require(amount > 0,       "PSRE: zero amount");
 
@@ -131,7 +145,6 @@ contract PSRE is ERC20, AccessControl, Pausable, IPSRE {
         );
 
         // Epoch rate limiter (circuit-breaker)
-        uint256 epochId = _currentEpochId();
         require(
             epochMinted[epochId] + amount <= MAX_MINT_PER_EPOCH,
             "PSRE: epoch mint cap exceeded"

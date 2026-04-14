@@ -15,4 +15,5 @@ interface IPSRE {
      *      accesses them through IERC20(address(psre)) — no interface conflict needed.
      */
     function mint(address to, uint256 amount) external;
+    function mintForEpoch(address to, uint256 amount, uint256 historicalEpochId) external;
 }

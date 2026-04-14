@@ -213,6 +213,7 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     /// @notice Update the maximum number of registered partners.
     function setMaxPartners(uint256 _max) external onlyOwner {
         require(_max > 0, "Factory: zero max");
+        require(_max >= activeVaultCount, "Factory: max below active vault count");
         emit MaxPartnersUpdated(maxPartners, _max);
         maxPartners = _max;
     }

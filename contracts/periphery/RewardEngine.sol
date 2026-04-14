@@ -696,7 +696,7 @@ contract RewardEngine is
             // consuming emission budget with tokens nobody can receive. Revert instead.
             // Use Pausable interface directly; paused() is not on IPSRE to avoid diamond conflict.
             require(!IPausableToken(address(psre)).paused(), "RE: PSRE transfers paused");
-            psre.mint(address(this), mintAmount);
+            psre.mintForEpoch(address(this), mintAmount, epochId); // epoch-aware mint: charges historical epoch's budget
             T += mintAmount;
             assert(T <= S_EMISSION);
         }
