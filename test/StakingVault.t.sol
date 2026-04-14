@@ -386,19 +386,22 @@ contract StakingVaultTest is Test {
     // 8. Zero stakers: pool stays in contract, no division by zero
     // ------------------------------------------------------------------------
 
-    function test_zeroStakers_poolStaysInContract() public {
+    function test_zeroStakers_poolNotPulled() public {
         uint256 rewardPool = 100e18;
 
         // No stakers at all
         _advanceAndFinalize(0, rewardPool);
 
-        // epochTotalPSREStaked[0] = 0 → rewardPerToken = 0 (no division)
-        assertEq(stakingVault.epochPSRERewardPerToken(0), 0, "no div-by-zero, rewardPerToken = 0");
-        assertEq(stakingVault.epochLPRewardPerToken(0),   0, "no div-by-zero, LP rewardPerToken = 0");
+        // rewardPerToken = 0 (no stakers, no division)
+        assertEq(stakingVault.epochPSRERewardPerToken(0), 0, "no div-by-zero");
+        assertEq(stakingVault.epochLPRewardPerToken(0),   0, "no div-by-zero");
 
-        // Tokens are held by StakingVault
-        assertEq(psre.balanceOf(address(stakingVault)), rewardPool,
-            "pool sits in contract with no stakers");
+        // Pool NOT pulled into StakingVault — stays in RewardEngine (caller)
+        assertEq(psre.balanceOf(address(stakingVault)), 0,
+            "no tokens pulled when no stakers");
+
+        // Epoch is marked distributed
+        assertTrue(stakingVault.epochDistributed(0), "epoch marked distributed");
 
         // Any user trying to claim gets nothing
         vm.prank(alice);

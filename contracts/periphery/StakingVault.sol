@@ -7,16 +7,16 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IStakingVault.sol";
 
 /**
- * @title StakingVault v3.0 — Synthetix-Style Passive Staking
+ * @title StakingVault v3.0 -- Synthetix-Style Passive Staking
  * @notice "Stake and forget." Users stake PSRE or LP tokens once and earn
- *         rewards across all finalized epochs automatically — no checkpointing
+ *         rewards across all finalized epochs automatically -- no checkpointing
  *         required before each epoch end.
  *
  *         Design (epoch-adapted Synthetix model):
  *         - Each epoch has a global rewardPerToken for PSRE stakers and LP stakers.
  *         - rewardPerToken[e] is computed at distributeStakerRewards() time using
  *           the total staked captured in snapshotEpoch().
- *         - A user's share for epoch E = their balance (at settlement time) × rewardPerToken[E].
+ *         - A user's share for epoch E = their balance (at settlement time) x rewardPerToken[E].
  *         - _settleFinishedEpochs() accumulates pending rewards lazily, called
  *           before every balance change (stake/unstake) and before every claim.
  *
@@ -47,12 +47,9 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     uint256 public constant PRECISION = 1e18;
 
     /// @notice Precision multiplier for per-token reward accumulator.
-    ///         Using 1e36 avoids precision loss when dividing small reward pools
-    ///         by large token supplies.
     uint256 public constant REWARD_PRECISION = 1e36;
 
     /// @notice Gas cap: maximum epochs settled per _settleFinishedEpochs() call.
-    ///         If a user is >52 epochs behind, multiple interactions are needed.
     uint256 public constant MAX_SETTLE_EPOCHS = 52;
 
     // -------------------------------------------------------------------------
@@ -68,18 +65,18 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     // psreSplit + lpSplit must always == PRECISION (1e18)
     // -------------------------------------------------------------------------
 
-    uint256 public psreSplit = 0.5e18;   // 50% to PSRE stakers
-    uint256 public lpSplit   = 0.5e18;   // 50% to LP stakers
+    uint256 public psreSplit = 0.5e18;
+    uint256 public lpSplit   = 0.5e18;
 
     // -------------------------------------------------------------------------
-    // Global staking counters — updated on every stake / unstake
+    // Global staking counters -- updated on every stake / unstake
     // -------------------------------------------------------------------------
 
     uint256 public totalPSREStaked;
     uint256 public totalLPStaked;
 
     // -------------------------------------------------------------------------
-    // Per-epoch state — set at finalization time by RewardEngine
+    // Per-epoch state -- set at finalization time by RewardEngine
     // -------------------------------------------------------------------------
 
     /// @notice Total PSRE staked at the time snapshotEpoch(epochId) was called.
@@ -88,12 +85,10 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     /// @notice Total LP staked at the time snapshotEpoch(epochId) was called.
     mapping(uint256 => uint256) public epochTotalLPStaked;
 
-    /// @notice PSRE reward per token for epoch (× REWARD_PRECISION).
-    ///         Zero if no PSRE was staked during the epoch.
+    /// @notice PSRE reward per token for epoch (x REWARD_PRECISION).
     mapping(uint256 => uint256) public epochPSRERewardPerToken;
 
-    /// @notice LP reward per token for epoch (× REWARD_PRECISION).
-    ///         Zero if no LP was staked during the epoch.
+    /// @notice LP reward per token for epoch (x REWARD_PRECISION).
     mapping(uint256 => uint256) public epochLPRewardPerToken;
 
     /// @notice PSRE sub-pool for epoch (psreSplit fraction of totalStakerPool).
@@ -110,7 +105,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
 
     /// @notice The highest epoch for which distributeStakerRewards() has been called.
     ///         Initialized to type(uint256).max (sentinel: no epoch finalized yet).
-    ///         _settleFinishedEpochs() returns early until at least one epoch is finalized.
     uint256 public lastFinalizedEpoch = type(uint256).max;
 
     // -------------------------------------------------------------------------
@@ -118,9 +112,9 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     // -------------------------------------------------------------------------
 
     struct UserStake {
-        uint256 psreBalance;      // PSRE tokens currently staked
-        uint256 lpBalance;        // LP tokens currently staked
-        uint256 lastSettledEpoch; // next epoch index to be settled for this user
+        uint256 psreBalance;
+        uint256 lpBalance;
+        uint256 lastSettledEpoch;
     }
 
     mapping(address => UserStake) public userStakes;
@@ -204,11 +198,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     // Staking: PSRE
     // -------------------------------------------------------------------------
 
-    /**
-     * @notice Stake PSRE tokens.
-     *         Settles all finalized epochs before updating balance (preserves
-     *         the invariant that balance during past epochs = balance at settlement).
-     */
     function stakePSRE(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
         _settleFinishedEpochs(msg.sender);
@@ -218,10 +207,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
         emit PSREStaked(msg.sender, amount);
     }
 
-    /**
-     * @notice Unstake PSRE tokens.
-     *         Settles all finalized epochs before updating balance.
-     */
     function unstakePSRE(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
         require(userStakes[msg.sender].psreBalance >= amount, "StakingVault: insufficient balance");
@@ -236,10 +221,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     // Staking: LP tokens
     // -------------------------------------------------------------------------
 
-    /**
-     * @notice Stake LP tokens.
-     *         Settles all finalized epochs before updating balance.
-     */
     function stakeLP(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
         _settleFinishedEpochs(msg.sender);
@@ -249,10 +230,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
         emit LPStaked(msg.sender, amount);
     }
 
-    /**
-     * @notice Unstake LP tokens.
-     *         Settles all finalized epochs before updating balance.
-     */
     function unstakeLP(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
         require(userStakes[msg.sender].lpBalance >= amount, "StakingVault: insufficient balance");
@@ -264,16 +241,13 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     }
 
     // -------------------------------------------------------------------------
-    // snapshotEpoch — called by RewardEngine at epoch finalization
+    // snapshotEpoch -- called by RewardEngine at epoch finalization
     // -------------------------------------------------------------------------
 
     /**
      * @notice Snapshot (finalize) an epoch's staking totals.
-     *         Called only by RewardEngine immediately before distributeStakerRewards.
      *         Records the current total PSRE and LP staked as the epoch's basis
      *         for rewardPerToken computation.
-     *
-     * @param epochId The epoch being finalized.
      */
     function snapshotEpoch(uint256 epochId) external override onlyRewardEngine {
         require(!epochSnapshotted[epochId], "StakingVault: already snapshotted");
@@ -284,12 +258,15 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     }
 
     // -------------------------------------------------------------------------
-    // distributeStakerRewards — called by RewardEngine after snapshotEpoch
+    // distributeStakerRewards -- called by RewardEngine after snapshotEpoch
     // -------------------------------------------------------------------------
 
     /**
      * @notice Fund the reward pools for a snapshotted epoch and compute rewardPerToken.
      *         Pulls `totalStakerPool` PSRE from the caller (RewardEngine must approve first).
+     *         If no PSRE stakers exist, epochPSRERewardPerToken stays 0.
+     *         If no LP stakers exist, epochLPRewardPerToken stays 0.
+     *         Unclaimed pool tokens remain in the contract.
      *
      * @param epochId         The snapshotted epoch to distribute rewards for.
      * @param totalStakerPool Total PSRE to split between PSRE stakers and LP stakers.
@@ -297,21 +274,35 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     function distributeStakerRewards(uint256 epochId, uint256 totalStakerPool)
         external override onlyRewardEngine
     {
-        require(epochSnapshotted[epochId],   "StakingVault: not snapshotted");
-        require(!epochDistributed[epochId],  "StakingVault: already distributed");
-        require(totalStakerPool > 0,         "StakingVault: zero pool");
+        require(epochSnapshotted[epochId],  "StakingVault: not snapshotted");
+        require(!epochDistributed[epochId], "StakingVault: already distributed");
+        require(totalStakerPool > 0, "StakingVault: zero pool");
 
-        uint256 psrePool = totalStakerPool * psreSplit / PRECISION;
-        uint256 lpPool_  = totalStakerPool * lpSplit   / PRECISION;
+        uint256 totalPSREcheck = epochTotalPSREStaked[epochId];
+        uint256 totalLPcheck   = epochTotalLPStaked[epochId];
+
+        // No stakers at all: mark distributed, don't pull tokens.
+        // Pool stays in caller (RewardEngine) — use sweepUnclaimedPool() if needed.
+        if (totalPSREcheck == 0 && totalLPcheck == 0) {
+            epochDistributed[epochId] = true;
+            if (lastFinalizedEpoch == type(uint256).max || epochId > lastFinalizedEpoch) {
+                lastFinalizedEpoch = epochId;
+            }
+            emit StakerRewardsDistributed(epochId, 0, 0);
+            return;
+        }
+
+        uint256 psrePool = (totalStakerPool * psreSplit) / PRECISION;
+        uint256 lpPool_  = (totalStakerPool * lpSplit)   / PRECISION;
 
         epochPSREPool[epochId] = psrePool;
         epochLPPool[epochId]   = lpPool_;
         epochDistributed[epochId] = true;
 
-        // Compute rewardPerToken (0 if no tokens staked — avoids division by zero).
         uint256 totalPSRE = epochTotalPSREStaked[epochId];
         uint256 totalLP   = epochTotalLPStaked[epochId];
 
+        // Compute rewardPerToken (0 if no tokens staked; avoids division by zero)
         if (totalPSRE > 0) {
             epochPSRERewardPerToken[epochId] = (psrePool * REWARD_PRECISION) / totalPSRE;
         }
@@ -319,18 +310,49 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
             epochLPRewardPerToken[epochId] = (lpPool_ * REWARD_PRECISION) / totalLP;
         }
 
-        // Advance lastFinalizedEpoch (epochs are finalized in order by RewardEngine).
+        // Advance lastFinalizedEpoch.
         if (lastFinalizedEpoch == type(uint256).max || epochId > lastFinalizedEpoch) {
             lastFinalizedEpoch = epochId;
         }
 
+        // Pull funds from RewardEngine into this vault; unclaimed pools remain here.
         IERC20(psre).safeTransferFrom(msg.sender, address(this), totalStakerPool);
 
         emit StakerRewardsDistributed(epochId, psrePool, lpPool_);
     }
 
     // -------------------------------------------------------------------------
-    // claimAll — settle all finalized epochs and pay pending rewards
+    // sweepUnclaimedPool -- recover stranded sub-pool rewards (governance)
+    // -------------------------------------------------------------------------
+
+    /**
+     * @notice Recover any unclaimed staking rewards from an epoch where one or both
+     *         sub-pools had no stakers (rewardPerToken = 0). Only callable by owner.
+     *         Sends unclaimed portion to `to` (typically treasury or next-epoch pool).
+     * @param epochId  The epoch to sweep.
+     * @param to       Recipient address.
+     */
+    function sweepUnclaimedPool(uint256 epochId, address to) external onlyOwner {
+        require(epochDistributed[epochId], "StakingVault: not distributed");
+        require(to != address(0),          "StakingVault: zero recipient");
+
+        uint256 unclaimed = 0;
+        if (epochPSRERewardPerToken[epochId] == 0 && epochPSREPool[epochId] > 0) {
+            unclaimed += epochPSREPool[epochId];
+            epochPSREPool[epochId] = 0;
+        }
+        if (epochLPRewardPerToken[epochId] == 0 && epochLPPool[epochId] > 0) {
+            unclaimed += epochLPPool[epochId];
+            epochLPPool[epochId] = 0;
+        }
+
+        if (unclaimed > 0) {
+            IERC20(psre).safeTransfer(to, unclaimed);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // claimAll -- settle all finalized epochs and pay pending rewards
     // -------------------------------------------------------------------------
 
     /**
@@ -347,17 +369,13 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     }
 
     // -------------------------------------------------------------------------
-    // claimStake — backward-compatible epoch-specific entry point
+    // claimStake -- backward-compatible epoch-specific entry point
     // -------------------------------------------------------------------------
 
     /**
      * @notice Backward-compatible claim. Verifies that `epochId` is finalized,
      *         settles ALL finalized epochs, then pays all accumulated pending rewards.
-     *
-     *         Note: pays ALL pending rewards (not epoch-specific) because the
-     *         v3 model accumulates them in a single pendingRewards bucket.
-     *         This resolves the v2 claimStake paradox where passive stakers always
-     *         received 0 (their contributions were never recorded before snapshot).
+     *         Resolves the v2 claimStake paradox where passive stakers always received 0.
      *
      * @param epochId Any finalized epoch (used as proof that claiming is valid).
      */
@@ -372,15 +390,13 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     }
 
     // -------------------------------------------------------------------------
-    // checkpointUser — keeper compatibility
+    // checkpointUser -- keeper compatibility
     // -------------------------------------------------------------------------
 
     /**
      * @notice Trigger settlement for any user. Kept for keeper/bot compatibility.
-     *         In v3, settlement is lazy and automatic — keepers are not required
-     *         to call this before epoch finalization, but may do so to pre-accrue.
-     *
-     * @param user The user to settle.
+     *         In v3, settlement is lazy and automatic -- keepers are not required
+     *         to call this before epoch finalization.
      */
     function checkpointUser(address user) external {
         _settleFinishedEpochs(user);
@@ -390,9 +406,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     // Governance
     // -------------------------------------------------------------------------
 
-    /**
-     * @notice Update the PSRE/LP reward split. Both values must sum to PRECISION.
-     */
     function setSplit(uint256 _psreSplit, uint256 _lpSplit) external onlyOwner {
         require(_psreSplit + _lpSplit == PRECISION, "StakingVault: splits must sum to 1e18");
         psreSplit = _psreSplit;
@@ -400,9 +413,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
         emit SplitUpdated(_psreSplit, _lpSplit);
     }
 
-    /**
-     * @notice Set the RewardEngine address. One-time, immutable after setting.
-     */
     function setRewardEngine(address _rewardEngine) external onlyOwner {
         require(!rewardEngineSet,            "StakingVault: already set");
         require(_rewardEngine != address(0), "StakingVault: zero addr");
@@ -415,7 +425,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     // View helpers
     // -------------------------------------------------------------------------
 
-    /// @notice Current staked balances for a user.
     function totalStakeOf(address user) external view returns (uint256 psreBal, uint256 lpBal) {
         return (userStakes[user].psreBalance, userStakes[user].lpBalance);
     }
@@ -428,39 +437,31 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
      * @dev For each finalized epoch since the user's last settlement, compute
      *      the user's reward share and add it to pendingRewards[user].
      *
-     *      Correctness invariant:
-     *        This must be called BEFORE any balance change. At call time the
-     *        user's stored balance == their balance during all unsettled epochs
-     *        (because they haven't changed it since last settlement).
+     *      Must be called BEFORE any balance change. At call time the user's stored
+     *      balance equals their balance during all unsettled epochs (because they
+     *      haven't changed it since last settlement).
      *
-     *      Gas cap:
-     *        Iterates at most MAX_SETTLE_EPOCHS per call. If the user is further
-     *        behind, they need multiple interactions to fully catch up (all pending
-     *        rewards are preserved across calls via pendingRewards accumulation).
+     *      Gas cap: MAX_SETTLE_EPOCHS per call. If the user is further behind,
+     *      multiple interactions catch up (rewards accumulate in pendingRewards).
      *
-     *      sentinel:
-     *        lastFinalizedEpoch starts at type(uint256).max. We return early
-     *        until at least one epoch has been distributed, preventing the
-     *        lastSettledEpoch counter from advancing past unfinalised epochs.
+     *      lastFinalizedEpoch sentinel: starts at type(uint256).max. Returns early
+     *      until at least one epoch has been distributed, so that lastSettledEpoch
+     *      never advances past unfinalised epochs on first stake.
      */
     function _settleFinishedEpochs(address user) internal {
-        // No epochs finalized yet — nothing to settle.
         if (lastFinalizedEpoch == type(uint256).max) return;
 
         UserStake storage s = userStakes[user];
         uint256 startEpoch  = s.lastSettledEpoch;
         uint256 endEpoch    = lastFinalizedEpoch;
 
-        // Already up to date.
         if (startEpoch > endEpoch) return;
 
-        // Apply gas cap.
+        // Gas cap.
         uint256 cap = startEpoch + MAX_SETTLE_EPOCHS - 1;
         if (endEpoch > cap) endEpoch = cap;
 
         for (uint256 e = startEpoch; e <= endEpoch; e++) {
-            // Skip epochs that were snapshotted but not distributed
-            // (e.g., no staker allocation minted for that epoch).
             if (!epochDistributed[e]) continue;
 
             uint256 psreRpt = epochPSRERewardPerToken[e];
