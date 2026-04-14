@@ -7,19 +7,19 @@ import "../contracts/core/PSRE.sol";
 import "./mocks/MockERC20.sol";
 
 /**
- * @title StakingVaultTest v2.0
- * @notice Tests for StakingVault epoch-aware checkpointing model.
+ * @title StakingVaultTest v3.0
+ * @notice Tests for StakingVault v3 -- Synthetix-style passive staking.
  *
- *         Covers:
- *         - Basic staking/unstaking token transfers and balance tracking
- *         - Epoch-aware _checkpoint: correct time attribution per epoch
- *         - Epoch boundary attribution (no cross-epoch contamination)
- *         - Snapshot + distributeStakerRewards + claimStake full flow
- *         - Two separate sub-pools (PSRE and LP) — no dilution between them
- *         - Two-user proportional reward split
- *         - Post-snapshot contribution rejection
- *         - Double-claim prevention
- *         - Split governance (setSplit)
+ *         Key behaviors tested:
+ *         - Passive staker: stake once, earn across multiple epochs (the v2 bug)
+ *         - Two users: proportional reward split based on balance share
+ *         - Unstake mid-epoch: balance change only affects future epochs
+ *         - PSRE and LP separate pools: no dilution between them
+ *         - No double-claim: pendingRewards zeroed on claim
+ *         - Zero stakers: pool stays in contract (no division by zero)
+ *         - claimStake works without pre-checkpoint (the v2 liveness failure)
+ *         - Access control: snapshotEpoch, distributeStakerRewards, setSplit, setRewardEngine
+ *         - Gas cap: lastSettledEpoch advances correctly across multiple settle calls
  */
 contract StakingVaultTest is Test {
     StakingVault public stakingVault;
@@ -34,7 +34,7 @@ contract StakingVaultTest is Test {
     address public bob          = makeAddr("bob");
 
     uint256 public genesis;
-    uint256 public constant EPOCH = 7 days;
+    uint256 public constant EPOCH     = 7 days;
     uint256 public constant PRECISION = 1e18;
 
     bytes32 minterRole;
@@ -56,7 +56,7 @@ contract StakingVaultTest is Test {
         vm.prank(admin);
         stakingVault.setRewardEngine(rewardEngine);
 
-        // Grant minter role to this test contract
+        // Grant minter role to test contract
         minterRole = psre.MINTER_ROLE();
         vm.prank(admin);
         psre.grantRole(minterRole, address(this));
@@ -67,28 +67,33 @@ contract StakingVaultTest is Test {
         lpToken.mint(alice, 10_000e18);
         lpToken.mint(bob,   10_000e18);
 
-        // Approvals for staking
+        // Approvals
         vm.prank(alice); psre.approve(address(stakingVault), type(uint256).max);
         vm.prank(alice); lpToken.approve(address(stakingVault), type(uint256).max);
         vm.prank(bob);   psre.approve(address(stakingVault), type(uint256).max);
         vm.prank(bob);   lpToken.approve(address(stakingVault), type(uint256).max);
     }
 
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
     // Helpers
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
 
-    /// @dev Fund rewardEngine with PSRE and set up approvals for distributeStakerRewards.
+    /// @dev Mint PSRE to rewardEngine and approve StakingVault.
     function _fundRewardEngine(uint256 amount) internal {
         psre.mint(rewardEngine, amount);
         vm.prank(rewardEngine);
         psre.approve(address(stakingVault), amount);
     }
 
-    /// @dev Snapshot an epoch and distribute a reward pool.
-    function _snapshotAndDistribute(uint256 epochId, uint256 rewardPool) internal {
+    /// @dev Snapshot an epoch (records current total staked).
+    function _snapshot(uint256 epochId) internal {
         vm.prank(rewardEngine);
         stakingVault.snapshotEpoch(epochId);
+    }
+
+    /// @dev Snapshot and distribute a reward pool for an epoch.
+    function _snapshotAndDistribute(uint256 epochId, uint256 rewardPool) internal {
+        _snapshot(epochId);
         if (rewardPool > 0) {
             _fundRewardEngine(rewardPool);
             vm.prank(rewardEngine);
@@ -96,9 +101,15 @@ contract StakingVaultTest is Test {
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────────
+    /// @dev Advance time past epoch boundary and finalize.
+    function _advanceAndFinalize(uint256 epochId, uint256 rewardPool) internal {
+        vm.warp(genesis + (epochId + 1) * EPOCH + 1);
+        _snapshotAndDistribute(epochId, rewardPool);
+    }
+
+    // ------------------------------------------------------------------------
     // 1. Basic PSRE staking / unstaking
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
 
     function test_stakePSRE_transfersTokensIn() public {
         uint256 before = psre.balanceOf(address(stakingVault));
@@ -113,6 +124,7 @@ contract StakingVaultTest is Test {
         stakingVault.stakePSRE(500e18);
         (uint256 psreBal, ) = stakingVault.totalStakeOf(alice);
         assertEq(psreBal, 500e18);
+        assertEq(stakingVault.totalPSREStaked(), 500e18);
     }
 
     function test_unstakePSRE_transfersTokensOut() public {
@@ -131,6 +143,7 @@ contract StakingVaultTest is Test {
         stakingVault.unstakePSRE(200e18);
         (uint256 psreBal, ) = stakingVault.totalStakeOf(alice);
         assertEq(psreBal, 300e18);
+        assertEq(stakingVault.totalPSREStaked(), 300e18);
     }
 
     function test_unstakePSRE_revertsOnInsufficientBalance() public {
@@ -141,9 +154,9 @@ contract StakingVaultTest is Test {
         stakingVault.unstakePSRE(200e18);
     }
 
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
     // 2. Basic LP staking / unstaking
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
 
     function test_stakeLP_transfersTokensIn() public {
         uint256 before = lpToken.balanceOf(address(stakingVault));
@@ -158,6 +171,7 @@ contract StakingVaultTest is Test {
         stakingVault.stakeLP(300e18);
         (, uint256 lpBal) = stakingVault.totalStakeOf(alice);
         assertEq(lpBal, 300e18);
+        assertEq(stakingVault.totalLPStaked(), 300e18);
     }
 
     function test_unstakeLP_transfersTokensOut() public {
@@ -177,309 +191,224 @@ contract StakingVaultTest is Test {
         stakingVault.unstakeLP(200e18);
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 3. test_stakePSRE_basic — stake, warp, checkpoint, verify stakeTime recorded
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
+    // 3. THE KEY V3 TEST: passive staker earns without pre-claim checkpoint
+    //    This was the BlockApex liveness failure in v2.
+    // ------------------------------------------------------------------------
 
-    function test_stakePSRE_basic() public {
-        uint256 amount = 1000e18;
+    /**
+     * @notice Alice stakes once at genesis. Zero interactions for 5 epochs.
+     *         She should receive the full PSRE pool share for all 5 epochs.
+     *         (This test FAILED with StakingVault v2 -- the whole reason we rewrote it.)
+     */
+    function test_passiveStaker_earns5Epochs() public {
+        uint256 rewardPerEpoch = 100e18;
 
-        // Stake at genesis
+        // Alice stakes and never touches her position again.
         vm.prank(alice);
-        stakingVault.stakePSRE(amount);
+        stakingVault.stakePSRE(1000e18);
 
-        // Warp to just before end of epoch 0, trigger checkpoint
-        vm.warp(genesis + EPOCH - 1);
-        // checkpointUser to attribute time to epoch 0
-        stakingVault.checkpointUser(alice);
+        // Finalize 5 epochs with equal reward pools.
+        for (uint256 e = 0; e < 5; e++) {
+            _advanceAndFinalize(e, rewardPerEpoch);
+        }
 
-        // Verify contribution is recorded for epoch 0 (not yet snapshotted)
-        uint256 contribution = stakingVault.userPSREStakedTime(0, alice);
-        uint256 totalContrib = stakingVault.totalPSREStakedTime(0);
+        // Alice has never interacted since staking. She is the only staker.
+        // She should receive the full PSRE pool for all 5 epochs.
+        // psrePool per epoch = 100e18 * 50% = 50e18
+        // Total expected = 5 * 50e18 = 250e18
+        uint256 psrePool = rewardPerEpoch * stakingVault.psreSplit() / PRECISION;
+        uint256 expected = 5 * psrePool;
 
-        assertGt(contribution, 0, "Alice should have PSRE stakeTime in epoch 0");
-        // Approximately amount * (EPOCH - 1) seconds
-        assertApproxEqRel(contribution, amount * (EPOCH - 1), 0.01e18, "contribution ~= amount * elapsed");
-        assertEq(contribution, totalContrib, "total should equal alice's (sole staker)");
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // 4. test_stakeLP_basic — LP version of above
-    // ────────────────────────────────────────────────────────────────────────
-
-    function test_stakeLP_basic() public {
-        uint256 amount = 1000e18;
-
-        vm.prank(alice);
-        stakingVault.stakeLP(amount);
-
-        vm.warp(genesis + EPOCH - 1);
-        stakingVault.checkpointUser(alice);
-
-        uint256 contribution = stakingVault.userLPStakedTime(0, alice);
-        uint256 totalContrib = stakingVault.totalLPStakedTime(0);
-
-        assertGt(contribution, 0, "Alice should have LP stakeTime in epoch 0");
-        assertApproxEqRel(contribution, amount * (EPOCH - 1), 0.01e18, "LP contribution ~= amount * elapsed");
-        assertEq(contribution, totalContrib, "total should equal alice's (sole staker)");
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // 5. test_epochBoundaryAttribution — verify time is split across epochs correctly
-    // ────────────────────────────────────────────────────────────────────────
-
-    function test_epochBoundaryAttribution() public {
-        uint256 amount = 1000e18;
-
-        // Alice stakes at genesis (epoch 0)
-        vm.prank(alice);
-        stakingVault.stakePSRE(amount);
-        // First stake sets lastCheckpointTimestamp = genesis, no contribution yet.
-
-        // Warp to middle of epoch 2 (well past epoch 0 and epoch 1)
-        uint256 midEpoch2 = genesis + 2 * EPOCH + EPOCH / 2;
-        vm.warp(midEpoch2);
-
-        // Checkpoint to attribute time across epochs 0, 1, and 2
-        stakingVault.checkpointUser(alice);
-
-        // Epoch 0: full epoch = EPOCH seconds
-        uint256 e0 = stakingVault.userPSREStakedTime(0, alice);
-        // Epoch 1: full epoch = EPOCH seconds
-        uint256 e1 = stakingVault.userPSREStakedTime(1, alice);
-        // Epoch 2: partial = EPOCH/2 seconds
-        uint256 e2 = stakingVault.userPSREStakedTime(2, alice);
-
-        assertApproxEqRel(e0, amount * EPOCH,         0.01e18, "epoch 0: full epoch");
-        assertApproxEqRel(e1, amount * EPOCH,         0.01e18, "epoch 1: full epoch");
-        assertApproxEqRel(e2, amount * (EPOCH / 2),   0.01e18, "epoch 2: half epoch");
-
-        // Cross-check totals
-        assertEq(stakingVault.totalPSREStakedTime(0), e0, "total e0 == alice e0");
-        assertEq(stakingVault.totalPSREStakedTime(1), e1, "total e1 == alice e1");
-        assertEq(stakingVault.totalPSREStakedTime(2), e2, "total e2 == alice e2");
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // 6. test_unstakeBeforeClaim — unstake before claiming; reward still correct
-    // ────────────────────────────────────────────────────────────────────────
-
-    function test_unstakeBeforeClaim() public {
-        uint256 amount      = 1000e18;
-        uint256 rewardPool  = 100e18;
-
-        // Alice stakes the full epoch
-        vm.prank(alice);
-        stakingVault.stakePSRE(amount);
-
-        // Warp to end of epoch 0 — checkpoint alice (records full epoch contribution)
-        vm.warp(genesis + EPOCH + 1);
-        stakingVault.checkpointUser(alice);
-
-        // Alice unstakes before claiming
-        vm.prank(alice);
-        stakingVault.unstakePSRE(amount);
-
-        // Snapshot + distribute rewards
-        _snapshotAndDistribute(0, rewardPool);
-
-        // Alice claims — she should still get 50% (psreSplit=50%) of rewardPool
-        // (she's the sole PSRE staker, LP pool is unfunded since no LP stakers)
         uint256 balBefore = psre.balanceOf(alice);
         vm.prank(alice);
-        stakingVault.claimStake(0);
-        uint256 gained = psre.balanceOf(alice) - balBefore;
+        stakingVault.claimAll();
+        uint256 received = psre.balanceOf(alice) - balBefore;
 
-        // psrePool = rewardPool * psreSplit / PRECISION = 50e18
-        uint256 expectedPSREPool = rewardPool * stakingVault.psreSplit() / PRECISION;
-        assertApproxEqRel(gained, expectedPSREPool, 0.01e18, "sole PSRE staker gets full PSRE pool");
+        assertApproxEqRel(received, expected, 0.001e18,
+            "Passive staker must earn correct rewards across 5 epochs without prior interaction");
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 7. test_twoUsers_correctSplit — rewards proportional to stakeTime
-    // ────────────────────────────────────────────────────────────────────────
+    /**
+     * @notice Same as above but using the backward-compatible claimStake(epochId).
+     *         claimStake must work without any pre-checkpoint -- that was the v2 bug.
+     */
+    function test_passiveStaker_claimStake_works() public {
+        uint256 rewardPerEpoch = 100e18;
 
-    function test_twoUsers_correctSplit() public {
+        vm.prank(alice);
+        stakingVault.stakePSRE(1000e18);
+
+        for (uint256 e = 0; e < 3; e++) {
+            _advanceAndFinalize(e, rewardPerEpoch);
+        }
+
+        uint256 psrePool = rewardPerEpoch * stakingVault.psreSplit() / PRECISION;
+        uint256 expected = 3 * psrePool;
+
+        uint256 balBefore = psre.balanceOf(alice);
+        // claimStake with the last finalized epoch -- no pre-checkpoint needed
+        vm.prank(alice);
+        stakingVault.claimStake(2);
+        uint256 received = psre.balanceOf(alice) - balBefore;
+
+        assertApproxEqRel(received, expected, 0.001e18,
+            "claimStake must work for passive staker without pre-checkpoint");
+    }
+
+    // ------------------------------------------------------------------------
+    // 4. Two users: proportional reward split
+    // ------------------------------------------------------------------------
+
+    function test_twoUsers_proportionalSplit() public {
         uint256 rewardPool = 100e18;
 
-        // Alice stakes 1000 PSRE, Bob stakes 500 PSRE — both at genesis
+        // Alice 1000, Bob 500 -- Alice should get 2/3, Bob 1/3
         vm.prank(alice); stakingVault.stakePSRE(1000e18);
         vm.prank(bob);   stakingVault.stakePSRE(500e18);
 
-        // Warp to end of epoch 0 — checkpoint both users
-        vm.warp(genesis + EPOCH + 1);
-        stakingVault.checkpointUser(alice);
-        stakingVault.checkpointUser(bob);
+        _advanceAndFinalize(0, rewardPool);
 
-        // Snapshot + distribute
-        _snapshotAndDistribute(0, rewardPool);
-
-        // Alice should get ~2/3 of the PSRE pool (1000/(1000+500))
-        // Bob should get ~1/3 of the PSRE pool (500/(1000+500))
         uint256 psrePool = rewardPool * stakingVault.psreSplit() / PRECISION;
 
         uint256 aliceBefore = psre.balanceOf(alice);
-        vm.prank(alice); stakingVault.claimStake(0);
-        uint256 aliceGained = psre.balanceOf(alice) - aliceBefore;
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 aliceReceived = psre.balanceOf(alice) - aliceBefore;
 
         uint256 bobBefore = psre.balanceOf(bob);
-        vm.prank(bob); stakingVault.claimStake(0);
-        uint256 bobGained = psre.balanceOf(bob) - bobBefore;
+        vm.prank(bob); stakingVault.claimAll();
+        uint256 bobReceived = psre.balanceOf(bob) - bobBefore;
 
-        // Allow 1% relative tolerance for integer math
-        assertApproxEqRel(aliceGained, psrePool * 2 / 3, 0.01e18, "Alice gets 2/3 of psre pool");
-        assertApproxEqRel(bobGained,   psrePool * 1 / 3, 0.01e18, "Bob gets 1/3 of psre pool");
-
-        // Combined should equal psrePool (no LP stakers → LP pool unclaimed)
-        assertApproxEqRel(aliceGained + bobGained, psrePool, 0.01e18, "total claimed = psrePool");
+        assertApproxEqRel(aliceReceived, psrePool * 2 / 3, 0.01e18,
+            "Alice should get 2/3 of PSRE pool");
+        assertApproxEqRel(bobReceived, psrePool * 1 / 3, 0.01e18,
+            "Bob should get 1/3 of PSRE pool");
+        assertApproxEqRel(aliceReceived + bobReceived, psrePool, 0.001e18,
+            "Combined claims == full PSRE pool");
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 8. test_separatePools_noCompetition — PSRE and LP stakers don't dilute each other
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
+    // 5. Unstake mid-epoch: affects only future epochs
+    // ------------------------------------------------------------------------
+
+    function test_unstakeMidEpoch_onlyAffectsFutureEpochs() public {
+        uint256 rewardPool = 100e18;
+
+        // Alice stakes 1000, Bob stakes 1000
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        vm.prank(bob);   stakingVault.stakePSRE(1000e18);
+
+        // Epoch 0 finalized: both hold 1000 → 50/50 split
+        _advanceAndFinalize(0, rewardPool);
+
+        // Alice unstakes (settlement for epoch 0 happens internally before balance change)
+        vm.prank(alice); stakingVault.unstakePSRE(1000e18);
+
+        // Epoch 1 finalized: only Bob has 1000 staked
+        _advanceAndFinalize(1, rewardPool);
+
+        uint256 psrePool = rewardPool * stakingVault.psreSplit() / PRECISION;
+
+        // Alice: earned 50% of epoch 0, 0% of epoch 1
+        uint256 aliceBefore = psre.balanceOf(alice);
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 aliceReceived = psre.balanceOf(alice) - aliceBefore;
+
+        // Bob: earned 50% of epoch 0, 100% of epoch 1
+        uint256 bobBefore = psre.balanceOf(bob);
+        vm.prank(bob); stakingVault.claimAll();
+        uint256 bobReceived = psre.balanceOf(bob) - bobBefore;
+
+        // Note: Alice also got back her 1000 PSRE stake
+        assertApproxEqRel(aliceReceived, psrePool / 2, 0.01e18,
+            "Alice earns 50% of epoch 0 only (unstaked before epoch 1)");
+        assertApproxEqRel(bobReceived, psrePool / 2 + psrePool, 0.01e18,
+            "Bob earns 50% of epoch 0 + 100% of epoch 1");
+    }
+
+    // ------------------------------------------------------------------------
+    // 6. Separate pools: PSRE stakers and LP stakers don't dilute each other
+    // ------------------------------------------------------------------------
 
     function test_separatePools_noCompetition() public {
         uint256 rewardPool = 100e18;
 
-        // Alice stakes PSRE only, Bob stakes LP only — equal amounts
+        // Alice stakes PSRE only, Bob stakes LP only
         vm.prank(alice); stakingVault.stakePSRE(1000e18);
         vm.prank(bob);   stakingVault.stakeLP(1000e18);
 
-        vm.warp(genesis + EPOCH + 1);
-        stakingVault.checkpointUser(alice);
-        stakingVault.checkpointUser(bob);
-
-        _snapshotAndDistribute(0, rewardPool);
+        _advanceAndFinalize(0, rewardPool);
 
         uint256 psrePool = rewardPool * stakingVault.psreSplit() / PRECISION;
-        uint256 lpPool   = rewardPool * stakingVault.lpSplit()   / PRECISION;
+        uint256 lpPool_  = rewardPool * stakingVault.lpSplit()   / PRECISION;
 
-        // Alice should get the full PSRE pool (sole PSRE staker)
         uint256 aliceBefore = psre.balanceOf(alice);
-        vm.prank(alice); stakingVault.claimStake(0);
-        uint256 aliceGained = psre.balanceOf(alice) - aliceBefore;
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 aliceReceived = psre.balanceOf(alice) - aliceBefore;
 
-        // Bob should get the full LP pool (sole LP staker)
         uint256 bobBefore = psre.balanceOf(bob);
-        vm.prank(bob); stakingVault.claimStake(0);
-        uint256 bobGained = psre.balanceOf(bob) - bobBefore;
+        vm.prank(bob); stakingVault.claimAll();
+        uint256 bobReceived = psre.balanceOf(bob) - bobBefore;
 
-        assertApproxEqRel(aliceGained, psrePool, 0.01e18, "Alice (PSRE staker) gets full PSRE pool");
-        assertApproxEqRel(bobGained,   lpPool,   0.01e18, "Bob (LP staker) gets full LP pool");
-
-        // Alice's LP competition doesn't affect her PSRE reward, and vice versa
-        assertApproxEqRel(aliceGained, bobGained, 0.01e18, "equal amounts earned with 50/50 split");
+        assertApproxEqRel(aliceReceived, psrePool, 0.001e18,
+            "Alice (PSRE-only) gets full PSRE pool -- LP stakers don't compete");
+        assertApproxEqRel(bobReceived, lpPool_, 0.001e18,
+            "Bob (LP-only) gets full LP pool -- PSRE stakers don't compete");
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 9. test_claimStake_afterSnapshot — claim only works after epochSnapshotted
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
+    // 7. No double-claim
+    // ------------------------------------------------------------------------
 
-    function test_claimStake_afterSnapshot() public {
+    function test_claimAll_noDoubleClaim() public {
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        _advanceAndFinalize(0, 100e18);
+
+        vm.prank(alice); stakingVault.claimAll();
+
+        vm.prank(alice);
+        vm.expectRevert("StakingVault: nothing to claim");
+        stakingVault.claimAll();
+    }
+
+    function test_claimStake_noDoubleClaim() public {
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        _advanceAndFinalize(0, 100e18);
+
+        vm.prank(alice); stakingVault.claimStake(0);
+
+        vm.prank(alice);
+        vm.expectRevert("StakingVault: nothing to claim");
+        stakingVault.claimStake(0);
+    }
+
+    // ------------------------------------------------------------------------
+    // 8. Zero stakers: pool stays in contract, no division by zero
+    // ------------------------------------------------------------------------
+
+    function test_zeroStakers_poolStaysInContract() public {
         uint256 rewardPool = 100e18;
 
-        vm.prank(alice); stakingVault.stakePSRE(1000e18);
-        vm.warp(genesis + EPOCH + 1);
-        stakingVault.checkpointUser(alice);
+        // No stakers at all
+        _advanceAndFinalize(0, rewardPool);
 
-        // Distribute rewards but do NOT snapshot yet
-        _fundRewardEngine(rewardPool);
+        // epochTotalPSREStaked[0] = 0 → rewardPerToken = 0 (no division)
+        assertEq(stakingVault.epochPSRERewardPerToken(0), 0, "no div-by-zero, rewardPerToken = 0");
+        assertEq(stakingVault.epochLPRewardPerToken(0),   0, "no div-by-zero, LP rewardPerToken = 0");
 
-        // Claiming before snapshot must revert
+        // Tokens are held by StakingVault
+        assertEq(psre.balanceOf(address(stakingVault)), rewardPool,
+            "pool sits in contract with no stakers");
+
+        // Any user trying to claim gets nothing
         vm.prank(alice);
-        vm.expectRevert("StakingVault: epoch not finalized");
-        stakingVault.claimStake(0);
-
-        // Now snapshot + distribute
-        _snapshotAndDistribute(0, rewardPool);
-
-        // Now claim succeeds
-        vm.prank(alice);
-        stakingVault.claimStake(0);
-        assertGt(psre.balanceOf(alice), 0, "alice should have received rewards");
+        vm.expectRevert("StakingVault: nothing to claim");
+        stakingVault.claimAll();
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 10. test_doubleClaim_reverts — can't claim twice for the same epoch
-    // ────────────────────────────────────────────────────────────────────────
-
-    function test_doubleClaim_reverts() public {
-        uint256 rewardPool = 100e18;
-
-        vm.prank(alice); stakingVault.stakePSRE(1000e18);
-        vm.warp(genesis + EPOCH + 1);
-        stakingVault.checkpointUser(alice);
-        _snapshotAndDistribute(0, rewardPool);
-
-        // First claim succeeds
-        vm.prank(alice);
-        stakingVault.claimStake(0);
-
-        // Second claim reverts
-        vm.prank(alice);
-        vm.expectRevert("StakingVault: already claimed");
-        stakingVault.claimStake(0);
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // 11. test_splitGovernance — setSplit works; must sum to 1e18
-    // ────────────────────────────────────────────────────────────────────────
-
-    function test_splitGovernance() public {
-        // Default split is 50/50
-        assertEq(stakingVault.psreSplit(), 0.5e18);
-        assertEq(stakingVault.lpSplit(),   0.5e18);
-
-        // Update to 70/30
-        vm.prank(admin);
-        stakingVault.setSplit(0.7e18, 0.3e18);
-        assertEq(stakingVault.psreSplit(), 0.7e18);
-        assertEq(stakingVault.lpSplit(),   0.3e18);
-
-        // Splits not summing to 1e18 must revert
-        vm.prank(admin);
-        vm.expectRevert("StakingVault: splits must sum to 1e18");
-        stakingVault.setSplit(0.6e18, 0.3e18);
-
-        // Non-owner cannot change split
-        vm.prank(alice);
-        vm.expectRevert("StakingVault: not owner");
-        stakingVault.setSplit(0.5e18, 0.5e18);
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // 12. test_postSnapshot_noContribution — after snapshot, no new contributions recorded
-    // ────────────────────────────────────────────────────────────────────────
-
-    function test_postSnapshot_noContribution() public {
-        // Alice stakes at genesis, checkpoint before snapshot
-        vm.prank(alice);
-        stakingVault.stakePSRE(1000e18);
-
-        vm.warp(genesis + EPOCH - 1);
-        stakingVault.checkpointUser(alice);
-
-        // Record contribution for epoch 0 before snapshot
-        uint256 contribBeforeSnapshot = stakingVault.userPSREStakedTime(0, alice);
-        assertGt(contribBeforeSnapshot, 0, "Alice should have contribution before snapshot");
-
-        // Snapshot epoch 0
-        vm.warp(genesis + EPOCH + 1);
-        vm.prank(rewardEngine);
-        stakingVault.snapshotEpoch(0);
-
-        // Try to checkpoint again — should not add to epoch 0
-        vm.warp(genesis + EPOCH + 2);
-        stakingVault.checkpointUser(alice);
-
-        uint256 contribAfterSnapshot = stakingVault.userPSREStakedTime(0, alice);
-        assertEq(contribAfterSnapshot, contribBeforeSnapshot,
-            "Post-snapshot checkpoint must not change epoch 0 contribution");
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // 13. snapshotEpoch access control
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
+    // 9. snapshotEpoch: access control and idempotency guard
+    // ------------------------------------------------------------------------
 
     function test_snapshotEpoch_onlyRewardEngine() public {
         vm.warp(genesis + EPOCH + 1);
@@ -490,25 +419,32 @@ contract StakingVaultTest is Test {
 
     function test_snapshotEpoch_revertsIfAlreadySnapshotted() public {
         vm.warp(genesis + EPOCH + 1);
-        vm.prank(rewardEngine);
-        stakingVault.snapshotEpoch(0);
-
+        vm.prank(rewardEngine); stakingVault.snapshotEpoch(0);
         vm.prank(rewardEngine);
         vm.expectRevert("StakingVault: already snapshotted");
         stakingVault.snapshotEpoch(0);
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 14. distributeStakerRewards access and invariants
-    // ────────────────────────────────────────────────────────────────────────
+    function test_snapshotEpoch_recordsTotals() public {
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        vm.prank(bob);   stakingVault.stakeLP(500e18);
+
+        vm.warp(genesis + EPOCH + 1);
+        vm.prank(rewardEngine); stakingVault.snapshotEpoch(0);
+
+        assertEq(stakingVault.epochTotalPSREStaked(0), 1000e18,
+            "snapshot records totalPSREStaked at time of call");
+        assertEq(stakingVault.epochTotalLPStaked(0), 500e18,
+            "snapshot records totalLPStaked at time of call");
+    }
+
+    // ------------------------------------------------------------------------
+    // 10. distributeStakerRewards: access, ordering, and pool split
+    // ------------------------------------------------------------------------
 
     function test_distributeStakerRewards_onlyRewardEngine() public {
-        vm.warp(genesis + EPOCH + 1);
-        vm.prank(rewardEngine);
-        stakingVault.snapshotEpoch(0);
-
+        _snapshot(0);
         _fundRewardEngine(100e18);
-
         vm.prank(alice);
         vm.expectRevert("StakingVault: only rewardEngine");
         stakingVault.distributeStakerRewards(0, 100e18);
@@ -522,14 +458,9 @@ contract StakingVaultTest is Test {
     }
 
     function test_distributeStakerRewards_cannotDistributeTwice() public {
-        vm.warp(genesis + EPOCH + 1);
-        vm.prank(rewardEngine);
-        stakingVault.snapshotEpoch(0);
-
+        _snapshot(0);
         _fundRewardEngine(200e18);
-        vm.prank(rewardEngine);
-        stakingVault.distributeStakerRewards(0, 100e18);
-
+        vm.prank(rewardEngine); stakingVault.distributeStakerRewards(0, 100e18);
         vm.prank(rewardEngine);
         vm.expectRevert("StakingVault: already distributed");
         stakingVault.distributeStakerRewards(0, 100e18);
@@ -537,30 +468,85 @@ contract StakingVaultTest is Test {
 
     function test_distributeStakerRewards_splitPoolsCorrectly() public {
         uint256 totalPool = 100e18;
-        uint256 psreSplit = stakingVault.psreSplit(); // 0.5e18
-        uint256 lpSplit   = stakingVault.lpSplit();   // 0.5e18
 
-        vm.warp(genesis + EPOCH + 1);
-        vm.prank(rewardEngine);
-        stakingVault.snapshotEpoch(0);
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        _snapshotAndDistribute(0, totalPool);
 
-        _fundRewardEngine(totalPool);
-        vm.prank(rewardEngine);
-        stakingVault.distributeStakerRewards(0, totalPool);
+        uint256 expectedPSREPool = totalPool * stakingVault.psreSplit() / PRECISION;
+        uint256 expectedLPPool   = totalPool * stakingVault.lpSplit()   / PRECISION;
 
-        assertEq(stakingVault.epochPSREPool(0), totalPool * psreSplit / PRECISION,
-            "PSRE pool should be 50% of totalPool");
-        assertEq(stakingVault.epochLPPool(0),   totalPool * lpSplit   / PRECISION,
-            "LP pool should be 50% of totalPool");
-
-        // Tokens should be held by StakingVault
-        assertEq(psre.balanceOf(address(stakingVault)), totalPool,
-            "StakingVault should hold the full pool");
+        assertEq(stakingVault.epochPSREPool(0), expectedPSREPool, "PSRE pool = 50%");
+        assertEq(stakingVault.epochLPPool(0),   expectedLPPool,   "LP pool = 50%");
+        assertEq(psre.balanceOf(address(stakingVault)), totalPool + 1000e18,
+            "vault holds pool tokens + staked tokens");
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 15. setRewardEngine governance
-    // ────────────────────────────────────────────────────────────────────────
+    function test_distributeStakerRewards_computesRewardPerToken() public {
+        uint256 totalPool = 100e18;
+
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        _snapshotAndDistribute(0, totalPool);
+
+        // psrePool = 50e18, totalPSRE = 1000e18
+        // rewardPerToken = 50e18 * 1e36 / 1000e18 = 5e34
+        uint256 expectedRPT = (50e18 * 1e36) / 1000e18;
+        assertEq(stakingVault.epochPSRERewardPerToken(0), expectedRPT,
+            "rewardPerToken correctly computed");
+    }
+
+    // ------------------------------------------------------------------------
+    // 11. claimStake: requires epoch finalized
+    // ------------------------------------------------------------------------
+
+    function test_claimStake_revertsIfEpochNotFinalized() public {
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+
+        vm.prank(alice);
+        vm.expectRevert("StakingVault: epoch not finalized");
+        stakingVault.claimStake(0);
+    }
+
+    function test_claimStake_revertsIfNothingToClaim() public {
+        // Alice staked but Bob didn't -- Bob tries to claim
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        _advanceAndFinalize(0, 100e18);
+
+        vm.prank(bob);
+        vm.expectRevert("StakingVault: nothing to claim");
+        stakingVault.claimStake(0);
+    }
+
+    // ------------------------------------------------------------------------
+    // 12. setSplit governance
+    // ------------------------------------------------------------------------
+
+    function test_setSplit_default() public view {
+        assertEq(stakingVault.psreSplit(), 0.5e18, "default PSRE split = 50%");
+        assertEq(stakingVault.lpSplit(),   0.5e18, "default LP split = 50%");
+    }
+
+    function test_setSplit_updatesCorrectly() public {
+        vm.prank(admin);
+        stakingVault.setSplit(0.7e18, 0.3e18);
+        assertEq(stakingVault.psreSplit(), 0.7e18);
+        assertEq(stakingVault.lpSplit(),   0.3e18);
+    }
+
+    function test_setSplit_revertsIfNotSumTo1e18() public {
+        vm.prank(admin);
+        vm.expectRevert("StakingVault: splits must sum to 1e18");
+        stakingVault.setSplit(0.6e18, 0.3e18);
+    }
+
+    function test_setSplit_onlyOwner() public {
+        vm.prank(alice);
+        vm.expectRevert("StakingVault: not owner");
+        stakingVault.setSplit(0.5e18, 0.5e18);
+    }
+
+    // ------------------------------------------------------------------------
+    // 13. setRewardEngine governance
+    // ------------------------------------------------------------------------
 
     function test_setRewardEngine_cannotSetTwice() public {
         vm.prank(admin);
@@ -569,108 +555,262 @@ contract StakingVaultTest is Test {
     }
 
     function test_setRewardEngine_onlyOwner() public {
-        // Deploy a fresh vault without RE set
-        StakingVault sv2 = new StakingVault(
-            address(psre), address(lpToken), genesis, admin
-        );
+        StakingVault sv2 = new StakingVault(address(psre), address(lpToken), genesis, admin);
         vm.prank(alice);
         vm.expectRevert("StakingVault: not owner");
         sv2.setRewardEngine(rewardEngine);
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 16. Flash-stake test — late staker gets negligible share
-    // ────────────────────────────────────────────────────────────────────────
-
-    function test_flashStake_negligibleVsFullEpochStaker() public {
-        uint256 rewardPool = 100e18;
-
-        // Alice stakes for the full epoch
-        vm.prank(alice);
-        stakingVault.stakePSRE(1000e18);
-
-        // Bob stakes 2 seconds before epoch ends
-        vm.warp(genesis + EPOCH - 2);
-        vm.prank(bob);
-        stakingVault.stakePSRE(1000e18);
-
-        // Warp past epoch end — checkpoint both
-        vm.warp(genesis + EPOCH + 1);
-        stakingVault.checkpointUser(alice);
-        stakingVault.checkpointUser(bob);
-
-        _snapshotAndDistribute(0, rewardPool);
-
-        uint256 aliceContrib = stakingVault.userPSREStakedTime(0, alice);
-        uint256 bobContrib   = stakingVault.userPSREStakedTime(0, bob);
-        uint256 totalContrib = stakingVault.totalPSREStakedTime(0);
-
-        assertGt(aliceContrib, 0, "Alice should have contribution");
-        assertGt(bobContrib, 0,   "Bob should have a small contribution");
-        assertGt(aliceContrib, bobContrib * 1000, "Alice >> Bob (flash staker)");
-
-        // Bob's fraction < 0.1%
-        uint256 bobFraction = (bobContrib * PRECISION) / totalContrib;
-        assertLt(bobFraction, 1e15, "Bob flash-stake fraction should be < 0.1%");
-
-        // Claim and verify proportional rewards
-        uint256 psrePool = rewardPool * stakingVault.psreSplit() / PRECISION;
-
-        uint256 aliceBefore = psre.balanceOf(alice);
-        vm.prank(alice); stakingVault.claimStake(0);
-        uint256 aliceReward = psre.balanceOf(alice) - aliceBefore;
-
-        uint256 bobBefore = psre.balanceOf(bob);
-        vm.prank(bob); stakingVault.claimStake(0);
-        uint256 bobReward = psre.balanceOf(bob) - bobBefore;
-
-        assertGt(aliceReward, bobReward * 1000, "Alice reward >> Bob reward");
-        assertApproxEqRel(aliceReward + bobReward, psrePool, 0.01e18, "total claimed ~= psrePool");
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // 17. checkpointUser is permissionless
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
+    // 14. checkpointUser: permissionless and idempotent
+    // ------------------------------------------------------------------------
 
     function test_checkpointUser_permissionless() public {
-        vm.prank(alice);
-        stakingVault.stakePSRE(1000e18);
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        _advanceAndFinalize(0, 100e18);
 
-        vm.warp(genesis + EPOCH - 1);
-
-        // Bob can checkpoint Alice (keeper pattern)
+        // Bob can checkpoint Alice (keeper pattern) -- settles epoch 0 for her
         vm.prank(bob);
         stakingVault.checkpointUser(alice);
 
-        uint256 contribution = stakingVault.userPSREStakedTime(0, alice);
-        assertGt(contribution, 0, "checkpointUser by third party should record Alice's stakeTime");
+        // Alice's pendingRewards should now be populated
+        uint256 pending = stakingVault.pendingRewards(alice);
+        assertGt(pending, 0, "checkpointUser settles rewards into pendingRewards");
+
+        // Alice can now claim without calling checkpointUser herself
+        uint256 balBefore = psre.balanceOf(alice);
+        vm.prank(alice); stakingVault.claimAll();
+        assertGt(psre.balanceOf(alice) - balBefore, 0, "rewards paid after keeper checkpoint");
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 18. claimStake: nothing to claim if no contribution
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
+    // 15. Multiple epochs, incremental claiming
+    // ------------------------------------------------------------------------
 
-    function test_claimStake_revertsIfNothingToClaim() public {
-        // Alice staked but Bob did not — Bob tries to claim
-        vm.prank(alice);
-        stakingVault.stakePSRE(1000e18);
-        vm.warp(genesis + EPOCH + 1);
-        stakingVault.checkpointUser(alice);
-        _snapshotAndDistribute(0, 100e18);
+    function test_multipleEpochs_incrementalClaiming() public {
+        uint256 rewardPool = 100e18;
 
-        vm.prank(bob);
-        vm.expectRevert("StakingVault: nothing to claim");
-        stakingVault.claimStake(0);
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+
+        // Finalize 3 epochs
+        _advanceAndFinalize(0, rewardPool);
+        _advanceAndFinalize(1, rewardPool);
+        _advanceAndFinalize(2, rewardPool);
+
+        uint256 psrePool = rewardPool * stakingVault.psreSplit() / PRECISION;
+
+        // First claim: should settle and pay all 3 epochs
+        uint256 balBefore = psre.balanceOf(alice);
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 received1 = psre.balanceOf(alice) - balBefore;
+
+        assertApproxEqRel(received1, 3 * psrePool, 0.001e18,
+            "first claim pays all 3 epochs");
+
+        // Finalize epoch 3
+        _advanceAndFinalize(3, rewardPool);
+
+        // Second claim: only epoch 3
+        balBefore = psre.balanceOf(alice);
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 received2 = psre.balanceOf(alice) - balBefore;
+
+        assertApproxEqRel(received2, psrePool, 0.001e18,
+            "second claim pays only the new epoch");
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // 19. epoch helpers correctness
-    // ────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------------
+    // 16. Split affects reward proportions
+    // ------------------------------------------------------------------------
+
+    function test_customSplit_affectsRewards() public {
+        // Set 70/30 split before staking
+        vm.prank(admin); stakingVault.setSplit(0.7e18, 0.3e18);
+
+        uint256 rewardPool = 100e18;
+
+        // Alice stakes PSRE, Bob stakes LP
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        vm.prank(bob);   stakingVault.stakeLP(1000e18);
+
+        _advanceAndFinalize(0, rewardPool);
+
+        uint256 aliceBefore = psre.balanceOf(alice);
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 aliceReceived = psre.balanceOf(alice) - aliceBefore;
+
+        uint256 bobBefore = psre.balanceOf(bob);
+        vm.prank(bob); stakingVault.claimAll();
+        uint256 bobReceived = psre.balanceOf(bob) - bobBefore;
+
+        // Alice (PSRE pool = 70e18), Bob (LP pool = 30e18)
+        assertApproxEqRel(aliceReceived, 70e18, 0.001e18, "Alice gets 70% with 70/30 split");
+        assertApproxEqRel(bobReceived,   30e18, 0.001e18, "Bob gets 30% with 70/30 split");
+    }
+
+    // ------------------------------------------------------------------------
+    // 17. Epoch helpers
+    // ------------------------------------------------------------------------
 
     function test_epochHelpers() public view {
-        assertEq(stakingVault.currentEpochId(), 0, "epoch 0 at genesis");
-        assertEq(stakingVault.epochStart(0), genesis, "epoch 0 starts at genesis");
+        assertEq(stakingVault.currentEpochId(), 0,            "epoch 0 at genesis");
+        assertEq(stakingVault.epochStart(0), genesis,         "epoch 0 starts at genesis");
         assertEq(stakingVault.epochEnd(0),   genesis + EPOCH, "epoch 0 ends at genesis + EPOCH");
         assertEq(stakingVault.epochStart(1), genesis + EPOCH, "epoch 1 starts at genesis + EPOCH");
+    }
+
+    // ------------------------------------------------------------------------
+    // 18. lastFinalizedEpoch sentinel
+    // ------------------------------------------------------------------------
+
+    function test_lastFinalizedEpoch_sentinel_beforeAnyEpoch() public {
+        // Before any epoch is finalized, lastFinalizedEpoch is the sentinel max uint
+        assertEq(stakingVault.lastFinalizedEpoch(), type(uint256).max,
+            "sentinel value before any epoch finalized");
+    }
+
+    function test_lastFinalizedEpoch_advancesOnDistribute() public {
+        _advanceAndFinalize(0, 100e18);
+        assertEq(stakingVault.lastFinalizedEpoch(), 0, "epoch 0 finalized");
+
+        _advanceAndFinalize(1, 100e18);
+        assertEq(stakingVault.lastFinalizedEpoch(), 1, "epoch 1 finalized");
+    }
+
+    // ------------------------------------------------------------------------
+    // 19. Stake after some epochs are finalized
+    // ------------------------------------------------------------------------
+
+    function test_stakeAfterEpochs_noBackdatedRewards() public {
+        uint256 rewardPool = 100e18;
+
+        // Alice stakes in epoch 0
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        _advanceAndFinalize(0, rewardPool);
+
+        // Bob stakes in epoch 1 (AFTER epoch 0 was already finalized)
+        vm.prank(bob); stakingVault.stakePSRE(1000e18);
+        _advanceAndFinalize(1, rewardPool);
+
+        uint256 psrePool = rewardPool * stakingVault.psreSplit() / PRECISION;
+
+        // Alice: earned epoch 0 (sole staker) + 50% of epoch 1
+        uint256 aliceBefore = psre.balanceOf(alice);
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 aliceReceived = psre.balanceOf(alice) - aliceBefore;
+
+        // Bob: 0 from epoch 0 (wasn't staked), 50% from epoch 1
+        uint256 bobBefore = psre.balanceOf(bob);
+        vm.prank(bob); stakingVault.claimAll();
+        uint256 bobReceived = psre.balanceOf(bob) - bobBefore;
+
+        assertApproxEqRel(aliceReceived, psrePool + psrePool / 2, 0.01e18,
+            "Alice gets epoch 0 full + 50% of epoch 1");
+        assertApproxEqRel(bobReceived, psrePool / 2, 0.01e18,
+            "Bob gets 50% of epoch 1 only (not backdated)");
+    }
+
+    // ------------------------------------------------------------------------
+    // 20. lastSettledEpoch advances correctly
+    // ------------------------------------------------------------------------
+
+    function test_lastSettledEpoch_advancesAfterSettle() public {
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        _advanceAndFinalize(0, 100e18);
+        _advanceAndFinalize(1, 100e18);
+
+        // Before any settlement, lastSettledEpoch = 0 (initial)
+        (,, uint256 settleBefore) = stakingVault.userStakes(alice);
+        assertEq(settleBefore, 0, "initial lastSettledEpoch = 0");
+
+        vm.prank(alice); stakingVault.claimAll();
+
+        // After claiming, should have settled epochs 0 and 1 → lastSettledEpoch = 2
+        (,, uint256 settleAfter) = stakingVault.userStakes(alice);
+        assertEq(settleAfter, 2, "lastSettledEpoch = 2 after claiming epochs 0 and 1");
+    }
+
+    // ------------------------------------------------------------------------
+    // 21. Staking both PSRE and LP simultaneously
+    // ------------------------------------------------------------------------
+
+    function test_stakeBoth_earnsFromBothPools() public {
+        uint256 rewardPool = 100e18;
+
+        // Alice stakes both PSRE and LP
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        vm.prank(alice); stakingVault.stakeLP(1000e18);
+
+        _advanceAndFinalize(0, rewardPool);
+
+        uint256 psrePool = rewardPool * stakingVault.psreSplit() / PRECISION; // 50e18
+        uint256 lpPool_  = rewardPool * stakingVault.lpSplit()   / PRECISION; // 50e18
+
+        uint256 balBefore = psre.balanceOf(alice);
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 received = psre.balanceOf(alice) - balBefore;
+
+        // Alice is sole staker in both pools → gets both full pools
+        assertApproxEqRel(received, psrePool + lpPool_, 0.001e18,
+            "sole staker in both pools earns 100% of total reward");
+    }
+
+    // ------------------------------------------------------------------------
+    // 22. Epoch with no staker allocation (no distribute call)
+    // ------------------------------------------------------------------------
+
+    function test_epochWithNoDistribute_skippedInSettle() public {
+        uint256 rewardPool = 100e18;
+
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+
+        // Epoch 0: snapshot but NO distribute (simulates zero staker allocation)
+        vm.warp(genesis + EPOCH + 1);
+        _snapshot(0);
+        // Do NOT call distributeStakerRewards -- no lastFinalizedEpoch update
+
+        // Epoch 1: full distribute
+        vm.warp(genesis + 2 * EPOCH + 1);
+        _snapshotAndDistribute(1, rewardPool);
+
+        // lastFinalizedEpoch should be 1 (set by epoch 1 distribution)
+        assertEq(stakingVault.lastFinalizedEpoch(), 1);
+
+        uint256 psrePool = rewardPool * stakingVault.psreSplit() / PRECISION;
+
+        uint256 balBefore = psre.balanceOf(alice);
+        vm.prank(alice); stakingVault.claimAll();
+        uint256 received = psre.balanceOf(alice) - balBefore;
+
+        // Only epoch 1 was distributed -- Alice gets only epoch 1 rewards
+        assertApproxEqRel(received, psrePool, 0.001e18,
+            "epoch 0 (no distribute) skipped; only epoch 1 rewards paid");
+    }
+
+    // ------------------------------------------------------------------------
+    // 23. pendingRewards view reflects un-settled state correctly
+    // ------------------------------------------------------------------------
+
+    function test_pendingRewards_accumulatesAcrossEpochs() public {
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+
+        _advanceAndFinalize(0, 100e18);
+        // pendingRewards[alice] is still 0 (not yet settled)
+        assertEq(stakingVault.pendingRewards(alice), 0,
+            "pendingRewards is 0 before any settle call");
+
+        // Trigger settlement via checkpointUser
+        stakingVault.checkpointUser(alice);
+        assertGt(stakingVault.pendingRewards(alice), 0,
+            "pendingRewards populated after settle");
+
+        uint256 pending = stakingVault.pendingRewards(alice);
+
+        _advanceAndFinalize(1, 100e18);
+        stakingVault.checkpointUser(alice);
+
+        // Should now be 2× the single epoch amount
+        assertApproxEqRel(stakingVault.pendingRewards(alice), pending * 2, 0.001e18,
+            "pendingRewards doubles after second epoch settled");
     }
 }
