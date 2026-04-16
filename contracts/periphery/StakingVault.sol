@@ -7,29 +7,29 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IStakingVault.sol";
 
 /**
- * @title StakingVault v3.0 -- Synthetix-Style Passive Staking
+ * @title StakingVault v3.1 -- Synthetix Cumulative Accumulator (O(1) Settlement)
  * @notice "Stake and forget." Users stake PSRE or LP tokens once and earn
  *         rewards across all finalized epochs automatically -- no checkpointing
  *         required before each epoch end.
  *
- *         Design (epoch-adapted Synthetix model):
- *         - Each epoch has a global rewardPerToken for PSRE stakers and LP stakers.
- *         - rewardPerToken[e] is computed at distributeStakerRewards() time using
- *           the total staked captured in snapshotEpoch().
- *         - A user's share for epoch E = their balance (at settlement time) x rewardPerToken[E].
- *         - _settleFinishedEpochs() accumulates pending rewards lazily, called
- *           before every balance change (stake/unstake) and before every claim.
+ *         Design (true Synthetix cumulative accumulator):
+ *         - Two global accumulators: cumulativePSRERewardPerToken and
+ *           cumulativeLPRewardPerToken, incremented by each epoch's rewardPerToken
+ *           when distributeStakerRewards() is called.
+ *         - Per-user paid accumulators: userPSRERewardPerTokenPaid and
+ *           userLPRewardPerTokenPaid, set to the current global value after
+ *           each settlement.
+ *         - earned = balance x (cumulativeRPT - paidRPT) / REWARD_PRECISION
+ *         - Settlement is O(1) -- one subtraction per asset. No loop, no gas cap.
  *
- *         Correctness invariant:
- *         - Because settlement runs BEFORE any balance change, the user's balance
- *           at settlement time equals their balance during those past epochs.
- *         - A user who stakes once and never touches their balance earns rewards
- *           for every finalized epoch without any further interaction.
- *
- *         Fixes the BlockApex liveness failure (passive stakers always got 0):
- *         - v2 _checkpoint() inside claimStake() silently skipped snapshotted epochs,
- *           so passive stakers' contributions were never recorded.
- *         - v3 eliminates that problem entirely: no pre-claim checkpointing needed.
+ *         Fixes BlockApex Issue #1 (retroactive theft + reward loss + insolvency):
+ *         - Replaces the epoch-cursor loop (_settleFinishedEpochs) which had two
+ *           compounding defects: lastSettledEpoch starting at 0 for new users
+ *           (retroactive theft), and MAX_SETTLE_EPOCHS advancing the cursor past
+ *           epochs with stale balances (reward loss / overpayment).
+ *         - Cumulative model auto-initializes new users correctly: on first
+ *           _updatePending() with balance=0, paidRPT is set to current cumulative,
+ *           so only future epochs are credited.
  *
  * @dev Shu-authorized redesign. Epoch interface to RewardEngine is unchanged:
  *      snapshotEpoch() and distributeStakerRewards() retain the same signatures.
@@ -48,9 +48,6 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
 
     /// @notice Precision multiplier for per-token reward accumulator.
     uint256 public constant REWARD_PRECISION = 1e36;
-
-    /// @notice Gas cap: maximum epochs settled per _settleFinishedEpochs() call.
-    uint256 public constant MAX_SETTLE_EPOCHS = 52;
 
     // -------------------------------------------------------------------------
     // Immutables
@@ -108,16 +105,32 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     uint256 public lastFinalizedEpoch = type(uint256).max;
 
     // -------------------------------------------------------------------------
+    // Cumulative reward accumulators (Synthetix pattern, O(1) settlement)
+    // Incremented by each epoch's rewardPerToken in distributeStakerRewards().
+    // -------------------------------------------------------------------------
+
+    /// @notice Running sum of all epochPSRERewardPerToken values distributed so far.
+    uint256 public cumulativePSRERewardPerToken;
+
+    /// @notice Running sum of all epochLPRewardPerToken values distributed so far.
+    uint256 public cumulativeLPRewardPerToken;
+
+    // -------------------------------------------------------------------------
     // Per-user state
     // -------------------------------------------------------------------------
 
     struct UserStake {
         uint256 psreBalance;
         uint256 lpBalance;
-        uint256 lastSettledEpoch;
     }
 
     mapping(address => UserStake) public userStakes;
+
+    /// @notice Cumulative PSRE rewardPerToken already credited to user at last update.
+    mapping(address => uint256) public userPSRERewardPerTokenPaid;
+
+    /// @notice Cumulative LP rewardPerToken already credited to user at last update.
+    mapping(address => uint256) public userLPRewardPerTokenPaid;
 
     /// @notice Accumulated but unclaimed rewards for each user (in PSRE, 18 decimals).
     mapping(address => uint256) public pendingRewards;
@@ -200,7 +213,7 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
 
     function stakePSRE(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
-        _settleFinishedEpochs(msg.sender);
+        _updatePending(msg.sender);
         IERC20(psre).safeTransferFrom(msg.sender, address(this), amount);
         userStakes[msg.sender].psreBalance += amount;
         totalPSREStaked += amount;
@@ -210,7 +223,7 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     function unstakePSRE(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
         require(userStakes[msg.sender].psreBalance >= amount, "StakingVault: insufficient balance");
-        _settleFinishedEpochs(msg.sender);
+        _updatePending(msg.sender);
         userStakes[msg.sender].psreBalance -= amount;
         totalPSREStaked -= amount;
         IERC20(psre).safeTransfer(msg.sender, amount);
@@ -223,7 +236,7 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
 
     function stakeLP(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
-        _settleFinishedEpochs(msg.sender);
+        _updatePending(msg.sender);
         IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
         userStakes[msg.sender].lpBalance += amount;
         totalLPStaked += amount;
@@ -233,7 +246,7 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     function unstakeLP(uint256 amount) external nonReentrant {
         require(amount > 0, "StakingVault: zero amount");
         require(userStakes[msg.sender].lpBalance >= amount, "StakingVault: insufficient balance");
-        _settleFinishedEpochs(msg.sender);
+        _updatePending(msg.sender);
         userStakes[msg.sender].lpBalance -= amount;
         totalLPStaked -= amount;
         IERC20(lpToken).safeTransfer(msg.sender, amount);
@@ -303,11 +316,16 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
         uint256 totalLP   = epochTotalLPStaked[epochId];
 
         // Compute rewardPerToken (0 if no tokens staked; avoids division by zero)
+        // and update the global cumulative accumulators used for O(1) settlement.
         if (totalPSRE > 0) {
-            epochPSRERewardPerToken[epochId] = (psrePool * REWARD_PRECISION) / totalPSRE;
+            uint256 psreRpt = (psrePool * REWARD_PRECISION) / totalPSRE;
+            epochPSRERewardPerToken[epochId]  = psreRpt;
+            cumulativePSRERewardPerToken      += psreRpt;
         }
         if (totalLP > 0) {
-            epochLPRewardPerToken[epochId] = (lpPool_ * REWARD_PRECISION) / totalLP;
+            uint256 lpRpt = (lpPool_ * REWARD_PRECISION) / totalLP;
+            epochLPRewardPerToken[epochId]    = lpRpt;
+            cumulativeLPRewardPerToken        += lpRpt;
         }
 
         // Advance lastFinalizedEpoch.
@@ -360,7 +378,7 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
      *         The "primary" claim interface for v3.
      */
     function claimAll() external nonReentrant {
-        _settleFinishedEpochs(msg.sender);
+        _updatePending(msg.sender);
         uint256 owed = pendingRewards[msg.sender];
         require(owed > 0, "StakingVault: nothing to claim");
         pendingRewards[msg.sender] = 0;
@@ -381,7 +399,7 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
      */
     function claimStake(uint256 epochId) external nonReentrant {
         require(epochSnapshotted[epochId], "StakingVault: epoch not finalized");
-        _settleFinishedEpochs(msg.sender);
+        _updatePending(msg.sender);
         uint256 owed = pendingRewards[msg.sender];
         require(owed > 0, "StakingVault: nothing to claim");
         pendingRewards[msg.sender] = 0;
@@ -399,7 +417,7 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
      *         to call this before epoch finalization.
      */
     function checkpointUser(address user) external {
-        _settleFinishedEpochs(user);
+        _updatePending(user);
     }
 
     // -------------------------------------------------------------------------
@@ -430,51 +448,39 @@ contract StakingVault is ReentrancyGuard, IStakingVault {
     }
 
     // -------------------------------------------------------------------------
-    // Internal: lazy settlement of finalized epochs
+    // Internal: O(1) Synthetix-style pending reward update
     // -------------------------------------------------------------------------
 
     /**
-     * @dev For each finalized epoch since the user's last settlement, compute
-     *      the user's reward share and add it to pendingRewards[user].
+     * @dev Update pendingRewards[user] using the global cumulative accumulators.
+     *      O(1) regardless of how many epochs have passed. No loop, no gas cap.
      *
-     *      Must be called BEFORE any balance change. At call time the user's stored
-     *      balance equals their balance during all unsettled epochs (because they
-     *      haven't changed it since last settlement).
+     *      Must be called BEFORE any balance change. The user's stored balance
+     *      reflects their actual stake for all epochs since their last update.
      *
-     *      Gas cap: MAX_SETTLE_EPOCHS per call. If the user is further behind,
-     *      multiple interactions catch up (rewards accumulate in pendingRewards).
-     *
-     *      lastFinalizedEpoch sentinel: starts at type(uint256).max. Returns early
-     *      until at least one epoch has been distributed, so that lastSettledEpoch
-     *      never advances past unfinalised epochs on first stake.
+     *      New users: on first call with balance=0, earned=0 and paidRPT is set to
+     *      the current cumulative, so only future epochs are credited. This prevents
+     *      the retroactive theft exploit (BlockApex Issue #1 Path 1).
      */
-    function _settleFinishedEpochs(address user) internal {
-        if (lastFinalizedEpoch == type(uint256).max) return;
-
+    function _updatePending(address user) internal {
         UserStake storage s = userStakes[user];
-        uint256 startEpoch  = s.lastSettledEpoch;
-        uint256 endEpoch    = lastFinalizedEpoch;
 
-        if (startEpoch > endEpoch) return;
+        uint256 psreEarned = 0;
+        uint256 lpEarned   = 0;
 
-        // Gas cap.
-        uint256 cap = startEpoch + MAX_SETTLE_EPOCHS - 1;
-        if (endEpoch > cap) endEpoch = cap;
-
-        for (uint256 e = startEpoch; e <= endEpoch; e++) {
-            if (!epochDistributed[e]) continue;
-
-            uint256 psreRpt = epochPSRERewardPerToken[e];
-            uint256 lpRpt   = epochLPRewardPerToken[e];
-
-            if (psreRpt > 0 && s.psreBalance > 0) {
-                pendingRewards[user] += (s.psreBalance * psreRpt) / REWARD_PRECISION;
-            }
-            if (lpRpt > 0 && s.lpBalance > 0) {
-                pendingRewards[user] += (s.lpBalance * lpRpt) / REWARD_PRECISION;
-            }
+        if (s.psreBalance > 0) {
+            psreEarned = (s.psreBalance *
+                (cumulativePSRERewardPerToken - userPSRERewardPerTokenPaid[user]))
+                / REWARD_PRECISION;
+        }
+        if (s.lpBalance > 0) {
+            lpEarned = (s.lpBalance *
+                (cumulativeLPRewardPerToken - userLPRewardPerTokenPaid[user]))
+                / REWARD_PRECISION;
         }
 
-        s.lastSettledEpoch = endEpoch + 1;
+        pendingRewards[user]              += psreEarned + lpEarned;
+        userPSRERewardPerTokenPaid[user]   = cumulativePSRERewardPerToken;
+        userLPRewardPerTokenPaid[user]     = cumulativeLPRewardPerToken;
     }
 }

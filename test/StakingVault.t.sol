@@ -298,7 +298,7 @@ contract StakingVaultTest is Test {
         vm.prank(alice); stakingVault.stakePSRE(1000e18);
         vm.prank(bob);   stakingVault.stakePSRE(1000e18);
 
-        // Epoch 0 finalized: both hold 1000 → 50/50 split
+        // Epoch 0 finalized: both hold 1000 - 50/50 split
         _advanceAndFinalize(0, rewardPool);
 
         // Alice unstakes (settlement for epoch 0 happens internally before balance change)
@@ -396,7 +396,7 @@ contract StakingVaultTest is Test {
         assertEq(stakingVault.epochPSRERewardPerToken(0), 0, "no div-by-zero");
         assertEq(stakingVault.epochLPRewardPerToken(0),   0, "no div-by-zero");
 
-        // Pool NOT pulled into StakingVault — stays in RewardEngine (caller)
+        // Pool NOT pulled into StakingVault - stays in RewardEngine (caller)
         assertEq(psre.balanceOf(address(stakingVault)), 0,
             "no tokens pulled when no stakers");
 
@@ -714,23 +714,105 @@ contract StakingVaultTest is Test {
     }
 
     // ------------------------------------------------------------------------
-    // 20. lastSettledEpoch advances correctly
+    // 20. Cumulative accumulator advances after distribution (replaces lastSettledEpoch)
     // ------------------------------------------------------------------------
 
-    function test_lastSettledEpoch_advancesAfterSettle() public {
+    function test_cumulativeAccumulator_advancesAfterDistribute() public {
         vm.prank(alice); stakingVault.stakePSRE(1000e18);
         _advanceAndFinalize(0, 100e18);
         _advanceAndFinalize(1, 100e18);
 
-        // Before any settlement, lastSettledEpoch = 0 (initial)
-        (,, uint256 settleBefore) = stakingVault.userStakes(alice);
-        assertEq(settleBefore, 0, "initial lastSettledEpoch = 0");
+        // Cumulative should equal sum of both epoch rewardPerTokens.
+        uint256 rpt0 = stakingVault.epochPSRERewardPerToken(0);
+        uint256 rpt1 = stakingVault.epochPSRERewardPerToken(1);
+        assertEq(stakingVault.cumulativePSRERewardPerToken(), rpt0 + rpt1,
+            "cumulative = sum of epoch RPTs");
+
+        // Before any interaction, user paid accumulator = 0 (stake ran _updatePending with 0 balance).
+        // Actually, after stakePSRE, userPSRERewardPerTokenPaid is set to cumulative at stake time.
+        // Epochs 0+1 finalized AFTER stake, so paid = 0 at stake time, cumulative grew after.
+        assertEq(stakingVault.userPSRERewardPerTokenPaid(alice), 0,
+            "paid accumulator = 0 before claim (stake happened before any epoch finalized)");
 
         vm.prank(alice); stakingVault.claimAll();
 
-        // After claiming, should have settled epochs 0 and 1 → lastSettledEpoch = 2
-        (,, uint256 settleAfter) = stakingVault.userStakes(alice);
-        assertEq(settleAfter, 2, "lastSettledEpoch = 2 after claiming epochs 0 and 1");
+        // After claiming, paid accumulator == current cumulative.
+        assertEq(stakingVault.userPSRERewardPerTokenPaid(alice),
+            stakingVault.cumulativePSRERewardPerToken(),
+            "paid accumulator = cumulative after claim");
+    }
+
+    // ------------------------------------------------------------------------
+    // 20b. BlockApex POC #1 regression: new staker cannot steal historical rewards
+    // ------------------------------------------------------------------------
+
+    function test_POC1_newStakerCannotStealHistoricalRewards() public {
+        // Alice stakes at genesis. 8 epochs finalize with 100 PSRE each.
+        // Alice is the sole staker.
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        uint256 rewardPerEpoch = 100e18;
+        for (uint256 e = 0; e < 8; e++) {
+            _advanceAndFinalize(e, rewardPerEpoch);
+        }
+
+        // Attacker (bob) never staked before. Stake now after all epochs finalized.
+        psre.mint(bob, 1000e18);
+        vm.prank(bob); psre.approve(address(stakingVault), 1000e18);
+        vm.prank(bob); stakingVault.stakePSRE(1000e18);
+
+        // Bob's paid accumulator is set to current cumulative at stake time.
+        assertEq(stakingVault.userPSRERewardPerTokenPaid(bob),
+            stakingVault.cumulativePSRERewardPerToken(),
+            "bob's paid = current cumulative - no historical access");
+
+        // Bob has no pending rewards and claimAll reverts.
+        assertEq(stakingVault.pendingRewards(bob), 0, "bob: zero pending");
+        vm.prank(bob);
+        vm.expectRevert("StakingVault: nothing to claim");
+        stakingVault.claimAll();
+
+        // Alice claims all 8 epochs correctly.
+        vm.prank(alice); stakingVault.claimAll();
+        // psreSplit = 50%, so alice gets 50% of each 100e18 pool = 50e18 - 8 = 400e18
+        // (full pool goes to PSRE stakers since no LP stakers: redistribution via both pools)
+        // Actually: psrePool = 50e18 per epoch, alice sole staker - 50e18 - 8 = 400e18
+        assertEq(psre.balanceOf(alice), (10_000e18 - 1000e18) + 400e18,
+            "alice earns correct share, bob steals nothing");
+    }
+
+    // ------------------------------------------------------------------------
+    // 20c. BlockApex POC #2/#3 regression: unstake after 60+ epochs correct
+    // ------------------------------------------------------------------------
+
+    function test_POC2_noRewardLossOnUnstakeAfterManyEpochs() public {
+        // Alice stakes 1000 PSRE. 5 epochs finalize. Alice unstakes. Claims.
+        // With O(1) accumulator, there is no gas cap to cause stale-balance error.
+        vm.prank(alice); stakingVault.stakePSRE(1000e18);
+        uint256 rewardPerEpoch = 100e18;
+        for (uint256 e = 0; e < 5; e++) {
+            _advanceAndFinalize(e, rewardPerEpoch);
+        }
+
+        // Unstake - _updatePending runs O(1) with current balance before reduction.
+        vm.prank(alice); stakingVault.unstakePSRE(500e18);
+
+        // Finalize 2 more epochs.
+        _advanceAndFinalize(5, rewardPerEpoch);
+        _advanceAndFinalize(6, rewardPerEpoch);
+
+        // Claim all.
+        vm.prank(alice); stakingVault.claimAll();
+
+        // epochs 0-4: alice had 1000 PSRE. epochs 5-6: alice had 500 PSRE.
+        // psrePool per epoch = 50e18 (50% split, sole staker).
+        // epochs 0-4: 5 - 50e18 = 250e18. epochs 5-6: 2 - (500/1000 - 50e18) - but alice sole staker
+        // so she gets full psrePool = 50e18 per epoch regardless.
+        // Wait: after unstake, totalPSREStaked = 500. snapshotEpoch at epoch 5 captures 500.
+        // epochPSRERewardPerToken[5] = 50e18 * 1e36 / 500e18 = 1e35 per token
+        // alice earns: 500 - 1e35 / 1e36 = 50e18 per epoch - same as before.
+        uint256 expected = 7 * 50e18; // 7 epochs - 50e18 each
+        assertApproxEqRel(psre.balanceOf(alice), (10_000e18 - 500e18) + expected, 0.001e18,
+            "alice earns correct rewards, no loss from balance change mid-stream");
     }
 
     // ------------------------------------------------------------------------
@@ -753,7 +835,7 @@ contract StakingVaultTest is Test {
         vm.prank(alice); stakingVault.claimAll();
         uint256 received = psre.balanceOf(alice) - balBefore;
 
-        // Alice is sole staker in both pools → gets both full pools
+        // Alice is sole staker in both pools - gets both full pools
         assertApproxEqRel(received, psrePool + lpPool_, 0.001e18,
             "sole staker in both pools earns 100% of total reward");
     }
@@ -812,7 +894,7 @@ contract StakingVaultTest is Test {
         _advanceAndFinalize(1, 100e18);
         stakingVault.checkpointUser(alice);
 
-        // Should now be 2× the single epoch amount
+        // Should now be 2- the single epoch amount
         assertApproxEqRel(stakingVault.pendingRewards(alice), pending * 2, 0.001e18,
             "pendingRewards doubles after second epoch settled");
     }

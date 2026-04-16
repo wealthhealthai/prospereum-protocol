@@ -23,4 +23,12 @@ interface IStakingVault {
     ///         RewardEngine must approve this contract for totalStakerPool before calling.
     ///         Called by RewardEngine immediately after snapshotEpoch in _finalizeSingleEpoch().
     function distributeStakerRewards(uint256 epochId, uint256 totalStakerPool) external;
+
+    /// @notice Total PSRE staked captured at snapshotEpoch(epochId).
+    ///         Used by RewardEngine to skip staker mint when no stakers exist.
+    function epochTotalPSREStaked(uint256 epochId) external view returns (uint256);
+
+    /// @notice Total LP staked captured at snapshotEpoch(epochId).
+    ///         Used by RewardEngine to skip staker mint when no stakers exist.
+    function epochTotalLPStaked(uint256 epochId) external view returns (uint256);
 }

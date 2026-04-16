@@ -631,7 +631,10 @@ contract RewardEngine is
         // epochs get delta = 0.  Scale the scarcity ceiling by K so the full accumulated
         // growth earns its fair share rather than being capped at a single epoch's limit.
         // _autoFinalizeCount is 0 when finalizeEpoch() is called directly → multiplier 1×.
-        uint256 scarcityCeiling = E_scarcity * (_autoFinalizeCount > 0 ? _autoFinalizeCount : 1);
+        // Clamp to PSRE's per-epoch mint cap (E0_MAX) so batched finalization never causes
+        // mintForEpoch to revert with "PSRE: epoch mint cap exceeded" (BlockApex Issue #2).
+        uint256 scaled          = E_scarcity * (_autoFinalizeCount > 0 ? _autoFinalizeCount : 1);
+        uint256 scarcityCeiling = scaled > E0_MAX ? E0_MAX : scaled;
         uint256 B = _min3(E_demand, scarcityCeiling, remaining);
 
         // Split  (§5.9)
@@ -683,9 +686,15 @@ contract RewardEngine is
         }
 
         // ── Staker pool ──────────────────────────────────────────────────────
-        // StakingVault v2: always fund the full staker budget — users claim directly
-        // from StakingVault via claimStake(epochId) based on their epoch stakeTime.
+        // Zero-staker check (BlockApex Issue #3): if both staker pools are empty at
+        // snapshot time, skip the staker mint entirely. Minting into an epoch with no
+        // stakers consumes S_EMISSION budget permanently (T += mintAmount) while the
+        // tokens stay orphaned on this contract with no recovery path.
         uint256 P_stakers = B_stakers;
+        if (stakingVault.epochTotalPSREStaked(epochId) == 0
+                && stakingVault.epochTotalLPStaked(epochId) == 0) {
+            P_stakers = 0;
+        }
 
         // ── Mint ─────────────────────────────────────────────────────────────
         uint256 P          = P_partners + P_stakers;
