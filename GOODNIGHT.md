@@ -1,40 +1,51 @@
-# GOODNIGHT.md — 2026-04-16
+# GOODNIGHT.md — 2026-04-17
 
 ## What Was Done Today
 
-Quiet holding day. No code commits. Gates clarified for Shu in Discord. 247/247 tests holding clean.
+**BlockApex final report landed — 3 additional findings — all fixed same day.**
 
-## Waiting On — RIGHT NOW
+| Commit | What |
+|---|---|
+| `4ca5bfc` | Additional #1 (HIGH): O(1) Synthetix accumulator in StakingVault v3.1 |
+| `4ca5bfc` | Additional #2 (HIGH): scarcityCeiling DoS clamp |
+| `4ca5bfc` | Additional #3 (MEDIUM): zero-staker mint prevention |
+| `1fdcf2f` | Audit CSV updated with all 3 additional findings |
 
-**BlockApex final report** — Nadir committed to 2-day review (from April 14). Report is due today. The moment it lands:
-1. Read and triage all findings
-2. Patch any new issues same day (full test suite re-run)
-3. Redeploy all 8 contracts to Base Sepolia
-4. Update `deployments.md`
-5. Confirm to BlockApex with final deployed commit hash
+**Tests: 247 → 249/249 ✅**
+**Total findings resolved: 28 (22 original + 3 self-identified + 3 additional)**
 
-**Gnosis Safe** — 2 days to the April 18–21 mainnet window. Hard stop. app.safe.global, Jason + Shu.
+## ⚠️ APRIL 18 IS TOMORROW
+
+Epoch 2 closes at 19:43 UTC. Mainnet window opens.
+
+**Gnosis Safe is the ONLY remaining blocker.** Still not created after 4+ weeks.
+app.safe.global — Founder Safe + Treasury Safe — Jason + Shu — **tonight or first thing tomorrow.**
 
 ## Protocol State
 
-- **Tests:** 247/247 ✅
-- **All 25 findings:** Addressed ✅
-- **BlockApex final:** ⏳ Due today
-- **Epoch 2 closes:** April 18 19:43 UTC (keeper auto-fires at 20:00 UTC)
-- **Mainnet target:** April 18–21
+- **Tests:** 249/249 ✅
+- **All 28 findings:** Resolved ✅
+- **StakingVault:** v3.1 — true O(1) Synthetix accumulator
+- **DeployMainnet.s.sol:** Ready — needs FOUNDER_SAFE + TREASURY_SAFE env vars
+- **Nadir:** Awaiting confirmation of additional fixes
+- **Gnosis Safe:** ❌ Not created — zero mainnet deploy without it
+- **Epoch 2 closes:** April 18 19:43 UTC — keeper auto-fires
 
-## Open Decisions
+## Sequence When Gnosis Safe Is Created
 
-| Item | Who | Urgency |
-|---|---|---|
-| LP #13 confirm in writing | Shu | 🔴 Before report |
-| autoFinalizeEpochs ping to Nadir | Shu | 🔴 Before report |
-| Gnosis Safe creation | Jason + Shu | 🔴 2 days |
-| Dev spec v3.3 sign-off | Jason | 🟠 This week |
+1. Fill `.env`: `FOUNDER_SAFE`, `TREASURY_SAFE`
+2. Deploy Uniswap PSRE/USDC pool → get `LP_TOKEN_ADDRESS`
+3. Give Kin explicit go: "deploy to Base Sepolia" → verify latest code on testnet
+4. Give Kin explicit go: "deploy to mainnet" → `forge script script/DeployMainnet.s.sol`
+5. Record all addresses in `deployments.md`
+6. Treasury Safe seeds genesis LP ($40K Uniswap v3)
+7. Lock LP NFT on Unicrypt (24 months)
+8. Shu: Sablier vesting from Founder Safe
+9. Close audit with Nadir (share mainnet commit hash)
 
 ## Notes for Tomorrow
 
-1. BlockApex final report — triage immediately on receipt
-2. If clean → deploy sequence starts
-3. Gnosis Safe = last human-gated blocker before mainnet
-4. April 18 is a big day: Epoch 2 closes + mainnet window opens simultaneously
+1. Gnosis Safes → `.env` → everything else flows
+2. Confirm Nadir accepted additional fixes (#1/#2/#3)
+3. Epoch 2 keeper fires automatically at 20:00 UTC — no action needed
+4. April 18–21 is a narrow window — every hour matters
