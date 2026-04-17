@@ -39,6 +39,9 @@ contract CustomerVault is ReentrancyGuard {
     address public parentVault;
 
     /// @notice The partner who deployed this vault (controls until customer claims).
+    /// @notice Historical record of the partner who originally deployed this vault.
+    ///         NOT used for access control — all partner checks use IPartnerVault(parentVault).owner()
+    ///         live to correctly reflect ownership transfers on the parent vault.
     address public partnerOwner;
 
     /// @notice Customer wallet address. address(0) until claimVault() is called.
@@ -77,7 +80,7 @@ contract CustomerVault is ReentrancyGuard {
 
     modifier onlyPartnerOrCustomer() {
         require(
-            msg.sender == partnerOwner || (customerClaimed && msg.sender == customer),
+            msg.sender == IPartnerVault(parentVault).owner() || (customerClaimed && msg.sender == customer),
             "CustomerVault: not authorized"
         );
         _;
@@ -133,7 +136,7 @@ contract CustomerVault is ReentrancyGuard {
         require(newCustomer != address(0),    "CustomerVault: zero wallet");
         require(
             (intendedCustomer != address(0) && msg.sender == intendedCustomer) ||
-            msg.sender == partnerOwner,
+            msg.sender == IPartnerVault(parentVault).owner(),
             "CustomerVault: unauthorized"
         );
 
