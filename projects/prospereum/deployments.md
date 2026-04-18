@@ -167,3 +167,17 @@ All 8 contracts: ✅ `exact_match` on Sourcify
 - ⚠️ USDC and Uniswap Router addresses are Base **mainnet** addresses — fine for testnet simulation but no real swaps will execute
 - ℹ️ Admin = deployer for testnet. On mainnet, deployer should be a CI key and admin should be a Gnosis Safe multisig
 - ℹ️ Deployer ETH balance after deploy: **0.009958522305984856 ETH** (started with 0.01 ETH, gas cost ~0.0000415 ETH)
+
+## Gnosis Safes (Base Mainnet)
+
+### PSRE Founder Safe
+- Address: 0xc59816CAC94A969E50EdFf7CF49ce727aec1489F
+- Role: Protocol governance + upgrade admin (DEFAULT_ADMIN_ROLE, PAUSER_ROLE, UPGRADER_ROLE)
+- Signers: Shu, Jason, + 1 cold backup wallet (2-of-3)
+- Created: 2026-04-18
+
+### PSRE Treasury Safe
+- Address: 0xa9Fde837EBC15BEE101d0D895c41a296Ac2CAfCe
+- Role: PSRE treasury (receives 4.2M PSRE at genesis) + LP seeding
+- Signers: Shu, Jason, + 1 cold backup wallet (2-of-3)
+- Created: 2026-04-18
