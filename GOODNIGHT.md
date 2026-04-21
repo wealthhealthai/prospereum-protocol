@@ -1,38 +1,43 @@
-# GOODNIGHT.md — 2026-04-20
+# GOODNIGHT.md — 2026-04-21
 
-## What Was Done Today
+## What Happened Today
 
-Nothing new — full holding pattern. No code commits. Everything has been ready since April 17.
+No deploy. April 18–21 window closed. No code changes.
 
-## ⚠️ WINDOW CLOSES TOMORROW
+This is not a technical failure — the protocol is fully ready. The miss was operational: `DEPLOYER_PK` and `BASE_RPC` were never provided, and no explicit "go" was given during the window. Bikini Bottom and other priorities took the day.
 
-**April 21 is the last day of the mainnet window.**
+## Current State
 
-Protocol state is fully deploy-ready:
-- 249/249 tests ✅
-- BlockApex CLEAN (29 findings) ✅
-- Safe addresses wired ✅
-- `DeployMainnet.s.sol` ready ✅
+- **Tests:** 249/249 ✅
+- **Audit:** BlockApex CLEAN, 29 findings resolved ✅
+- **DeployMainnet.s.sol:** Ready ✅
+- **Safe addresses:** Wired in `.env` ✅
+- **Mainnet:** ❌ Not deployed
 
-Missing only:
+## What's Needed to Deploy
+
+**Jason provides → Kin deploys (~30 min)**
+
 ```
-DEPLOYER_PK   → ops wallet mainnet private key
-BASE_RPC      → Base mainnet RPC (Alchemy/Infura/Coinbase)
+DEPLOYER_PK   → mainnet ops wallet private key (not the Safe key)
+BASE_RPC      → Base mainnet RPC (Alchemy / Infura / Coinbase)
 ops wallet    → funded ≥ 0.05 ETH on Base mainnet
-Jason's "go"  → explicit "deploy" message in #prospereum
+"deploy"      → explicit go in #prospereum
 ```
 
-## Tomorrow's Plan (April 21)
+That's it. No additional protocol work is required. The code is done.
 
-**Morning:** Jason provides env vars + funds ops wallet + says "go"
-**~30 min:** Kin deploys all contracts to Base mainnet, records addresses, pushes
-**Same day:** Jason + Shu seed genesis LP + Unicrypt lock + Sablier setup
+## Post-Deploy (Jason + Shu, same day or shortly after)
 
-If this doesn't happen tomorrow, the April 18–21 window closes and the timeline resets. There's no technical reason to wait — everything on the protocol side is done.
+1. Treasury Safe → seed $40K Uniswap v3 LP (200K PSRE + $20K USDC)
+2. Lock LP NFT on Unicrypt (24 months)
+3. Shu: Sablier vesting stream from Founder Safe
+4. Update keeper cron to point at mainnet RewardEngine proxy
+5. Share final commit hash with Nadir to close the audit
 
 ## Notes for Tomorrow
 
-1. First thing: drop `DEPLOYER_PK` + `BASE_RPC` in #prospereum or .env
-2. Fund ops wallet ≥ 0.05 ETH on Base
-3. Say "go" — I'll handle the rest
-4. Window closes tonight April 21 PDT
+- Pick a new deploy date — nothing is blocking except Jason's schedule
+- Epoch 3 closes April 25 at 19:43 UTC — keeper auto-fires on testnet (no action needed)
+- Dev spec v3.3 still needs Jason sign-off (low urgency, can happen anytime)
+- The protocol gets better with each day we wait — code doesn't expire
