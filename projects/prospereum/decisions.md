@@ -106,3 +106,5 @@ Contract rebuild begins immediately. Any spec changes after this point require S
 | StakingVault accounting model | Synthetix-style epoch-aware checkpointing. Remove manual recordStakeTime(). Time-weighted contributions tracked per-epoch, per-asset. _checkpoint() splits elapsed time correctly across epoch boundaries. Users claim without any manual recording step. Separate totalPSREStakedTime and totalLPStakedTime per epoch. Fixes BlockApex findings #5, #9, #15, #20. | Shu | 2026-04-07 |
 
 | BlockApex final audit — CLEAN | All 29 findings (3C/2C-postfix/3H/2H-postfix/11M/2M-postfix/4L/1L-postfix/1I) marked RESOLVED in final report dated 2026-04-17. Fixed commit hash: 31eb313. Protocol cleared for mainnet deployment pending Gnosis Safe creation. | Nadir / BlockApex | 2026-04-18 |
+
+| BlockApex audit published | Report live on BlockApex public GitHub: https://github.com/BlockApex/Audit-Reports/blob/master/Prospereum%20Protocol_Final%20Audit%20Report.pdf — use this URL for website badge. Payment confirmed by Nadir 2026-04-21. | Shu | 2026-04-21 |
