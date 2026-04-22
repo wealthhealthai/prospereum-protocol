@@ -181,3 +181,20 @@ All 8 contracts: ✅ `exact_match` on Sourcify
 - Role: PSRE treasury (receives 4.2M PSRE at genesis) + LP seeding
 - Signers: Shu, Jason, + 1 cold backup wallet (2-of-3)
 - Created: 2026-04-18
+
+---
+
+## MAINNET DEPLOYMENTS — Base (chainId: 8453)
+
+### Phase 1 — 2026-04-22
+
+#### PSRE Token
+- **Network:** Base mainnet
+- **Address:** `0x2fE08f304f1Af799Bc29E3D4E210973291d96702`
+- **Deploy tx:** `0x80f18bb09f2eca4e9352cbfdf56d3c2d58da862ae9e7d1e62f8ed19d58095c81`
+- **Transfer tx (4.2M → Founder Safe):** `0xf2f08c96b4efccb6c376023929c8fbd6c83f4831c0cac80621535455517bac42`
+- **Deployer:** `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` (throwaway ops wallet)
+- **Genesis timestamp:** 1776829977
+- **Notes:** 4.2M minted to Treasury Safe, 4.2M transferred to Founder Safe (Sablier vesting). 12.6M emission reserve minted by RewardEngine over epochs.
+
+### Phase 2 — PENDING (waiting on LP pool from Shu)
