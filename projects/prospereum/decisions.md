@@ -108,3 +108,7 @@ Contract rebuild begins immediately. Any spec changes after this point require S
 | BlockApex final audit — CLEAN | All 29 findings (3C/2C-postfix/3H/2H-postfix/11M/2M-postfix/4L/1L-postfix/1I) marked RESOLVED in final report dated 2026-04-17. Fixed commit hash: 31eb313. Protocol cleared for mainnet deployment pending Gnosis Safe creation. | Nadir / BlockApex | 2026-04-18 |
 
 | BlockApex audit published | Report live on BlockApex public GitHub: https://github.com/BlockApex/Audit-Reports/blob/master/Prospereum%20Protocol_Final%20Audit%20Report.pdf — use this URL for website badge. Payment confirmed by Nadir 2026-04-21. | Shu | 2026-04-21 |
+
+| Two-phase mainnet deploy | Deployed PSRE first (Phase 1), then pre-computed LP pool address via CREATE2 math, then deployed remaining 7 contracts (Phase 2). LP pool address = 0x0Adc6BE14E76b89584216fAd4E458df5F996D336 (PSRE/USDC 1%, Base). No pool creation required before deploy. | Kin | 2026-04-22 |
+| LP staking at launch | StakingVault.lpToken set to pre-computed pool address. However, Uniswap v3 positions are NFTs not ERC-20. LP staking non-functional at launch. Founder Safe to call setSplit(1e18, 0) to give 100% staker rewards to PSRE stakers. Future RE upgrade to enable LP staking with ERC-20 wrapper. | Kin | 2026-04-22 |
+| Safe wiring method | Wire-up (setRewardEngine x2 + grantRole) executed via Safe Transaction Builder batch JSON. Not included in deploy script because contracts owned by Founder Safe from deploy. Jason signed 2026-04-22, awaiting Shu signature. | Kin | 2026-04-22 |
