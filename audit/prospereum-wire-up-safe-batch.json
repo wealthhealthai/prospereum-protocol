@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "chainId": "8453",
+  "createdAt": 1776839626759,
+  "meta": {
+    "name": "Prospereum Wire-up \u2014 setRewardEngine x2 + grantRole",
+    "description": "Wires RewardEngine to PartnerVaultFactory and StakingVault, grants MINTER_ROLE to RewardEngine. Required for protocol to go live.",
+    "txBuilderVersion": "1.16.5"
+  },
+  "transactions": [
+    {
+      "to": "0xFF84408633f79b8f562314cC5A3bCaedA8f76902",
+      "value": "0",
+      "data": "0xae505d270000000000000000000000009ab37fc6d01b85491ed0863b7f832784be717ef5",
+      "contractMethod": {
+        "name": "setRewardEngine",
+        "inputs": [
+          {
+            "name": "_rewardEngine",
+            "type": "address"
+          }
+        ]
+      },
+      "contractInputsValues": {
+        "_rewardEngine": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5"
+      }
+    },
+    {
+      "to": "0x684BEA07e979CB5925d546b2E2099aA1c632ED2D",
+      "value": "0",
+      "data": "0xae505d270000000000000000000000009ab37fc6d01b85491ed0863b7f832784be717ef5",
+      "contractMethod": {
+        "name": "setRewardEngine",
+        "inputs": [
+          {
+            "name": "_rewardEngine",
+            "type": "address"
+          }
+        ]
+      },
+      "contractInputsValues": {
+        "_rewardEngine": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5"
+      }
+    },
+    {
+      "to": "0x2fE08f304f1Af799Bc29E3D4E210973291d96702",
+      "value": "0",
+      "data": "0x2f2ff15d9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a60000000000000000000000009ab37fc6d01b85491ed0863b7f832784be717ef5",
+      "contractMethod": {
+        "name": "grantRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "name": "account",
+            "type": "address"
+          }
+        ]
+      },
+      "contractInputsValues": {
+        "role": "0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6",
+        "account": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5"
+      }
+    }
+  ]
+}
