@@ -198,3 +198,21 @@ All 8 contracts: ✅ `exact_match` on Sourcify
 - **Notes:** 4.2M minted to Treasury Safe, 4.2M transferred to Founder Safe (Sablier vesting). 12.6M emission reserve minted by RewardEngine over epochs.
 
 ### Phase 2 — PENDING (waiting on LP pool from Shu)
+
+#### Phase 2 — 2026-04-22
+
+| Contract | Address | Deploy Tx |
+|---|---|---|
+| PartnerVault (impl) | `0xa1BcD31cA51Ba796c73578d1C095c9EE0adb9F18` | `0x97c0b2...4b4b6` |
+| CustomerVault (impl) | `0xAb5906f5a3f03576678416799570d0A0ceEc40f2` | `0xb5bfe7...8f5e3` |
+| PartnerVaultFactory | `0xFF84408633f79b8f562314cC5A3bCaedA8f76902` | `0x98424f...6411` |
+| StakingVault | `0x684BEA07e979CB5925d546b2E2099aA1c632ED2D` | `0x9d88f8...5c08` |
+| RewardEngine (impl) | `0xE194EF5ABB93cb62089FB5a3b407B9B7f38F04f5` | `0x1522c0...2944` |
+| RewardEngine (proxy) | `0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5` | `0xefd098...cece7` |
+
+**LP Token (PSRE/USDC 1% pool, pre-computed):** `0x0Adc6BE14E76b89584216fAd4E458df5F996D336`
+
+**⚠️ WIRING PENDING — Founder Safe batch transaction required:**
+1. `factory.setRewardEngine(0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5)`
+2. `stakingVault.setRewardEngine(0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5)`
+3. `psre.grantRole(0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6, 0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5)`

@@ -102,11 +102,9 @@ contract DeployPhase2_Contracts is Script {
         console.log("RewardEngine impl:    ", address(reImpl));
         console.log("RewardEngine proxy:   ", address(reProxy));
 
-        // 5. Wire up
-        factory.setRewardEngine(address(rewardEngine));
-        stakingVault.setRewardEngine(address(rewardEngine));
-        psre.grantRole(psre.MINTER_ROLE(), address(rewardEngine));
-        console.log("Wire-up: RE set on factory + SV, MINTER_ROLE granted to RE");
+        // 5. Wire-up NOTE: factory and stakingVault are owned by Founder Safe.
+        // Wiring must be executed as a Safe batch after this deploy.
+        // See POST-DEPLOY WIRING section below.
 
         vm.stopBroadcast();
 
@@ -126,10 +124,13 @@ contract DeployPhase2_Contracts is Script {
         console.log("Treasury Safe:        ", treasurySafe);
         console.log("==============================================\n");
         console.log("POST-DEPLOY CHECKLIST:");
-        console.log("[ ] Update deployments.md with all addresses");
-        console.log("[ ] Verify contracts on Basescan if --verify was not used");
-        console.log("[ ] Shu: add initial liquidity to Uniswap pool");
-        console.log("[ ] Lock LP via Unicrypt (24 months)");
-        console.log("[ ] Set up Sablier vesting stream from Founder Safe");
+        console.log("[ ] 1. Founder Safe BATCH TRANSACTION (3 calls):");
+        console.log("       a. factory.setRewardEngine(reProxy)");
+        console.log("       b. stakingVault.setRewardEngine(reProxy)");
+        console.log("       c. psre.grantRole(MINTER_ROLE, reProxy)");
+        console.log("[ ] 2. Update deployments.md with all addresses");
+        console.log("[ ] 3. Shu: create PSRE/USDC pool + add liquidity ($20K USDC + 200K PSRE)");
+        console.log("[ ] 4. Lock LP via Unicrypt (24 months)");
+        console.log("[ ] 5. Set up Sablier vesting stream from Founder Safe");
     }
 }
