@@ -17,8 +17,18 @@ set -euo pipefail
 ENV_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.env"
 [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
 
-REWARD_ENGINE="${REWARD_ENGINE_PROXY:-0xe668fE9DbCE8CBbc8b3590100e8c31aA12F5C697}"
-RPC_URL="${BASE_SEPOLIA_RPC:-https://sepolia.base.org}"
+# Network selection: set KEEPER_NETWORK=testnet to use Base Sepolia.
+# Default: mainnet (post April 21 deploy).
+KEEPER_NETWORK="${KEEPER_NETWORK:-mainnet}"
+
+if [[ "$KEEPER_NETWORK" == "mainnet" ]]; then
+  REWARD_ENGINE="${REWARD_ENGINE_MAINNET:-0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5}"
+  RPC_URL="${BASE_MAINNET_RPC:-https://mainnet.base.org}"
+else
+  REWARD_ENGINE="${REWARD_ENGINE_PROXY:-0xe668fE9DbCE8CBbc8b3590100e8c31aA12F5C697}"
+  RPC_URL="${BASE_SEPOLIA_RPC:-https://sepolia.base.org}"
+fi
+
 PRIVATE_KEY="${DEPLOYER_PK:?ERROR: DEPLOYER_PK not set in .env}"
 GAS_LIMIT=6000000
 CAST="${HOME}/.foundry/bin/cast"
