@@ -1,7 +1,8 @@
-# Prospereum (PSRE) — Proof of Prosperity: The Commerce Rewards Protocol
+# Prospereum (PSRE)
+## Proof of Prosperity: The Commerce Rewards Protocol
 
 **Public Whitepaper v3.4 — April 2026**
-**Status: LIVE on Base Mainnet**
+**Live on Base Mainnet | Audited by BlockApex**
 
 > *Bitcoin solved digital scarcity. Ethereum solved programmable coordination. Prospereum solves commerce rewards.*
 
@@ -9,108 +10,105 @@
 
 ## Executive Summary
 
-Prospereum (PSRE) is a decentralized commerce rewards protocol built on the Base blockchain — **live on mainnet as of April 22, 2026.** It allows ecommerce brands and DTC merchants to replace traditional loyalty points with a real, appreciating digital asset — distributed directly to their customers as purchase rewards.
+Prospereum (PSRE) is a decentralized commerce rewards protocol built on the Base blockchain, live on mainnet as of April 22, 2026. It enables ecommerce brands and merchants to replace traditional loyalty points with a real digital asset — distributed directly to their customers as purchase rewards.
 
-The protocol introduces **Proof of Prosperity**: a mechanism where new PSRE is issued only when genuine commerce growth is verified on-chain. There is no pre-sale, no ICO, and no insider allocation. PSRE has a fixed maximum supply of **21,000,000 tokens** — the same hard cap discipline that makes Bitcoin scarce — with a $0.10 launch price and $40,000 in genesis liquidity.
+Prospereum introduces **Proof of Prosperity**: new PSRE is issued only when verified, on-chain commerce growth occurs. Supply is permanently capped at 21,000,000 tokens. There was no pre-sale, no ICO, and no insider allocation. The protocol was independently audited by BlockApex before launch — all findings resolved.
 
-**Independently audited by BlockApex (April 2026) — all findings resolved before mainnet launch.**
+PSRE is a **utility token**. It serves a defined functional role within the Prospereum commerce network: it is the medium through which brands fund loyalty programs and customers receive purchase rewards. Its issuance is tied directly to verified economic activity, not to passive holding or financial speculation.
 
 ---
 
 ## 1. The Problem: Loyalty Programs Are Broken
 
-Every major brand in the world runs a loyalty program. Airlines give miles. Coffee shops give stamps. Retailers give points. And almost universally, these programs fail to deliver lasting value to customers or meaningful differentiation for brands.
+Every major brand runs a loyalty program. Airlines give miles. Coffee shops give stamps. Retailers give points. Almost universally, these programs fail to deliver lasting value.
 
-**For customers, loyalty points are a bad deal:**
+**For customers:**
 - Points expire, devalue, or get discontinued without warning
-- They can only be spent at one brand — usually for discounts on things you were already going to buy
-- They represent no real financial value; you can't sell them, transfer them, or hold them as an asset
-- The average American household holds over $200 in loyalty points they'll never use
+- They can only be spent at one brand — for discounts on things you'd buy anyway
+- They represent no real financial value — you cannot sell, transfer, or hold them as an asset
+- The average American household holds over $200 in loyalty points they will never use
 
-**For brands, loyalty programs are expensive and ineffective:**
-- Building and maintaining points infrastructure is costly
-- Customers quickly learn that "10% back in points" is just a delayed discount — not a reason to stay loyal
-- Points create liability on the balance sheet and churn when customers realize redemption is capped or devalued
+**For brands:**
+- Points infrastructure is costly to build and maintain
+- "10% back in points" is just a delayed discount — not a reason to stay loyal
+- Points create balance-sheet liability and customer churn
 
-**Meanwhile, crypto tokens haven't solved this either:**
-- Most brand tokens issued via ICOs or NFTs are pure speculation with no utility backing
-- Token prices crash after launch hype fades because there's no sustained demand mechanism
-- Customers who receive brand tokens often immediately sell them — the opposite of loyalty
+**Crypto tokens haven't solved this either:**
+- Most brand tokens were issued via ICOs with no utility backing — prices crashed after launch
+- Customers who receive brand tokens often immediately sell — the opposite of loyalty
 
-**The gap:** There is no token that rises in value because of genuine commerce activity, not speculation.
-
-Prospereum fills that gap.
+**The gap:** There is no token that rises in value because of genuine commerce activity, not speculation. Prospereum fills that gap.
 
 ---
 
-## 2. The Solution: Prospereum (PSRE)
+## 2. What PSRE Is — and Is Not
 
-Prospereum is a **commerce rewards layer** — a protocol that connects real ecommerce activity to a scarce, appreciating digital asset.
+### What PSRE Is
 
-Think of it this way: Bitcoin is digital gold. It's scarce and valuable because the protocol mathematically limits supply. Prospereum is like digital gold for commerce rewards — scarce and valuable because the protocol only issues new tokens when real commerce growth is verified.
+PSRE is a **utility token** with a defined functional role:
 
-**Here's the simple version:**
+- **Brands (Partners)** purchase PSRE to fund customer loyalty programs. They buy it, distribute it as rewards, and earn small amounts back when their customer base genuinely grows.
+- **Customers** receive PSRE as purchase rewards. They can hold it, trade it, or use it at participating merchants.
+- **Stakers** lock PSRE to help secure and support the protocol and receive a portion of each week's emissions.
 
-1. Brands (called **Partners**) buy PSRE from the open market and distribute it to their customers as purchase rewards
-2. Customers receive PSRE tokens in their digital wallet — tokens that have real market value and can be held, traded, or spent
-3. The Prospereum protocol watches how much PSRE is held across a partner's customer base
-4. When that ecosystem genuinely grows — more customers holding more PSRE — the protocol issues a small amount of new PSRE as a reward to the partner
-5. This new supply is tightly constrained by a mathematical scarcity function that becomes stricter over time
+PSRE has utility because it is the unit of exchange within the Prospereum commerce network. Its demand is driven by brands buying it to fund loyalty programs — not by speculative expectation.
 
-The result: the more real commerce activity flows through the protocol, the more demand there is for PSRE — and the more scarce it becomes.
+### What PSRE Is Not
+
+PSRE is not a security. It does not represent ownership in any company. It does not pay dividends. Holding PSRE does not entitle you to a share of any company's revenues or profits.
+
+PSRE rewards require **active participation**: partners must actively grow their customer ecosystem; rewards do not flow to passive holders. The value of PSRE within the Prospereum network is tied to its use as a commerce rewards medium — not to the investment efforts of the founding team.
 
 ---
 
-## 3. Proof of Prosperity: Rewards Flow When Commerce Grows
+## 3. Proof of Prosperity: Commerce-Verified Issuance
 
-Prospereum introduces a new consensus primitive: **Proof of Prosperity**.
+Prospereum introduces a new mechanism for token issuance: **Proof of Prosperity**.
 
-Like Proof of Work (Bitcoin mining) and Proof of Stake (Ethereum validation), Proof of Prosperity is a verifiable on-chain mechanism — but instead of rewarding computation or capital lockup, it rewards **genuine growth in commerce activity**.
-
-The core principle is elegant:
+The core principle:
 
 > **New PSRE is issued only when a partner's customer ecosystem holds more PSRE than it ever has before.**
 
-Not more than last week. Not more than a threshold. More than *all-time peak*. Ever.
+Every week, the RewardEngine verifies each partner's total ecosystem balance (PSRE held across their vault and their customers' wallets). If that balance exceeds its all-time high, a small amount of new PSRE is issued as a reward. If the ecosystem is flat or declining, no new PSRE is issued.
 
-This means:
-- If commerce grows → rewards flow
-- If commerce is flat → rewards pause (but don't reset)
-- If the ecosystem shrinks → no rewards until it grows past the previous all-time high
+**This mechanism has three important properties:**
 
-The protocol is designed to reward genuine commerce growth and is structurally resistant to gaming. The reward mechanism cannot be exploited by short-term buying and selling — only sustained, real growth in customer holdings triggers new issuance.
+1. **Demand-gated.** New supply only enters circulation when commerce activity genuinely grows. No growth → no emission.
 
-This is not a subjective judgment. It is verified automatically, every seven days, by smart contracts on the Base blockchain.
+2. **Anti-inflationary.** Protocol-issued reward PSRE is excluded from future reward calculations — so rewards cannot compound recursively or generate inflation loops.
+
+3. **Gaming-resistant.** The all-time-high ratchet makes gaming structurally self-defeating: buying and selling PSRE to "fake" growth requires permanently increasing capital commitment with each cycle. Only real, sustained commerce growth earns rewards.
 
 ---
 
 ## 4. How Partners Use Prospereum
 
-A **Partner** is any ecommerce brand or DTC merchant that joins the Prospereum protocol to offer PSRE as customer rewards.
+A **Partner** is an ecommerce brand or merchant that joins Prospereum to offer PSRE as customer rewards.
 
-**The partner flow is simple:**
+### The Partner Journey
 
-### Step 1: Register and Fund
-The partner registers on the Prospereum protocol by creating a **PartnerVault** — a smart contract that serves as their on-chain identity. This requires an initial PSRE purchase of at least $500 USDC equivalent, which establishes their baseline.
+**Step 1 — Register**
+The partner creates a PartnerVault — a smart contract that serves as their on-chain identity. This requires an initial PSRE purchase of at least $500 USDC, which establishes their baseline. This initial buy earns zero reward — it is the entry cost.
 
-### Step 2: Distribute Rewards to Customers
-When a customer makes a purchase, the partner's backend automatically delivers PSRE to that customer's **CustomerVault** — a lightweight wallet contract linked to the partner's ecosystem. Customers don't need to interact with the blockchain directly. From their perspective, it looks just like any other rewards program — except the rewards are a real digital asset.
+**Step 2 — Distribute to Customers**
+When a customer makes a purchase, the partner distributes PSRE to that customer's CustomerVault (a lightweight wallet linked to the partner's ecosystem). Customers don't interact with the blockchain directly — it functions like any other rewards app from their perspective.
 
-### Step 3: Watch the Ecosystem Grow
-As more customers join and hold PSRE, the partner's total ecosystem balance grows. The protocol tracks this growth in real time.
+**Step 3 — Grow the Ecosystem**
+As more customers hold PSRE, the partner's total ecosystem balance grows. When it surpasses its previous all-time high, the protocol issues a small reward to the partner.
 
-### Step 4: Earn Protocol Rewards
-When the partner's ecosystem crosses a new all-time high in total holdings, the Prospereum protocol mints a small amount of new PSRE as a reward to the partner. The partner can use this to fund further customer rewards — creating a self-sustaining flywheel.
+**Step 4 — Earn Back**
+Rewards are proportional to growth. Partners who grow more, earn more. Top-performing partners receive a Bronze, Silver, or Gold tier multiplier — based on their share of total ecosystem growth across all partners over the previous quarter.
 
-**The minimum buy-in is $500 USDC.** There are no subscription fees. There is no ongoing cost beyond the PSRE the partner chooses to distribute to customers.
+### What Partners Need to Know
 
-Partners earn rewards proportional to their growth, and top-performing partners are recognized with **Bronze, Silver, and Gold tier status** — unlocking higher reward rates.
+- Consistent, sustained growth earns and maintains a higher tier than sporadic large buys
+- Customers holding PSRE — rather than withdrawing — keeps the ecosystem balance high
+- Flat periods earn nothing but reset nothing — the all-time-high is preserved, rewards resume when growth resumes
+- Rewards are claimable weekly after each epoch finalization
 
 ---
 
 ## 5. How Customers Benefit
-
-When a customer earns PSRE as a purchase reward, they receive something fundamentally different from traditional loyalty points:
 
 | Feature | Traditional Loyalty Points | PSRE Rewards |
 |---------|--------------------------|--------------|
@@ -118,71 +116,53 @@ When a customer earns PSRE as a purchase reward, they receive something fundamen
 | Can be sold or traded | ❌ No | ✅ Yes |
 | Expires | ❌ Often | ✅ Never |
 | Appreciates over time | ❌ No | ✅ Possible |
-| Works across brands | ❌ No | ✅ Yes (DEX tradeable) |
+| Works across brands | ❌ No | ✅ Yes |
 | Locked to one app | ❌ Yes | ✅ No |
 
-Customers can:
-- **Hold it** — if PSRE appreciates, their rewards grow in value
-- **Claim it** — transfer to their own personal wallet at any time
-- **Spend it** — use PSRE at any partner that accepts it, or trade it on decentralized exchanges
-
-Instead of earning a 5% discount that disappears if they don't redeem it this quarter, a customer earns PSRE that could be worth more next year than it is today.
+Customers receive PSRE in a CustomerVault linked to the brand's app. They can hold it, claim it to a personal wallet, or trade it on decentralized exchanges at any time.
 
 ---
 
 ## 6. Token Economics
 
-### 6.1 Supply — The 21 Million Cap
+### 6.1 The 21 Million Cap
 
-Like Bitcoin, Prospereum has an absolute, immutable maximum supply:
-
-> **21,000,000 PSRE — total, forever. No exceptions.**
-
-This cap is enforced by smart contract and cannot be changed by any governance vote or external party.
+PSRE has an absolute maximum supply of **21,000,000 tokens** — enforced by smart contract, immutable, and not subject to governance override.
 
 ### 6.2 Allocation
 
-| Category | Amount | Notes |
-|----------|--------|-------|
-| **Behavioral Mining Reserve** | 12,600,000 (60%) | Not minted at launch — released only as earned rewards through commerce activity |
-| **Team & Founders** | 4,200,000 (20%) | Locked at genesis in Founder Safe; 4-year Sablier vesting, 1-year cliff |
-| **Treasury** | 4,200,000 (20%) | Held in Treasury Safe; used for genesis LP, ecosystem growth, and infrastructure |
+| Category | Amount | Status at Launch |
+|----------|--------|-----------------|
+| Behavioral Mining Reserve | 12,600,000 (60%) | Locked — released only through verified commerce growth |
+| Team & Founders | 4,200,000 (20%) | Locked — 4-year Sablier vesting, 1-year cliff |
+| Treasury | 4,200,000 (20%) | Held in multisig — used for genesis LP, infrastructure, ecosystem |
 
-**The most important number:** 60% of all PSRE ever to exist — 12.6 million tokens — is locked in the emission reserve and can *only* be released through verified commerce activity. It cannot be sold, given to founders, or released by governance decision.
+**60% of all PSRE that will ever exist is locked in the emission reserve.** It can only be released through verified commerce activity. No governance vote, founder decision, or external authority can release it prematurely.
 
-### 6.3 Scarcity Model
+At launch:
+- No insider holds liquid tokens — team is locked for four years
+- The emission reserve is locked until earned through commerce
+- Genesis liquidity: 200,000 PSRE + $20,000 USDC seeded to Uniswap v3 on Base at a $0.10 launch price
 
-Emission from the reserve is not linear. It follows a **declining scarcity curve** — the more that has already been emitted, the slower new PSRE is released. As the reserve depletes, emission declines mathematically toward zero.
+### 6.3 Scarcity and Appreciation Potential
 
-The weekly emission ceiling is also capped by actual commerce demand — if partners don't grow their ecosystems, no new PSRE is emitted at all.
+**Why scarcity increases over time:**
 
-### 6.4 Launch Parameters
+Emission follows a declining curve — the more PSRE that has been issued, the slower new PSRE is released. As the 12.6M emission reserve depletes over years, the maximum weekly emission decreases mathematically toward zero. Long-run supply growth is structurally deflationary.
 
-- **Launch price:** $0.10 per PSRE
-- **Network:** Base (Ethereum L2, chain ID 8453)
-- **Genesis liquidity:** $40,000 — 200K PSRE + $20K USDC, Uniswap v3
-- **Launch date:** April 22, 2026
-- **Circulating supply at launch:** 8,400,000 PSRE (team + treasury; emission reserve is locked)
+**Why demand is durable:**
 
----
+Unlike speculative tokens, PSRE demand is driven by real commerce operations. Brands must purchase PSRE from the open market to fund customer rewards. As the partner network grows, buying pressure on PSRE grows with it — not from speculation but from business need.
 
-## 7. Why PSRE Appreciates
+**The net effect:**
 
-PSRE is not a speculative asset whose price is based on hype. Its appreciation is driven by two structural forces:
+For every PSRE a partner distributes to customers, only a fraction returns as protocol reward — and even that reward flows into customer wallets, not the open market. Commerce growth removes more PSRE from liquid circulation than it creates. Under real growth conditions, PSRE is net deflationary.
 
-### Force 1: Scarcity
-The 21M supply cap is absolute. 60% is locked in the emission reserve and released only gradually, with the emission rate declining over time. Long-run supply is profoundly deflationary.
-
-### Force 2: Demand from Real Commerce
-Partners must **buy PSRE from the open market** to fund their customer reward programs. Every new partner that joins, every new customer that receives PSRE, every purchase made through a participating brand — all of it creates real, sustained buying pressure.
-
-Unlike speculative tokens, this demand is based on business operations. Brands buy PSRE because they need it to run their loyalty program.
-
-**Net deflationary mechanics:** For every 100 PSRE a partner distributes to customers, only a small amount of new supply is emitted as their reward — and that reward re-enters customer wallets, not the open market.
+**Note:** Token appreciation is a potential outcome of these structural mechanics — it is not guaranteed. PSRE's value within the Prospereum network is primarily as a commerce utility medium. Holders should not purchase PSRE with the expectation of profit from the efforts of others.
 
 ---
 
-## 8. The Commerce Flywheel
+## 7. The Commerce Flywheel
 
 ```
 More Partners join
@@ -191,25 +171,23 @@ More customers receive PSRE rewards
         ↓
 More PSRE held across the ecosystem
         ↓
-Higher demand → PSRE price appreciation
+Sustained demand → supply tightening
         ↓
 PSRE rewards become more valuable to customers
         ↓
-Better loyalty program → more customer retention for partners
+Better loyalty outcomes for partners → more ecosystem growth
         ↓
-Partners earn more PSRE back from the protocol
-        ↓
-Appreciation attracts more Partners
-        ↑___________________________________|
+Partners earn protocol rewards → incentive to grow further
+        ↑_______________________________________________|
 ```
 
-Each rotation of this flywheel adds more real commerce activity to the protocol, removes more PSRE from circulation, and increases the value of every PSRE held by customers.
+Each cycle of this flywheel is driven by real commerce activity — not speculation. This is the structural difference between Prospereum and ICO-launched tokens that peak at launch and decline.
 
 ---
 
-## 9. Launch Policy: No Presale, No ICO
+## 8. Fair Launch
 
-Prospereum launched with a simple, fair principle: **everyone gets in at the same price.**
+Prospereum launched with a simple principle: **everyone gets in at the same price.**
 
 - ❌ No pre-sale
 - ❌ No private token sale
@@ -217,160 +195,80 @@ Prospereum launched with a simple, fair principle: **everyone gets in at the sam
 - ❌ No discounted insider allocation
 - ✅ Public DEX launch at $0.10 with $40,000 genesis liquidity
 
-On day one of public trading, no insider held liquid tokens — founder tokens vest over four years and the emission reserve is locked until earned through commerce.
+No insider held liquid tokens at launch. Founder tokens vest over four years. The emission reserve is locked until earned through commerce.
 
 ---
 
-## 10. Team Vesting: Aligned for the Long Term
+## 9. Security and Transparency
 
-The 4,200,000 PSRE team allocation is locked in a **Sablier streaming contract**:
+**Independent Audit:** Prospereum was audited by **BlockApex** (April 2–17, 2026) before mainnet launch.
 
-- **1-year cliff:** No tokens released for the first 12 months
-- **4-year linear vesting:** Tokens released smoothly over 48 months
-- **Smart contract enforced:** Cannot be accelerated, overridden, or modified
+- 29 findings identified across two audit phases
+- All 29 findings resolved before deployment
+- Public audit report: https://github.com/BlockApex/Audit-Reports/blob/master/Prospereum%20Protocol_Final%20Audit%20Report.pdf
 
-Founders cannot accelerate their vesting. Anyone can verify the lock on-chain.
+**On-chain transparency:** All protocol state — ecosystem balances, cumulative high-water marks, epoch rewards, staking positions — is publicly readable on Base mainnet at any time.
 
----
-
-## 11. Technical Architecture
-
-Prospereum is built on **Base** — Ethereum's leading Layer 2, offering low fees, fast finality, and full EVM compatibility.
-
-The protocol consists of six smart contracts:
-
-| Contract | Role |
-|----------|------|
-| **PSRE Token** | ERC-20 token with hard-capped supply and epoch-rate-limited minting |
-| **PartnerVaultFactory** | Creates PartnerVaults for incoming partners via initial USDC→PSRE swap |
-| **PartnerVault** | Manages a partner's ecosystem balance and CustomerVault registry |
-| **CustomerVault** | Lightweight wallet for each customer, linked to their partner's ecosystem |
-| **StakingVault** | Manages PSRE staking for protocol reward sharing |
-| **RewardEngine** | Calculates and distributes epoch rewards. UUPS upgradeable with 7-day timelock. |
-
-**Mainnet contract addresses (Base, April 2026):**
-
-| Contract | Address |
-|----------|---------|
-| PSRE | `0x2fE08f304f1Af799Bc29E3D4E210973291d96702` |
-| PartnerVaultFactory | `0xFF84408633f79b8f562314cC5A3bCaedA8f76902` |
-| StakingVault | `0x684BEA07e979CB5925d546b2E2099aA1c632ED2D` |
-| RewardEngine | `0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5` |
-
-All contracts are:
-- **Audited** by BlockApex before mainnet deployment
-- **Non-upgradeable** in their core monetary logic (RewardEngine upgradeable only with 7-day timelock)
-- **Transparent** — all state is publicly verifiable on-chain
-
-The protocol operates in **7-day epochs**. Every seven days, the RewardEngine evaluates all partner ecosystems, calculates earned rewards, and distributes them. No human intervention is required.
+**Governance:** A 2-of-3 Gnosis Safe multisig controls protocol parameters, with timelocks on all parameter changes (48 hours minimum; 7 days for contract upgrades). Core monetary rules are immutable.
 
 ---
 
-## 12. Security
+## 10. Governance
 
-Prospereum was independently audited by **BlockApex** before mainnet launch.
-
-- **Audit period:** April 2–17, 2026
-- **Findings:** 29 total across two audit phases
-- **Resolution:** All 29 findings resolved before deployment
-- **Report:** https://github.com/BlockApex/Audit-Reports/blob/master/Prospereum%20Protocol_Final%20Audit%20Report.pdf
-
-The protocol uses a 2-of-3 Gnosis Safe multisig for governance operations, with a 7-day timelock on any protocol upgrades.
-
----
-
-## 13. Governance
-
-Prospereum governance is structured for both security and decentralization:
-
-**Operational governance (current):** A 2-of-3 multisig (Gnosis Safe) held by the founding team controls protocol parameters. All parameter changes are timelocked by 48 hours. Upgrade proposals for the RewardEngine require a 7-day timelock.
-
-**What can be adjusted:**
+**What can be adjusted** (with timelocks):
 - Base reward rate (within defined bounds)
 - Partner tier thresholds
-- Reward pool allocation
 - Weekly emission ceiling (within bounds)
 - Minimum partner entry requirement
 
 **What can never be changed:**
 - The 21,000,000 PSRE maximum supply
 - The 12,600,000 emission reserve
+- The rule that new PSRE can only be minted through verified commerce growth
 - The scarcity function structure
-- The rule that new PSRE can only be minted through Proof of Prosperity
+
+The monetary constitution of Prospereum — the rules that protect every PSRE holder — is locked permanently in immutable smart contracts.
 
 ---
 
-## 14. Staking Rewards
+## 11. Regulatory Considerations
 
-Prospereum distributes 30% of each epoch's emission to **PSRE stakers**:
+PSRE is designed and operates as a **utility token**, not a security or financial instrument.
 
-- **PSRE Stakers** lock their tokens in the StakingVault and earn a share of epoch rewards
-- Staking is **passive** — stake once and rewards accrue automatically, no ongoing interaction required
-- Rewards are proportional to the amount staked and duration held
-- Flash staking is structurally ineffective; sustained participation is rewarded
+**Functional utility:** PSRE serves a defined functional purpose within the Prospereum network. Brands purchase it to fund loyalty programs; customers receive and use it as purchase rewards; stakers use it to participate in protocol governance and earn staking rewards. These are active, functional uses — not passive financial instruments.
 
----
+**Active participation required:** Protocol rewards flow only through active commerce participation. Partners must actively grow their customer ecosystem to earn rewards. Passive holding of PSRE does not entitle the holder to protocol rewards. There is no mechanism by which PSRE holders earn returns from the efforts of the Prospereum team.
 
-## 15. Use Cases
+**No profit-sharing:** PSRE does not represent ownership in WealthHealth AI or any legal entity. It does not pay dividends. It does not entitle holders to a share of company revenues.
 
-**For DTC Brands and Ecommerce Merchants:**
-- Replace points programs with an appreciating digital asset
-- Differentiate your loyalty program with something customers actually want to hold
-- Earn protocol rewards when your customer base grows
-- No blockchain expertise required
+**Decentralized issuance:** New PSRE is issued automatically by smart contracts based on verified on-chain metrics — not at the discretion of any person or company. The Prospereum team cannot increase supply, alter the emission rules, or direct rewards to themselves.
 
-**For Investors:**
-- Fixed 21M supply with 60% locked in emission reserve
-- Demand driven by real commerce, not speculation
-- Fair launch — no insider advantage at genesis
-
-**For Crypto Community:**
-- Stake PSRE to earn protocol rewards
-- Transparent, audited, immutable core mechanics
+*Note: This document does not constitute legal advice. Regulatory classification of digital assets varies by jurisdiction. Consult qualified legal counsel regarding applicable regulations in your jurisdiction.*
 
 ---
 
-## 16. Summary
+## 12. Deployed Protocol
 
-| Property | Prospereum |
-|----------|-----------|
-| **Status** | Live on Base mainnet (April 22, 2026) |
-| **Supply** | 21,000,000 — fixed forever |
-| **Emission** | Demand-gated + scarcity-capped |
-| **Demand** | Real commerce buying from brand partners |
-| **Launch** | Fair — no presale, no ICO, $0.10 public launch |
-| **Team** | Locked — 4-year vest, 1-year cliff, Sablier contract |
-| **Chain** | Base (Ethereum L2, chain ID 8453) |
-| **Security** | Audited by BlockApex — all findings resolved |
-| **Governance** | Multisig (Gnosis Safe, 2-of-3) + governance timelocks |
+**Network:** Base (Ethereum L2, chain ID 8453)
+**Launch date:** April 22, 2026
 
----
+| Contract | Address |
+|----------|---------|
+| PSRE Token | `0x2fE08f304f1Af799Bc29E3D4E210973291d96702` |
+| PartnerVaultFactory | `0xFF84408633f79b8f562314cC5A3bCaedA8f76902` |
+| StakingVault | `0x684BEA07e979CB5925d546b2E2099aA1c632ED2D` |
+| RewardEngine | `0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5` |
 
-## Call to Action
-
-### For Brand Partners
-If you run an ecommerce brand or DTC business and spend money on loyalty programs — Prospereum is built for you.
-
-> **Contact:** partnerships@prospereum.io | prospereum.io/partners
-
-### For Investors
-PSRE is live on Base. The team is locked for four years. The emission reserve is locked until earned through commerce.
-
-> **Trade PSRE on Base:** Uniswap v3, PSRE/USDC pool
-
-### For the Community
-Stake PSRE. Help build the commerce rewards layer that the internet deserves.
-
-> **Learn more:** prospereum.io | Discord: discord.gg/prospereum
+Full deployment details: https://github.com/wealthhealthai/prospereum-protocol
 
 ---
 
 ## Legal Disclaimer
 
-This document is a public whitepaper intended for informational purposes only. It does not constitute financial advice, an offer to sell securities, or a solicitation of investment. PSRE is a utility token used within the Prospereum protocol ecosystem. Cryptocurrency investments involve significant risk, including loss of principal. Please consult qualified legal and financial advisors before making investment decisions. The Prospereum protocol is governed by its smart contracts; this document describes protocol mechanics in accessible language — the on-chain contracts are the authoritative source of truth.
+This document is a public whitepaper intended for informational purposes only. It does not constitute financial advice, investment advice, or an offer to sell securities. PSRE is a utility token used within the Prospereum protocol ecosystem. Purchasing or holding PSRE involves significant risk, including complete loss of value. Past performance and structural mechanics do not guarantee future appreciation. Please consult qualified legal and financial advisors before making any decisions. The on-chain smart contracts are the authoritative source of truth for all protocol mechanics.
 
 ---
 
 *Prospereum (PSRE) — Proof of Prosperity: The Commerce Rewards Protocol*
 *Public Whitepaper v3.4 — April 2026*
-*All core protocol mechanics governed by immutable smart contracts on Base.*
+*WealthHealth AI, Inc.*
