@@ -1,42 +1,44 @@
-# GOODNIGHT.md — 2026-04-23
+# GOODNIGHT.md — 2026-04-24
 
-## Prospereum is Operational on Base Mainnet ✅
+## What Was Done Today
 
-Wiring complete (April 22, 12:18 PDT). Jason + Shu signed. Protocol is live.
+**Documentation complete.** Dev spec v3.4 frozen. Partner guide v1.0 live. Public whitepaper v3.4 updated. All docs standardized. No code changes.
 
-**Wiring tx:** `0x66a1e7e131f55767b2a827e3a0cf0a8068d0d411da067660f4449b541371f6cd`
+| Doc | Status |
+|---|---|
+| Dev spec v3.4 | ✅ FROZEN — canonical mainnet spec |
+| Whitepaper v3.3 | ✅ Public-ready |
+| Public whitepaper v3.4 | ✅ Regulatory framing |
+| Partner guide v1.0 | ✅ First external-facing onboarding doc |
+| Internal rationale v3.4 | ✅ §2.6 flash-loan closure added |
+| README | ✅ Updated for mainnet + audit |
 
-## Keeper
+## Protocol State
 
-- Script: KEEPER_NETWORK=mainnet → `0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5` ✅
-- Cron: daily 05:00 UTC. Dry-run verified. ✅
-- **⚠️ Ops wallet key needed:** `DEPLOYER_PK` in `.env` must be updated to mainnet ops wallet key before **April 29 05:00 UTC** (Epoch 0 finalization). Current `.env` has testnet throwaway key.
-- **⚠️ Ops wallet funding:** `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` needs ≥ 0.05 ETH on Base mainnet.
+- **Contracts:** Live on Base mainnet ✅
+- **Audit:** CLEAN ✅
+- **Docs:** Frozen at v3.4 ✅
+- **Epoch 0 closes:** April 29 03:52 UTC — **5 days**
 
-## Post-Deploy Checklist
+## ⚠️ Ops Wallet — Before April 29
 
-| Item | Who | Status |
-|---|---|---|
-| Wiring batch | Jason + Shu | ✅ Done |
-| Genesis LP seeding ($40K) | Jason + Shu | ⏳ |
-| Unicrypt LP lock (24 months) | Jason + Shu | ⏳ |
-| setSplit(1e18, 0) — disable LP staking | Founder Safe | ⏳ |
-| Sablier vesting from Founder Safe | Shu | ⏳ |
-| Basescan contract verification | Kin | ⏳ |
-| Dashboard update (mainnet addresses) | Kin | ⏳ |
-| Ops wallet key + funding for keeper | Jason | **⚠️ Before April 29** |
-| Nadir final commit hash → audit closed | Jason | ⏳ |
-| BlockApex badge on website | Jason | ⏳ |
+Keeper needs mainnet ops wallet key to sign `finalizeEpoch(0)`:
+```
+1. DEPLOYER_PK → update .env with mainnet ops wallet key
+2. Fund 0xa3C082910FF91425d45EBf15C52120cBc97aFef5 ≥0.05 ETH on Base
+```
+If not done in time → manual `cast send` as fallback. Not critical but cleaner if automated.
 
-## Epoch Schedule
+## Remaining Post-Deploy (Jason + Shu pace)
 
-- **Epoch 0 closes: April 29 03:52 UTC**
-- Keeper fires: April 29 05:00 UTC (1h after close)
-- Ops wallet must be funded and key updated before then
+- Genesis LP seeding ($40K, Treasury Safe, Uniswap v3 1%)
+- Unicrypt LP lock (24 months)
+- setSplit(1e18, 0) to disable empty LP sub-pool
+- Sablier vesting (Shu)
+- Nadir closing message + audit badge on website
 
 ## Notes for Tomorrow
 
-1. Get mainnet `DEPLOYER_PK` into `.env` and fund ops wallet on Base mainnet
-2. LP seeding + Unicrypt lock (Treasury Safe)
-3. setSplit call (Founder Safe)
-4. Basescan verification + dashboard update
+- No urgent protocol work
+- Epoch 0 closes April 29 — 5 days away, keeper handles automatically if funded
+- Partner guide is live — first external-facing onboarding doc is ready
