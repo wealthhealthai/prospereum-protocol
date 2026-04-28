@@ -204,6 +204,73 @@ These are STALE — pre-fix bytecode from March 28, 2026. Do not use for anythin
 
 ---
 
+---
+
+## 15. Reference Document Paths (read when needing more context)
+
+All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
+
+### Protocol Spec & Architecture
+| File | When to read |
+|------|-------------|
+| `projects/prospereum/prospereum-dev-spec-v3.4.md` | Definitive technical spec — frozen at mainnet. Read before touching any contract logic. |
+| `projects/prospereum/prospereum-whitepaper-v3.4.md` | Full internal whitepaper with all formulas, EMA math, scarcity curves. |
+| `projects/prospereum/prospereum-internal-rationale-v3.2.md` | Anti-spam + anti-inflation proofs with simulations. |
+
+### Decisions & Deployments (living records)
+| File | When to read |
+|------|-------------|
+| `projects/prospereum/decisions.md` | Every protocol decision ever made — read before proposing any architecture change. |
+| `projects/prospereum/deployments.md` | Every deployed contract: mainnet + testnet addresses, tx hashes, dates. |
+
+### Contracts (source code)
+| Path | Contents |
+|------|---------|
+| `contracts/core/PSRE.sol` | Token: 21M cap, mintForEpoch, epoch mint cap |
+| `contracts/core/PartnerVault.sol` | cumS tracking, buy(), distributeToCustomer(), recoverToken() |
+| `contracts/core/PartnerVaultFactory.sol` | Vault creation, fee tier whitelist, autoFinalizeEpochs trigger |
+| `contracts/core/CustomerVault.sol` | Customer wallet, claimVault() live owner lookup |
+| `contracts/periphery/StakingVault.sol` | Synthetix cumulative accumulator, two sub-pools, setSplit() |
+| `contracts/periphery/RewardEngine.sol` | Epoch math, EMA tiers, scarcityCeiling, _finalizeSingleEpoch() |
+| `contracts/interfaces/` | IPartnerVault, IStakingVault, IPSRE, IRewardEngine |
+
+### Audit
+| File | Contents |
+|------|---------|
+| `audit/blockapex-final-report-2026-04-17.pdf` | Full BlockApex audit report (corrected, Fixed Commit = 31eb313) |
+| `audit/blockapex-findings-response.csv` | All 25+ findings mapped to fix commits |
+| `audit/prospereum-wire-up-safe-batch.json` | Wire-up batch (already executed, for reference) |
+| `audit/setSplit-safe-batch.json` | setSplit batch (commit 5070094, nonce 2, Jason signed) |
+
+### Memory & Session Logs
+| Path | Contents |
+|------|---------|
+| `GOODNIGHT.md` | Last session state snapshot — read on boot if MEMORY.md feels thin |
+| `memory/YYYY-MM-DD.md` | Daily logs — detailed record of what was built each day |
+| `memory/sessions/` | PHOENIX session summaries per child session |
+| `memory/morning-brief/` | Shiro-compiled morning briefs |
+
+### Operations
+| File | Contents |
+|------|---------|
+| `scripts/epoch-keeper.sh` | Keeper script — mainnet + testnet, reads DEPLOYER_PK from .env |
+| `script/DeployPhase1_PSRE.s.sol` | Phase 1 deploy script (PSRE only) |
+| `script/DeployPhase2_Contracts.s.sol` | Phase 2 deploy script (all other contracts) |
+| `script/DeployMainnet.s.sol` | Original single-phase script (reference only) |
+| `.env` | Gitignored — DEPLOYER_PK, BASE_RPC, Safe addresses, PSRE_ADDRESS, LP_TOKEN_ADDRESS |
+
+### External References
+| Resource | URL |
+|----------|-----|
+| GitHub repo | https://github.com/wealthhealthai/prospereum-protocol |
+| BlockApex audit (public) | https://github.com/BlockApex/Audit-Reports/blob/master/Prospereum%20Protocol_Final%20Audit%20Report.pdf |
+| Founder Safe | https://app.safe.global/home?safe=base:0xc59816CAC94A969E50EdFf7CF49ce727aec1489F |
+| Treasury Safe | https://app.safe.global/home?safe=base:0xa9Fde837EBC15BEE101d0D895c41a296Ac2CAfCe |
+| PSRE on Basescan | https://basescan.org/address/0x2fE08f304f1Af799Bc29E3D4E210973291d96702 |
+| RewardEngine on Basescan | https://basescan.org/address/0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5 |
+
+---
+
 *Source of truth: GitHub repo `wealthhealthai/prospereum-protocol`, branch `master`*
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
