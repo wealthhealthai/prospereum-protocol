@@ -1,44 +1,26 @@
-# GOODNIGHT.md — 2026-04-24
+# GOODNIGHT.md — 2026-04-29
 
 ## What Was Done Today
+- **MEMORY.md created** — 13.1KB, §15 reference paths added. `6feb6d5`
+- **Epoch 0 fully analyzed** — 0 PSRE minted (correct, no partners), clean finalization
+- Confirmed keeper announce "12,600 PSRE minted" was a cron sub-agent decoding error — no bug
+- Jason answered questions: Safe addresses, Epoch 0 timing, setSplit impact, epoch duration (7 days)
 
-**Documentation complete.** Dev spec v3.4 frozen. Partner guide v1.0 live. Public whitepaper v3.4 updated. All docs standardized. No code changes.
+## Current State
+- Epoch 0: finalized ✅ — 0 PSRE minted, PSRE supply = 8.4M, T = 0
+- Epoch 1: running — closes May 6 03:52 UTC
+- setSplit (nonce 2): Jason signed, Shu pending
+- LP pool: not yet created (Shu's USDC clearing)
+- Partners: 0 registered
 
-| Doc | Status |
-|---|---|
-| Dev spec v3.4 | ✅ FROZEN — canonical mainnet spec |
-| Whitepaper v3.3 | ✅ Public-ready |
-| Public whitepaper v3.4 | ✅ Regulatory framing |
-| Partner guide v1.0 | ✅ First external-facing onboarding doc |
-| Internal rationale v3.4 | ✅ §2.6 flash-loan closure added |
-| README | ✅ Updated for mainnet + audit |
-
-## Protocol State
-
-- **Contracts:** Live on Base mainnet ✅
-- **Audit:** CLEAN ✅
-- **Docs:** Frozen at v3.4 ✅
-- **Epoch 0 closes:** April 29 03:52 UTC — **5 days**
-
-## ⚠️ Ops Wallet — Before April 29
-
-Keeper needs mainnet ops wallet key to sign `finalizeEpoch(0)`:
-```
-1. DEPLOYER_PK → update .env with mainnet ops wallet key
-2. Fund 0xa3C082910FF91425d45EBf15C52120cBc97aFef5 ≥0.05 ETH on Base
-```
-If not done in time → manual `cast send` as fallback. Not critical but cleaner if automated.
-
-## Remaining Post-Deploy (Jason + Shu pace)
-
-- Genesis LP seeding ($40K, Treasury Safe, Uniswap v3 1%)
-- Unicrypt LP lock (24 months)
-- setSplit(1e18, 0) to disable empty LP sub-pool
-- Sablier vesting (Shu)
-- Nadir closing message + audit badge on website
+## Open Items
+1. **Shu: sign setSplit** — before May 6
+2. **Shu: create LP pool** — USDC clears today
+3. **Shu: Unicrypt LP lock** — after pool seeded
+4. **Contract verification on Basescan** — need Etherscan API key
+5. **Sablier vesting** — Shu to set up
 
 ## Notes for Tomorrow
-
-- No urgent protocol work
-- Epoch 0 closes April 29 — 5 days away, keeper handles automatically if funded
-- Partner guide is live — first external-facing onboarding doc is ready
+- No action needed on keeper — it auto-runs daily
+- Push Shu on setSplit and LP pool
+- Protocol is live and clean, just waiting for first partner
