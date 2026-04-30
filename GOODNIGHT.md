@@ -1,26 +1,38 @@
-# GOODNIGHT.md — 2026-04-29
+# GOODNIGHT.md — 2026-04-30
 
-## What Was Done Today
-- **MEMORY.md created** — 13.1KB, §15 reference paths added. `6feb6d5`
-- **Epoch 0 fully analyzed** — 0 PSRE minted (correct, no partners), clean finalization
-- Confirmed keeper announce "12,600 PSRE minted" was a cron sub-agent decoding error — no bug
-- Jason answered questions: Safe addresses, Epoch 0 timing, setSplit impact, epoch duration (7 days)
+## Protocol State
 
-## Current State
-- Epoch 0: finalized ✅ — 0 PSRE minted, PSRE supply = 8.4M, T = 0
-- Epoch 1: running — closes May 6 03:52 UTC
-- setSplit (nonce 2): Jason signed, Shu pending
-- LP pool: not yet created (Shu's USDC clearing)
-- Partners: 0 registered
+- **Epoch 0:** ✅ Finalized clean (0 PSRE minted — no partners yet, correct)
+- **Epoch 1:** Running — closes **May 6 03:52 UTC** (6 days)
+- **T (total emitted):** 0
+- **Partners:** 0 registered
+- **PSRE supply:** 8,400,000 (genesis only)
 
-## Open Items
-1. **Shu: sign setSplit** — before May 6
-2. **Shu: create LP pool** — USDC clears today
-3. **Shu: Unicrypt LP lock** — after pool seeded
-4. **Contract verification on Basescan** — need Etherscan API key
-5. **Sablier vesting** — Shu to set up
+## ⚠️ Before May 6 (Epoch 1 close)
+
+**Shu must sign `setSplit(1e18, 0)` — Founder Safe nonce 2 (Jason already signed)**
+
+Without this: if any PSRE gets staked before May 6, half the staker allocation goes to the LP sub-pool with zero LP stakers — emission consumed with no claimants. One signature fixes it.
+
+## Pending (Shu pace)
+
+| Item | Status |
+|---|---|
+| setSplit(1e18, 0) | Jason ✅ Shu ⏳ |
+| Genesis LP pool ($40K) | ⏳ Shu USDC was clearing ~Apr 29 |
+| Unicrypt LP lock | Blocked on pool creation |
+| Sablier vesting | ⏳ Shu |
+
+## Kin Notes
+
+- **Keeper:** Daily 05:00 UTC, mainnet, ANNOUNCE_SKIP until epochs have activity
+- **Epoch 1 closer:** May 6 05:00 UTC — keeper auto-fires
+- **Ops wallet:** Needs mainnet `DEPLOYER_PK` + ≥ 0.05 ETH on Base before May 6
+- **MEMORY.md + SOUL.md updated this week** — bootstrap context is solid
 
 ## Notes for Tomorrow
-- No action needed on keeper — it auto-runs daily
-- Push Shu on setSplit and LP pool
-- Protocol is live and clean, just waiting for first partner
+
+1. Nudge Shu on setSplit signature (one tx, Founder Safe nonce 2)
+2. LP pool creation — Shu's USDC should have cleared by now
+3. No urgent protocol work from Kin's side
+4. First real emission test = first partner vault + Epoch 1 finalization
