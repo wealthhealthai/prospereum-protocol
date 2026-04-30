@@ -9,21 +9,8 @@ import "../interfaces/IPartnerVaultFactory.sol";
 import "../interfaces/IRewardEngine.sol";
 import "../interfaces/ICustomerVault.sol";
 
-/// @dev Minimal Uniswap v3 SwapRouter interface (Base mainnet)
-interface ISwapRouter {
-    struct ExactInputSingleParams {
-        address tokenIn;
-        address tokenOut;
-        uint24  fee;
-        address recipient;
-        uint256 deadline;
-        uint256 amountIn;
-        uint256 amountOutMinimum;
-        uint160 sqrtPriceLimitX96;
-    }
-    function exactInputSingle(ExactInputSingleParams calldata params)
-        external payable returns (uint256 amountOut);
-}
+// ISwapRouter removed — PartnerVault no longer handles DEX swaps.
+// Partners acquire PSRE via any channel and call buy(psreAmountIn) directly.
 
 /**
  * @title PartnerVault v3.2
@@ -51,8 +38,6 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     address public owner;
     address public pendingOwner;
     address public psre;
-    address public router;
-    address public inputToken;
     address public rewardEngine;
     address public factory;
 
@@ -92,7 +77,7 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     // Events
     // ─────────────────────────────────────────────────────────────────────────
 
-    event PartnerBought(address indexed vault, uint256 amountIn, uint256 psreOut,
+    event PartnerBought(address indexed vault, uint256 psreAmountIn,
                         uint256 ecosystemBalance, uint256 cumS);
     event DistributedToCustomer(address indexed vault, address indexed customerVault, uint256 amount);
     event PSREExitedEcosystem(address indexed vault, address indexed to, uint256 amount,
@@ -140,24 +125,18 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     function initialize(
         address _owner,
         address _psre,
-        address _router,
-        address _inputToken,
         address _rewardEngine,
         address _factory
     ) external {
         require(!_initialized,             "PartnerVault: already initialized");
         require(_owner        != address(0), "PartnerVault: zero owner");
         require(_psre         != address(0), "PartnerVault: zero psre");
-        require(_router       != address(0), "PartnerVault: zero router");
-        require(_inputToken   != address(0), "PartnerVault: zero inputToken");
         require(_rewardEngine != address(0), "PartnerVault: zero rewardEngine");
         require(_factory      != address(0), "PartnerVault: zero factory");
 
         _initialized  = true;
         owner         = _owner;
         psre          = _psre;
-        router        = _router;
-        inputToken    = _inputToken;
         rewardEngine  = _rewardEngine;
         factory       = _factory;
     }
@@ -181,57 +160,31 @@ contract PartnerVault is ReentrancyGuard, IPartnerVault {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // buy() — Execute PSRE purchase via DEX router
+    // buy() — Add PSRE to the vault ecosystem
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Swap inputToken → PSRE and record the buy.
-     *         Updates ecosystemBalance and cumS ratchet.
+     * @notice Add PSRE to this vault's ecosystem balance and update the cumS ratchet.
+     *         Partners acquire PSRE via any channel (DEX, CEX, OTC, existing balance)
+     *         and call this function to commit it to the ecosystem.
      *
-     * @param amountIn      Amount of inputToken to spend.
-     * @param minAmountOut  Minimum PSRE to receive (slippage protection; must be > 0).
-     * @param deadline      Unix timestamp after which swap reverts.
-     * @param fee           Uniswap v3 pool fee tier (e.g. 3000 = 0.3%).
+     *         DEX-agnostic: no swap logic, no router dependency. Partners choose
+     *         how they acquire PSRE — the protocol only cares that it enters the vault.
+     *
+     * @param psreAmountIn  Amount of PSRE to add to the ecosystem. Must be > 0.
      */
-    function buy(
-        uint256 amountIn,
-        uint256 minAmountOut,
-        uint256 deadline,
-        uint24  fee
-    ) external onlyOwner nonReentrant returns (uint256 psreOut) {
-        require(amountIn     > 0,                "PartnerVault: zero amountIn");
-        require(minAmountOut > 0,                "PartnerVault: slippage protection required");
-        require(deadline >= block.timestamp,     "PartnerVault: expired deadline");
+    function buy(uint256 psreAmountIn) external onlyOwner nonReentrant {
+        require(psreAmountIn > 0, "PartnerVault: zero amount");
 
         // Lazy epoch finalization
         IRewardEngine(rewardEngine).autoFinalizeEpochs();
 
-        IERC20(inputToken).safeTransferFrom(msg.sender, address(this), amountIn);
-        IERC20(inputToken).forceApprove(router, amountIn);
+        IERC20(psre).safeTransferFrom(msg.sender, address(this), psreAmountIn);
 
-        uint256 psreBefore = IERC20(psre).balanceOf(address(this));
-
-        ISwapRouter(router).exactInputSingle(
-            ISwapRouter.ExactInputSingleParams({
-                tokenIn:           inputToken,
-                tokenOut:          psre,
-                fee:               fee,
-                recipient:         address(this),
-                deadline:          deadline,
-                amountIn:          amountIn,
-                amountOutMinimum:  minAmountOut,
-                sqrtPriceLimitX96: 0
-            })
-        );
-
-        uint256 psreAfter = IERC20(psre).balanceOf(address(this));
-        psreOut = psreAfter - psreBefore;
-        require(psreOut > 0, "PartnerVault: zero psreOut");
-
-        ecosystemBalance += psreOut;
+        ecosystemBalance += psreAmountIn;
         _updateCumS();
 
-        emit PartnerBought(address(this), amountIn, psreOut, ecosystemBalance, cumS);
+        emit PartnerBought(address(this), psreAmountIn, ecosystemBalance, cumS);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

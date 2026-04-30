@@ -5,8 +5,7 @@ import "forge-std/Test.sol";
 import "../contracts/core/PartnerVault.sol";
 import "../contracts/core/CustomerVault.sol";
 import "../contracts/core/PSRE.sol";
-import "./mocks/MockERC20.sol";
-import "./mocks/MockSwapRouter.sol";
+
 import "./mocks/MockVaultFactory.sol";
 import "./mocks/MockRewardEngine.sol";
 
@@ -18,8 +17,6 @@ contract CustomerVaultTest is Test {
     PartnerVault   public vault;
     CustomerVault  public cv;
     PSRE           public psre;
-    MockERC20      public usdc;
-    MockSwapRouter public router;
 
     address public admin        = makeAddr("admin");
     address public treasury     = makeAddr("treasury");
@@ -38,10 +35,7 @@ contract CustomerVaultTest is Test {
     function setUp() public {
         genesis = block.timestamp;
 
-        psre   = new PSRE(admin, treasury, teamVesting, genesis);
-        usdc   = new MockERC20("USD Coin", "USDC", 6);
-        router = new MockSwapRouter(address(psre), 1000e18);
-        deal(address(psre), address(router), 100_000e18);
+        psre = new PSRE(admin, treasury, teamVesting, genesis);
 
         // Use MockVaultFactory so isCustomerVaultOf() can be called (MAJOR-1)
         factoryMock = new MockVaultFactory();
@@ -53,7 +47,7 @@ contract CustomerVaultTest is Test {
         // Deploy and init PartnerVault
         vault = new PartnerVault();
         vm.prank(factory);
-        vault.initialize(partner, address(psre), address(router), address(usdc), rewardEngine, factory);
+        vault.initialize(partner, address(psre), rewardEngine, factory);
 
         // Simulate initial buy via factoryInit
         deal(address(psre), address(vault), INITIAL_PSRE);
@@ -270,12 +264,12 @@ contract CustomerVaultTest is Test {
         // (distributeToCustomer doesn't change ecosystemBalance)
         // But cumS should include CV balance when snapshotEpoch is called
 
-        // Do a buy to grow cumS above lastEpochCumS=INITIAL_PSRE
-        usdc.mint(partner, 100e6);
+        // Do a buy to grow cumS above lastEpochCumS=INITIAL_PSRE (PSRE-native)
+        deal(address(psre), partner, 1_000e18);
         vm.prank(partner);
-        usdc.approve(address(vault), type(uint256).max);
+        psre.approve(address(vault), 1_000e18);
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         // Snapshot
         vm.prank(rewardEngine);

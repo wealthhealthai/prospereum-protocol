@@ -1,4 +1,4 @@
-# Prospereum Partner Guide v1.0
+# Prospereum Partner Guide v3.4
 
 **How to Earn Protocol Rewards as a Prospereum Partner**
 *April 2026 — For Registered Partners and Brand Prospects*
@@ -178,6 +178,6 @@ For technical integration support: **partnerships@prospereum.io**
 
 ---
 
-*Prospereum Partner Guide v1.0 — April 2026*
+*Prospereum Partner Guide v3.4 — April 2026*
 *Live on Base Mainnet | Audited by BlockApex*
 *On-chain contracts are the authoritative source of truth for all reward calculations.*

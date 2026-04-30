@@ -232,6 +232,7 @@ contract RewardEngine is
     event ParamUpdated(string param, uint256 oldValue, uint256 newValue);
     /// @notice Fix #22: emitted when a queued governance parameter update is cancelled.
     event ParamUpdateCancelled(string param, uint256 cancelledValue);
+    event FactoryUpdated(address indexed oldFactory, address indexed newFactory);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Constructor — disables initializers on the implementation contract
@@ -903,6 +904,19 @@ contract RewardEngine is
         mGold           = pendingMGold;
         delete pendingTierParams;
         emit ParamUpdated("tierParams", 0, 1);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Factory update (supports factory redeploy without full RE upgrade)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice Update the factory address. Called after deploying a new PartnerVaultFactory.
+    ///         Only callable by owner (Founder Safe). Emits FactoryUpdated.
+    function setFactory(address _factory) external onlyOwner {
+        require(_factory != address(0), "RE: zero factory");
+        address old = address(factory);
+        factory = IPartnerVaultFactory(_factory);
+        emit FactoryUpdated(old, _factory);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

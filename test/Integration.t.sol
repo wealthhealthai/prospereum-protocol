@@ -10,7 +10,6 @@ import "../contracts/periphery/RewardEngine.sol";
 import "../contracts/periphery/StakingVault.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "./mocks/MockERC20.sol";
-import "./mocks/MockSwapRouter.sol";
 
 /**
  * @title IntegrationTest v3.2
@@ -33,9 +32,7 @@ contract IntegrationTest is Test {
     RewardEngine        public re;
     StakingVault        public sv;
     PSRE                public psre;
-    MockERC20           public usdc;
     MockERC20           public lpToken;
-    MockSwapRouter      public router;
 
     address public admin      = makeAddr("admin");
     address public treasury   = makeAddr("treasury");
@@ -58,10 +55,7 @@ contract IntegrationTest is Test {
 
         // Tokens
         psre    = new PSRE(admin, treasury, teamVest, genesis);
-        usdc    = new MockERC20("USD Coin", "USDC", 6);
         lpToken = new MockERC20("PSRE-USDC LP", "LP", 18);
-        router  = new MockSwapRouter(address(psre), PSRE_PER_SWAP);
-        deal(address(psre), address(router), 100_000_000e18);
 
         // Implementations
         vaultImpl = new PartnerVault();
@@ -71,10 +65,7 @@ contract IntegrationTest is Test {
         sv = new StakingVault(address(psre), address(lpToken), genesis, admin);
 
         // Factory
-        factory = new PartnerVaultFactory(
-            address(vaultImpl), address(cvImpl),
-            address(psre), address(router), address(usdc),
-            admin
+        factory = new PartnerVaultFactory(address(vaultImpl), address(cvImpl), address(psre), admin
         );
 
         // RewardEngine — deploy via UUPS proxy (MAJOR-3)
@@ -100,13 +91,17 @@ contract IntegrationTest is Test {
         psre.grantRole(psre.MINTER_ROLE(), address(re));
         vm.stopPrank();
 
-        // Fund partners
-        usdc.mint(partner,  100_000e6);
-        usdc.mint(partner2, 100_000e6);
+        // Lower psreMin so tests can use PSRE_PER_SWAP (1000e18) for both createVault and buy()
+        vm.prank(admin);
+        factory.setPsreMin(PSRE_PER_SWAP);
+
+        // Fund partners with PSRE (PSRE-native entry — no USDC/router needed)
+        deal(address(psre), partner,  10_000_000e18);
+        deal(address(psre), partner2, 10_000_000e18);
         vm.prank(partner);
-        usdc.approve(address(factory), type(uint256).max);
+        psre.approve(address(factory), type(uint256).max);
         vm.prank(partner2);
-        usdc.approve(address(factory), type(uint256).max);
+        psre.approve(address(factory), type(uint256).max);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -117,12 +112,12 @@ contract IntegrationTest is Test {
     }
 
     function _buyViaBuy(address _partner, PartnerVault pv, uint256 psreAmt) internal {
-        router.setPsreOut(psreAmt);
-        usdc.mint(_partner, 100e6);
+        // Preserve existing balance when topping up — deal() overwrites, so add to current.
+        deal(address(psre), _partner, psre.balanceOf(_partner) + psreAmt);
         vm.prank(_partner);
-        usdc.approve(address(pv), type(uint256).max);
+        psre.approve(address(pv), psreAmt);
         vm.prank(_partner);
-        pv.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        pv.buy(psreAmt);
     }
 
     // ── Test: Full lifecycle ───────────────────────────────────────────────────
@@ -132,9 +127,8 @@ contract IntegrationTest is Test {
      */
     function test_fullLifecycle_singlePartner() public {
         // ── 1. Create vault (initial buy = S_MIN_USDC) ──────────────────────
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         // Verify initial state
@@ -179,16 +173,17 @@ contract IntegrationTest is Test {
         // ── 8. Claim accumulated rewards ─────────────────────────────────────
         vm.prank(partner);
         re.claimPartnerReward(vaultAddr);
-        assertEq(psre.balanceOf(partner), firstReward + reward2, "partner receives all rewards");
+        // balBefore captured before first claim; partner earned firstReward + reward2 total.
+        // PSRE-native: partner retains initial PSRE balance, so use delta not absolute.
+        assertEq(psre.balanceOf(partner), balBefore + firstReward + reward2, "partner receives all rewards");
     }
 
     /**
      * @notice CustomerVault lifecycle: deploy CV, distribute, customer claims, withdraws.
      */
     function test_customerVault_lifecycle() public {
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         // ── Deploy CustomerVault ─────────────────────────────────────────────
@@ -235,9 +230,8 @@ contract IntegrationTest is Test {
      * @notice No compounding: reward PSRE deposited back into vault should not amplify rewards.
      */
     function test_noCompounding_invariant() public {
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         _advanceAndFinalize(0);
@@ -277,9 +271,8 @@ contract IntegrationTest is Test {
      * @notice Wash-trade resistance: sell → cumS ratchet holds → must rebuy past peak to earn.
      */
     function test_washTradeResistance() public {
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         _advanceAndFinalize(0);
@@ -322,9 +315,8 @@ contract IntegrationTest is Test {
      *         After the fix, only explicit buy() calls advance ecosystemBalance and cumS.
      */
     function test_directTransfer_doesNotInflateCumS() public {
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         _advanceAndFinalize(0);
@@ -352,28 +344,27 @@ contract IntegrationTest is Test {
     }
 
     /**
-     * @notice S_MIN enforcement: vault creation reverts below $500 USDC.
+     * @notice psreMin enforcement: vault creation reverts below psreMin.
      */
     function test_sMin_enforcement() public {
-        uint256 below = 499_000_000; // 499 USDC < S_MIN
+        uint256 below = PSRE_PER_SWAP - 1; // 1 wei below psreMin
 
         vm.prank(partner);
-        vm.expectRevert("Factory: below S_MIN ($500 USDC)");
-        factory.createVault(below, 1, block.timestamp + 1 hours, 3000);
+        vm.expectRevert("Factory: below psreMin");
+        factory.createVault(below);
     }
 
     /**
      * @notice Two vaults: reward split proportional to effectiveCumS delta.
      */
     function test_twoVaults_proportionalRewards() public {
-        router.setPsreOut(PSRE_PER_SWAP);
 
         vm.prank(partner);
-        address vault1 = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vault1 = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vault1);
 
         vm.prank(partner2);
-        address vault2 = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vault2 = factory.createVault(PSRE_PER_SWAP);
         pv2 = PartnerVault(vault2);
 
         _advanceAndFinalize(0);
@@ -400,9 +391,8 @@ contract IntegrationTest is Test {
      * @notice Invariant: cumS >= initialCumS at all times.
      */
     function test_invariant_cumSAlwaysGeInitialCumS() public {
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         uint256 initCumS = pv1.initialCumS();
@@ -426,9 +416,8 @@ contract IntegrationTest is Test {
      * @notice Invariant: T (total minted) never exceeds S_EMISSION.
      */
     function test_invariant_totalMintedNeverExceedsEmission() public {
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         for (uint256 eid = 0; eid <= 10; eid++) {
@@ -442,9 +431,8 @@ contract IntegrationTest is Test {
      * @notice effectiveCumS >= 0 at all times.
      */
     function test_invariant_effectiveCumSNonNegative() public {
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         for (uint256 eid = 0; eid <= 5; eid++) {
@@ -458,9 +446,8 @@ contract IntegrationTest is Test {
      * @notice cumulativeRewardMinted is monotonically non-decreasing.
      */
     function test_invariant_cumulativeRewardMintedNonDecreasing() public {
-        router.setPsreOut(PSRE_PER_SWAP);
         vm.prank(partner);
-        address vaultAddr = factory.createVault(S_MIN_USDC, 1, block.timestamp + 1 hours, 3000);
+        address vaultAddr = factory.createVault(PSRE_PER_SWAP);
         pv1 = PartnerVault(vaultAddr);
 
         uint256 prevCrm = 0;
@@ -475,9 +462,9 @@ contract IntegrationTest is Test {
     }
 
     /**
-     * @notice Factory S_MIN constant is correct (500 USDC, 6 decimals).
+     * @notice Factory psreMin reflects what was set in setUp (PSRE_PER_SWAP).
      */
-    function test_factorySMin_isCorrect() public view {
-        assertEq(factory.S_MIN(), 500_000_000);
+    function test_factoryPsreMin_isCorrect() public view {
+        assertEq(factory.psreMin(), PSRE_PER_SWAP);
     }
 }

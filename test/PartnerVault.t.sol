@@ -5,8 +5,6 @@ import "forge-std/Test.sol";
 import "../contracts/core/PartnerVault.sol";
 import "../contracts/core/CustomerVault.sol";
 import "../contracts/core/PSRE.sol";
-import "./mocks/MockERC20.sol";
-import "./mocks/MockSwapRouter.sol";
 import "./mocks/MockVaultFactory.sol";
 import "./mocks/MockRewardEngine.sol";
 
@@ -18,8 +16,6 @@ import "./mocks/MockRewardEngine.sol";
 contract PartnerVaultTest is Test {
     PartnerVault   public vault;
     PSRE           public psre;
-    MockERC20      public usdc;
-    MockSwapRouter public router;
 
     address public admin        = makeAddr("admin");
     address public treasury     = makeAddr("treasury");
@@ -38,10 +34,7 @@ contract PartnerVaultTest is Test {
     function setUp() public {
         genesis = block.timestamp;
 
-        psre   = new PSRE(admin, treasury, teamVesting, genesis);
-        usdc   = new MockERC20("USD Coin", "USDC", 6);
-        router = new MockSwapRouter(address(psre), PSRE_OUT);
-        deal(address(psre), address(router), 100_000e18);
+        psre = new PSRE(admin, treasury, teamVesting, genesis);
 
         factoryStub = new MockVaultFactory();
         factory = address(factoryStub);
@@ -52,16 +45,17 @@ contract PartnerVaultTest is Test {
 
         vault = new PartnerVault();
         vm.prank(factory);
-        vault.initialize(partner, address(psre), address(router), address(usdc), rewardEngine, factory);
+        vault.initialize(partner, address(psre), rewardEngine, factory);
 
         // Simulate factoryInit: give vault the initial PSRE, then call factoryInit
         deal(address(psre), address(vault), INITIAL_PSRE);
         vm.prank(factory);
         vault.factoryInit(INITIAL_PSRE);
 
-        usdc.mint(partner, 100_000e6);
+        // Fund partner with PSRE for subsequent buy() calls (PSRE-native)
+        deal(address(psre), partner, 100_000e18);
         vm.prank(partner);
-        usdc.approve(address(vault), type(uint256).max);
+        psre.approve(address(vault), type(uint256).max);
     }
 
     // ── Helper: deploy a fresh CustomerVault ─────────────────────────────────
@@ -77,7 +71,7 @@ contract PartnerVaultTest is Test {
     // ── Helper: buy PSRE + register a fresh CV ───────────────────────────────
     function _buyAndRegisterCV() internal returns (CustomerVault cv) {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
         cv = _deployCV();
         vm.prank(partner);
         vault.registerCustomerVault(address(cv));
@@ -90,7 +84,7 @@ contract PartnerVaultTest is Test {
     function test_initialize_onlyOnce() public {
         vm.expectRevert("PartnerVault: already initialized");
         vm.prank(factory);
-        vault.initialize(other, address(psre), address(router), address(usdc), rewardEngine, factory);
+        vault.initialize(other, address(psre), rewardEngine, factory);
     }
 
     function test_initialize_setsOwner() public view {
@@ -99,8 +93,6 @@ contract PartnerVaultTest is Test {
 
     function test_initialize_setsAddresses() public view {
         assertEq(vault.psre(),         address(psre));
-        assertEq(vault.router(),       address(router));
-        assertEq(vault.inputToken(),   address(usdc));
         assertEq(vault.rewardEngine(), rewardEngine);
         assertEq(vault.factory(),      factory);
     }
@@ -138,7 +130,7 @@ contract PartnerVaultTest is Test {
     function test_factoryInit_onlyFactory() public {
         PartnerVault fresh = new PartnerVault();
         vm.prank(factory);
-        fresh.initialize(partner, address(psre), address(router), address(usdc), rewardEngine, factory);
+        fresh.initialize(partner, address(psre), rewardEngine, factory);
         deal(address(psre), address(fresh), 100e18);
 
         vm.prank(partner);
@@ -153,38 +145,26 @@ contract PartnerVaultTest is Test {
     function test_buy_onlyOwner() public {
         vm.prank(other);
         vm.expectRevert("PartnerVault: not owner");
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
-    }
-
-    function test_buy_revertsIfMinAmountOutZero() public {
-        vm.prank(partner);
-        vm.expectRevert("PartnerVault: slippage protection required");
-        vault.buy(100e6, 0, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
     }
 
     function test_buy_revertsIfAmountInZero() public {
         vm.prank(partner);
-        vm.expectRevert("PartnerVault: zero amountIn");
-        vault.buy(0, 1, block.timestamp + 1 hours, 3000);
-    }
-
-    function test_buy_revertsIfExpiredDeadline() public {
-        vm.prank(partner);
-        vm.expectRevert("PartnerVault: expired deadline");
-        vault.buy(100e6, 1, block.timestamp - 1, 3000);
+        vm.expectRevert("PartnerVault: zero amount");
+        vault.buy(0);
     }
 
     function test_buy_increasesEcosystemBalance() public {
         uint256 ecoBefore = vault.ecosystemBalance();
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
         assertEq(vault.ecosystemBalance(), ecoBefore + PSRE_OUT);
     }
 
     function test_buy_increasesCumS() public {
         uint256 cumSBefore = vault.cumS();
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
         assertEq(vault.cumS(), cumSBefore + PSRE_OUT);
     }
 
@@ -192,7 +172,7 @@ contract PartnerVaultTest is Test {
         uint256 prev = vault.cumS();
         for (uint256 i = 0; i < 5; i++) {
             vm.prank(partner);
-            vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+            vault.buy(1_000e18);
             uint256 curr = vault.cumS();
             assertGt(curr, prev, "cumS must strictly increase");
             prev = curr;
@@ -203,7 +183,7 @@ contract PartnerVaultTest is Test {
     function test_buy_psreBalanceIncreasesOnVault() public {
         uint256 before = psre.balanceOf(address(vault));
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
         assertEq(psre.balanceOf(address(vault)), before + PSRE_OUT);
     }
 
@@ -251,7 +231,7 @@ contract PartnerVaultTest is Test {
 
     function test_distributeToCustomer_revertsForUnregisteredCV() public {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         CustomerVault unregistered = _deployCV();
         vm.prank(partner);
@@ -265,7 +245,7 @@ contract PartnerVaultTest is Test {
 
     function test_transferOut_decreasesEcosystemBalance() public {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         uint256 ecoBefore = vault.ecosystemBalance();
         uint256 amt = 100e18;
@@ -278,7 +258,7 @@ contract PartnerVaultTest is Test {
 
     function test_transferOut_doesNotDecreaseCumS() public {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         uint256 cumSPeak = vault.cumS();
 
@@ -401,7 +381,7 @@ contract PartnerVaultTest is Test {
 
     function test_snapshotEpoch_returnsDeltaAfterBuy() public {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         vm.prank(rewardEngine);
         uint256 delta = vault.snapshotEpoch();
@@ -410,7 +390,7 @@ contract PartnerVaultTest is Test {
 
     function test_snapshotEpoch_updatesLastEpochCumS() public {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
         uint256 cumSAfterBuy = vault.cumS();
 
         vm.prank(rewardEngine);
@@ -421,7 +401,7 @@ contract PartnerVaultTest is Test {
 
     function test_snapshotEpoch_zeroDeltaAfterSecondSnapshot() public {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         vm.prank(rewardEngine);
         vault.snapshotEpoch();
@@ -469,7 +449,7 @@ contract PartnerVaultTest is Test {
 
         // Buy PSRE then distribute to CV
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
         vm.prank(partner);
         vault.distributeToCustomer(address(cv), 200e18);
 
@@ -515,7 +495,7 @@ contract PartnerVaultTest is Test {
 
     function test_ratchet_cumSNeverDecreasesOnTransferOut() public {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
         uint256 cumSPeak = vault.cumS();
 
         uint256 bal = psre.balanceOf(address(vault));
@@ -527,7 +507,7 @@ contract PartnerVaultTest is Test {
 
     function test_ratchet_rebuyRequiredForNewDelta() public {
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         // Snapshot sets lastEpochCumS = cumS
         vm.prank(rewardEngine);
@@ -544,7 +524,7 @@ contract PartnerVaultTest is Test {
 
         // Rebuy past the peak to earn again
         vm.prank(partner);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         vm.prank(rewardEngine);
         uint256 deltaAfterRebuy = vault.snapshotEpoch();
@@ -606,11 +586,11 @@ contract PartnerVaultTest is Test {
         vm.prank(partnerNew);
         vault.acceptOwnership();
 
-        usdc.mint(partnerNew, 100e6);
+        deal(address(psre), partnerNew, 1_000e18);
         vm.prank(partnerNew);
-        usdc.approve(address(vault), type(uint256).max);
+        psre.approve(address(vault), type(uint256).max);
         vm.prank(partnerNew);
-        vault.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        vault.buy(1_000e18);
 
         assertEq(vault.cumS(), INITIAL_PSRE + PSRE_OUT);
     }

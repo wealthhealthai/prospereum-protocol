@@ -65,7 +65,7 @@ contract ProtocolHandler is Test {
     /// @notice Net PSRE deposited into StakingVault during this run.
     uint256 public ghost_totalPsreStaked;
 
-    // S_MIN constant (mirrors factory.S_MIN)
+    // S_MIN constant (mirrors factory.psreMin)
     uint256 constant S_MIN = 500_000_000; // 500 USDC, 6 decimals
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -95,13 +95,7 @@ contract ProtocolHandler is Test {
         router = new MockRouter(address(psre));
 
         // ── PartnerVaultFactory (v3.2: needs cvImpl as 2nd arg) ──────────────
-        factory = new PartnerVaultFactory(
-            address(vaultImpl),
-            address(cvImpl),
-            address(psre),
-            address(router),
-            address(usdc),
-            address(this)  // owner (Ownable2Step)
+        factory = new PartnerVaultFactory(address(vaultImpl), address(cvImpl), address(psre), address(this)  // owner (Ownable2Step)
         );
 
         // ── StakingVault ──────────────────────────────────────────────────────
@@ -158,18 +152,13 @@ contract ProtocolHandler is Test {
         address actor = actors[actorSeed % actors.length];
         if (factory.vaultOf(actor) != address(0)) return; // actor already has a vault
 
-        // Mint S_MIN USDC to actor and approve factory (for initial buy)
-        usdc.mint(actor, S_MIN);
+        // Deal PSRE_MIN PSRE to actor and approve factory (PSRE-native entry)
+        deal(address(psre), actor, factory.psreMin());
         vm.prank(actor);
-        usdc.approve(address(factory), S_MIN);
+        psre.approve(address(factory), factory.psreMin());
 
         vm.prank(actor);
-        try factory.createVault(
-            S_MIN,                      // usdcAmountIn = exactly S_MIN
-            1,                          // minPsreOut (MockRouter always produces > 0)
-            block.timestamp + 1 hours,
-            3000
-        ) returns (address vault) {
+        try factory.createVault(factory.psreMin()) returns (address vault) {
             vaults.push(vault);
             ghost_lastCumS[vault] = IPartnerVault(vault).getCumS();
         } catch {}
@@ -189,17 +178,12 @@ contract ProtocolHandler is Test {
         address vault = vaults[vaultSeed % vaults.length];
         address owner = factory.partnerOf(vault);
 
-        // Fund the vault owner with fresh USDC
-        usdc.mint(owner, usdcAmount);
+        // Deal PSRE to vault owner (PSRE-native buy)
+        deal(address(psre), owner, usdcAmount * 1e12); // convert 6-dec to 18-dec scale
 
         vm.startPrank(owner);
-        usdc.approve(vault, usdcAmount);
-        try PartnerVault(vault).buy(
-            usdcAmount,
-            1,                       // minAmountOut: must be > 0
-            block.timestamp + 60,
-            3000
-        ) {
+        psre.approve(vault, usdcAmount * 1e12);
+        try PartnerVault(vault).buy(usdcAmount * 1e12) {
             // cumS is monotonically increasing — record last known value
             ghost_lastCumS[vault] = IPartnerVault(vault).getCumS();
         } catch {}

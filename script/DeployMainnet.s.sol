@@ -131,13 +131,7 @@ contract DeployMainnet is Script {
 
         // ── 3. Deploy PartnerVaultFactory ────────────────────────────────────
         // admin = Founder Safe (governance/upgrades)
-        PartnerVaultFactory factory = new PartnerVaultFactory(
-            address(vaultImpl),
-            address(cvImpl),
-            address(psre),
-            UNISWAP_V3_ROUTER,
-            USDC,
-            founderSafe  // owner = Founder Safe
+        PartnerVaultFactory factory = new PartnerVaultFactory(address(vaultImpl), address(cvImpl), address(psre), founderSafe  // owner = Founder Safe
         );
         console.log("PartnerVaultFactory:  ", address(factory));
 

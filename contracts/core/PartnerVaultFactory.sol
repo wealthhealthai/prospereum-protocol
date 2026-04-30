@@ -12,21 +12,8 @@ import "../interfaces/IRewardEngine.sol";
 import "./PartnerVault.sol";
 import "./CustomerVault.sol";
 
-/// @dev Minimal Uniswap v3 SwapRouter interface (Base mainnet)
-interface IFactorySwapRouter {
-    struct ExactInputSingleParams {
-        address tokenIn;
-        address tokenOut;
-        uint24  fee;
-        address recipient;
-        uint256 deadline;
-        uint256 amountIn;
-        uint256 amountOutMinimum;
-        uint160 sqrtPriceLimitX96;
-    }
-    function exactInputSingle(ExactInputSingleParams calldata params)
-        external payable returns (uint256 amountOut);
-}
+// IFactorySwapRouter removed — factory no longer handles DEX swaps.
+// Partners acquire PSRE via any channel and call createVault(psreAmountIn) directly.
 
 /**
  * @title PartnerVaultFactory v3.2
@@ -51,8 +38,10 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     // Constants
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice Minimum initial buy: 500 USDC (6-decimal USDC, no oracle needed).
-    uint256 public constant S_MIN = 500_000_000; // 500e6
+    /// @notice Minimum initial PSRE deposit for vault creation.
+    ///         At $0.10 launch price, 5000 PSRE ≈ $500. Governance-adjustable via setPsreMin().
+    ///         Denominated in PSRE (18 decimals). No oracle required.
+    uint256 public psreMin = 5_000e18;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Immutables
@@ -67,11 +56,7 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     /// @notice PSRE token address.
     address public immutable psre;
 
-    /// @notice Uniswap v3 SwapRouter on Base.
-    address public immutable router;
-
-    /// @notice Input token for swaps (USDC on Base, 6 decimals).
-    address public immutable inputToken;
+    // router and inputToken removed — factory no longer handles DEX swaps.
 
     // ─────────────────────────────────────────────────────────────────────────
     // Mutable state
@@ -91,11 +76,7 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     ///         so decommissioned slots can be reclaimed by new partners.
     uint256 public activeVaultCount;
 
-    /// @notice Fix #4/#6: whitelist of permitted Uniswap v3 fee tiers for createVault swaps.
-    ///         Prevents partner from routing the initial buy through an attacker-controlled
-    ///         pool at an unlisted fee tier. Only standard Uniswap v3 tiers are allowed.
-    ///         Governance can add/remove tiers via setAllowedFeeTier().
-    mapping(uint24 => bool) public allowedFeeTiers;
+    // allowedFeeTiers removed — no DEX routing in factory.
 
     // ─────────────────────────────────────────────────────────────────────────
     // Registries
@@ -130,7 +111,7 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     event CustomerVaultDeployed(address indexed partnerVault, address indexed customerVault, address customer);
     event RewardEngineSet(address indexed rewardEngine);
     event MaxPartnersUpdated(uint256 oldMax, uint256 newMax);
-    event FeeTierUpdated(uint24 indexed feeTier, bool allowed);
+    event PsreMinUpdated(uint256 oldMin, uint256 newMin);
     /// @notice Emitted when a vault is decommissioned. Fix #12.
     event VaultDecommissioned(address indexed vault);
 
@@ -142,47 +123,32 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
      * @param _vaultImplementation         Deployed PartnerVault implementation.
      * @param _customerVaultImplementation Deployed CustomerVault implementation.
      * @param _psre                        PSRE token address.
-     * @param _router                      Uniswap v3 SwapRouter address.
-     * @param _inputToken                  Input token (USDC on Base).
      * @param _admin                       Admin address (Gnosis Safe multisig).
      */
     constructor(
         address _vaultImplementation,
         address _customerVaultImplementation,
         address _psre,
-        address _router,
-        address _inputToken,
         address _admin
     ) Ownable(_admin) {
         require(_vaultImplementation         != address(0), "Factory: zero vaultImpl");
         require(_customerVaultImplementation != address(0), "Factory: zero cvImpl");
         require(_psre                        != address(0), "Factory: zero psre");
-        require(_router                      != address(0), "Factory: zero router");
-        require(_inputToken                  != address(0), "Factory: zero inputToken");
 
         vaultImplementation         = _vaultImplementation;
         customerVaultImplementation = _customerVaultImplementation;
         psre                        = _psre;
-        router                      = _router;
-        inputToken                  = _inputToken;
-
-        // Fix #4/#6: initialise whitelist with all standard Uniswap v3 fee tiers.
-        // Only these four pools can be used for the createVault initial buy.
-        allowedFeeTiers[100]   = true;   // 0.01% — stable pairs
-        allowedFeeTiers[500]   = true;   // 0.05%
-        allowedFeeTiers[3000]  = true;   // 0.3%  — standard
-        allowedFeeTiers[10000] = true;   // 1%    — exotic / wide spread
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Admin
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice Fix #4/#6: add or remove a Uniswap v3 fee tier from the createVault whitelist.
-    ///         Only owner (governance multisig on mainnet) can modify.
-    function setAllowedFeeTier(uint24 feeTier, bool allowed) external onlyOwner {
-        allowedFeeTiers[feeTier] = allowed;
-        emit FeeTierUpdated(feeTier, allowed);
+    /// @notice Update the minimum PSRE required to create a vault.
+    ///         At $0.10 launch price, default 5000 PSRE ≈ $500.
+    function setPsreMin(uint256 _psreMin) external onlyOwner {
+        require(_psreMin > 0, "Factory: zero psreMin");
+        psreMin = _psreMin;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -238,40 +204,30 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice Create a PartnerVault for the calling address and execute the initial buy.
+     * @notice Create a PartnerVault by depositing PSRE directly.
+     *
+     *         DEX-agnostic: partners acquire PSRE via any channel (Uniswap v3/v4, Aerodrome,
+     *         Coinbase, OTC, existing balance) before calling this function. No router
+     *         dependency; no version lock.
      *
      *         Flow:
-     *         1. Validate usdcAmountIn >= S_MIN ($500 USDC, no oracle needed).
+     *         1. Validate psreAmountIn >= psreMin.
      *         2. Deploy PartnerVault EIP-1167 clone.
-     *         3. Pull USDC from partner.
-     *         4. Swap USDC → PSRE via router (recipient = new vault).
-     *         5. Call vault.factoryInit(psreOut) to set initialCumS baseline.
-     *         6. Call rewardEngine.registerVault(vault, psreOut) to register in RE.
-     *         7. Record mappings and emit VaultCreated.
+     *         3. Pull PSRE from partner → vault.
+     *         4. Call vault.factoryInit(psreAmountIn) to set initialCumS baseline.
+     *         5. Call rewardEngine.registerVault(vault, psreAmountIn) to register in RE.
+     *         6. Record mappings and emit VaultCreated.
      *
-     * @param usdcAmountIn   Amount of USDC to spend on the initial buy. Must be >= S_MIN.
-     * @param minPsreOut     Minimum PSRE to receive (slippage protection; must be > 0).
-     * @param deadline       Swap deadline.
-     * @param fee            Uniswap v3 pool fee tier (e.g. 3000 = 0.3%).
+     * @param psreAmountIn   Amount of PSRE to deposit as initial vault baseline. Must be >= psreMin.
      *
      * @return vault  Address of the newly deployed PartnerVault clone.
      */
-    function createVault(
-        uint256 usdcAmountIn,
-        uint256 minPsreOut,
-        uint256 deadline,
-        uint24  fee
-    ) external nonReentrant returns (address vault) {
+    function createVault(uint256 psreAmountIn) external nonReentrant returns (address vault) {
         require(rewardEngine != address(0),              "Factory: rewardEngine not set");
         require(vaultOf[msg.sender] == address(0),       "Factory: vault already exists");
         // Fix #12: check against activeVaultCount so decommissioned slots can be reused.
         require(activeVaultCount < maxPartners,          "Factory: max partners reached");
-        require(usdcAmountIn >= S_MIN,                   "Factory: below S_MIN ($500 USDC)");
-        require(minPsreOut > 0,                          "Factory: slippage protection required");
-        require(deadline >= block.timestamp,             "Factory: expired deadline");
-        // Fix #4/#6: only allow whitelisted Uniswap v3 fee tiers to prevent routing
-        // the initial buy through an attacker-controlled pool at a custom fee tier.
-        require(allowedFeeTiers[fee],                    "Factory: fee tier not whitelisted");
+        require(psreAmountIn >= psreMin,                 "Factory: below psreMin");
 
         // Lazy epoch finalization: partner activity drives keeper-less epoch closing
         IRewardEngine(rewardEngine).autoFinalizeEpochs();
@@ -282,40 +238,18 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         PartnerVault(vault).initialize(
             msg.sender,   // owner = partner
             psre,
-            router,
-            inputToken,
             rewardEngine,
             address(this)
         );
 
-        // ── Execute initial buy (factory pulls USDC, swap → PSRE → vault) ───
-        IERC20(inputToken).safeTransferFrom(msg.sender, address(this), usdcAmountIn);
-        IERC20(inputToken).forceApprove(router, usdcAmountIn);
-
-        uint256 psreBefore = IERC20(psre).balanceOf(vault);
-
-        IFactorySwapRouter(router).exactInputSingle(
-            IFactorySwapRouter.ExactInputSingleParams({
-                tokenIn:           inputToken,
-                tokenOut:          psre,
-                fee:               fee,
-                recipient:         vault,
-                deadline:          deadline,
-                amountIn:          usdcAmountIn,
-                amountOutMinimum:  minPsreOut,
-                sqrtPriceLimitX96: 0
-            })
-        );
-
-        uint256 psreAfter = IERC20(psre).balanceOf(vault);
-        uint256 psreOut   = psreAfter - psreBefore;
-        require(psreOut > 0, "Factory: zero psreOut from initial buy");
+        // ── Pull PSRE from partner into vault ────────────────────────────────
+        IERC20(psre).safeTransferFrom(msg.sender, vault, psreAmountIn);
 
         // ── Set initialCumS baseline in vault ───────────────────────────────
-        PartnerVault(vault).factoryInit(psreOut);
+        PartnerVault(vault).factoryInit(psreAmountIn);
 
         // ── Register vault in RewardEngine ──────────────────────────────────
-        IRewardEngine(rewardEngine).registerVault(vault, psreOut);
+        IRewardEngine(rewardEngine).registerVault(vault, psreAmountIn);
 
         // ── Record factory mappings ──────────────────────────────────────────
         vaultOf[msg.sender] = vault;
@@ -328,7 +262,7 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
         // Compute epoch ID for the event (informational)
         uint256 epochId = _currentEpochId();
 
-        emit VaultCreated(msg.sender, vault, psreOut, epochId);
+        emit VaultCreated(msg.sender, vault, psreAmountIn, epochId);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

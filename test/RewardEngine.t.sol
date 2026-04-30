@@ -8,8 +8,6 @@ import "../contracts/core/PartnerVaultFactory.sol";
 import "../contracts/core/PSRE.sol";
 import "../contracts/periphery/RewardEngine.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import "./mocks/MockERC20.sol";
-import "./mocks/MockSwapRouter.sol";
 import "./mocks/MockStakingVault.sol";
 import "./mocks/MockFactory.sol";
 
@@ -24,8 +22,6 @@ contract RewardEngineTest is Test {
     RewardEngine     public re;
     MockStakingVault public sv;
     MockFactory      public mf;
-    MockERC20        public usdc;
-    MockSwapRouter   public router;
 
     address public admin   = makeAddr("admin");
     address public treasury = makeAddr("treasury");
@@ -46,8 +42,7 @@ contract RewardEngineTest is Test {
     {
         pv = new PartnerVault();
         vm.prank(address(mf));
-        pv.initialize(_partner, address(psre), address(router), address(usdc),
-                       address(re), address(mf));
+        pv.initialize(_partner, address(psre), address(re), address(mf));
 
         // Simulate initial buy
         deal(address(psre), address(pv), initialAmt);
@@ -62,16 +57,15 @@ contract RewardEngineTest is Test {
         re.registerVault(address(pv), initialAmt);
     }
 
-    /// @dev Give partner USDC, approve vault, buy PSRE.
+    /// @dev Deal PSRE to partner, approve vault, buy (PSRE-native).
     function _buyPSRE(address _partner, PartnerVault pv, uint256 psreAmt)
         internal
     {
-        router.setPsreOut(psreAmt);
-        usdc.mint(_partner, 100e6);
+        deal(address(psre), _partner, psreAmt);
         vm.prank(_partner);
-        usdc.approve(address(pv), type(uint256).max);
+        psre.approve(address(pv), psreAmt);
         vm.prank(_partner);
-        pv.buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        pv.buy(psreAmt);
     }
 
     /// @dev Advance time past the end of epoch `eid` and finalize it.
@@ -83,10 +77,7 @@ contract RewardEngineTest is Test {
     function setUp() public {
         genesis = block.timestamp;
 
-        psre   = new PSRE(admin, treasury, teamVesting, genesis);
-        usdc   = new MockERC20("USD Coin", "USDC", 6);
-        router = new MockSwapRouter(address(psre), PSRE_OUT);
-        deal(address(psre), address(router), 100_000_000e18);
+        psre = new PSRE(admin, treasury, teamVesting, genesis);
 
         sv = new MockStakingVault();
         mf = new MockFactory();
@@ -124,8 +115,7 @@ contract RewardEngineTest is Test {
     function test_registerVault_onlyFactory() public {
         PartnerVault pv = new PartnerVault();
         vm.prank(address(mf));
-        pv.initialize(partner, address(psre), address(router), address(usdc),
-                       address(re), address(mf));
+        pv.initialize(partner, address(psre), address(re), address(mf));
         deal(address(psre), address(pv), INITIAL_PSRE);
         vm.prank(address(mf));
         pv.factoryInit(INITIAL_PSRE);
@@ -874,13 +864,7 @@ contract RewardEngineTest is Test {
         // ── Deploy a full stack: freshRe wired to realFactory ────────────────
         PartnerVault pvImpl2 = new PartnerVault();
         CustomerVault cvImpl = new CustomerVault();
-        PartnerVaultFactory realFactory = new PartnerVaultFactory(
-            address(pvImpl2),
-            address(cvImpl),
-            address(psre),
-            address(router),
-            address(usdc),
-            admin
+        PartnerVaultFactory realFactory = new PartnerVaultFactory(address(pvImpl2), address(cvImpl), address(psre), admin
         );
 
         RewardEngine freshReImpl = new RewardEngine();
@@ -898,10 +882,10 @@ contract RewardEngineTest is Test {
         vm.prank(admin);
         realFactory.setRewardEngine(address(freshRe));
 
-        // ── Fund partner and approve ─────────────────────────────────────────
-        usdc.mint(partner, 1000e6);
+        // ── Fund partner with PSRE and approve factory (PSRE-native) ────────
+        deal(address(psre), partner, 10_000e18);
         vm.prank(partner);
-        usdc.approve(address(realFactory), type(uint256).max);
+        psre.approve(address(realFactory), type(uint256).max);
 
         // ── Advance to after epoch 0 ends ────────────────────────────────────
         vm.warp(genesis + 8 days);
@@ -909,7 +893,7 @@ contract RewardEngineTest is Test {
 
         // ── createVault() should trigger autoFinalizeEpochs() ────────────────
         vm.prank(partner);
-        realFactory.createVault(500e6, 1, block.timestamp + 1 hours, 3000);
+        realFactory.createVault(5_000e18);
 
         assertTrue(freshRe.epochFinalized(0),
             "epoch 0 should be auto-finalized by createVault()");

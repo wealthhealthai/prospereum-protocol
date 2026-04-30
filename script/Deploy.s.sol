@@ -153,13 +153,7 @@ contract Deploy is Script {
         console.log("CustomerVault impl:", address(cvImpl));
 
         // ── 5. Deploy PartnerVaultFactory (v3.2: +CustomerVault impl, S_MIN) ─
-        PartnerVaultFactory factory = new PartnerVaultFactory(
-            address(vaultImpl),
-            address(cvImpl),
-            address(psre),
-            routerAddress,
-            usdcAddress,
-            admin
+        PartnerVaultFactory factory = new PartnerVaultFactory(address(vaultImpl), address(cvImpl), address(psre), admin
         );
         console.log("Factory:           ", address(factory));
 

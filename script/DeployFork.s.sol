@@ -101,13 +101,7 @@ contract DeployFork is Script {
         console.log("CustomerVault impl:", address(cvImpl));
 
         // ── 7. Deploy PartnerVaultFactory (v3.2: +CustomerVault impl, S_MIN) ─
-        PartnerVaultFactory factory = new PartnerVaultFactory(
-            address(vaultImpl),
-            address(cvImpl),
-            address(psre),
-            address(router),
-            address(usdc),
-            deployer   // admin = deployer for local fork
+        PartnerVaultFactory factory = new PartnerVaultFactory(address(vaultImpl), address(cvImpl), address(psre), deployer   // admin = deployer for local fork
         );
         console.log("Factory:           ", address(factory));
 
@@ -163,24 +157,18 @@ contract DeployFork is Script {
         console.log("[PASS] PSRE totalSupply == 8.4M:", supply);
 
         // ── (b) Create a PartnerVault via factory (v3.2: USDC → initial buy) ─
-        //    v3.2: createVault takes (usdcAmountIn, minPsreOut, deadline, fee)
-        //    S_MIN = 500e6 (500 USDC). Mint extra USDC to deployer for initial buy.
-        usdc.mint(deployer, 1_000_000e6);
-        usdc.approve(address(factory), type(uint256).max);
-        address vault = factory.createVault(
-            500_000_000,         // 500 USDC = S_MIN
-            1,                   // minPsreOut (mock router fixed output)
-            block.timestamp + 1 hours,
-            3000
-        );
+        //    PSRE-native: createVault takes (psreAmountIn). Partner provides PSRE directly.
+        //    psreMin = 5000e18 PSRE (~$500 at $0.10 launch).
+        psre.approve(address(factory), type(uint256).max);
+        address vault = factory.createVault(5_000e18);
         require(vault != address(0),                      "SMOKE FAIL: vault is zero");
         require(factory.vaultOf(deployer) == vault,       "SMOKE FAIL: vaultOf mismatch");
         console.log("[PASS] PartnerVault created:", vault);
 
         // ── (c) Call buy() on the vault (v3.2: subsequent buy grows cumS) ─────
         //    Note: initial buy already done by factory. This is a second buy.
-        usdc.approve(vault, type(uint256).max);
-        PartnerVault(vault).buy(100e6, 1, block.timestamp + 1 hours, 3000);
+        psre.approve(vault, type(uint256).max);
+        PartnerVault(vault).buy(1_000e18);
         console.log("[PASS] buy() executed (second buy, grows cumS)");
 
         // ── (d) Verify vault cumS > initialCumS (v3.2: cumS replaces cumBuy) ─

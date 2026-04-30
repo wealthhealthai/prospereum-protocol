@@ -1,6 +1,6 @@
 # Prospereum (PSRE) — Proof of Prosperity: The Commerce Rewards Protocol
 
-**Public Whitepaper v2.0 — April 2026**
+**Public Whitepaper v3.4 — April 2026**
 **Status: LIVE on Base Mainnet**
 
 > *Bitcoin solved digital scarcity. Ethereum solved programmable coordination. Prospereum solves commerce rewards.*
@@ -372,5 +372,5 @@ This document is a public whitepaper intended for informational purposes only. I
 ---
 
 *Prospereum (PSRE) — Proof of Prosperity: The Commerce Rewards Protocol*
-*Public Whitepaper v2.0 — April 2026*
+*Public Whitepaper v3.4 — April 2026*
 *All core protocol mechanics governed by immutable smart contracts on Base.*

@@ -72,13 +72,7 @@ contract DeployPhase2_Contracts is Script {
         console.log("CustomerVault impl:   ", address(cvImpl));
 
         // 2. Deploy PartnerVaultFactory
-        PartnerVaultFactory factory = new PartnerVaultFactory(
-            address(vaultImpl),
-            address(cvImpl),
-            psreAddr,
-            UNISWAP_V3_ROUTER,
-            USDC,
-            founderSafe
+        PartnerVaultFactory factory = new PartnerVaultFactory(address(vaultImpl), address(cvImpl), psreAddr, founderSafe
         );
         console.log("PartnerVaultFactory:  ", address(factory));
 
