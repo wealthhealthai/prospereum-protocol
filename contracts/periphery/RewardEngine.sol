@@ -186,8 +186,15 @@ contract RewardEngine is
     /// @notice Earliest timestamp at which the pending upgrade may be executed.
     uint256 public upgradeTimestamp;
 
+    /// @notice Pending factory address (set by scheduleSetFactory, cleared on execute/cancel).
+    address public pendingFactory;
+    /// @notice Earliest timestamp at which the pending factory swap may be executed.
+    uint256 public factoryReadyAt;
+
     event UpgradeScheduled(address indexed newImplementation, uint256 executeAfter);
     event UpgradeCancelled(address indexed cancelledImplementation);
+    event FactoryScheduled(address indexed pendingFactory, uint256 executeAfter);
+    event FactoryUpdateCancelled(address indexed cancelledFactory);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Timelock queue
@@ -907,16 +914,58 @@ contract RewardEngine is
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Factory update (supports factory redeploy without full RE upgrade)
+    // Factory update — timelocked, requires pause (Nadir observations #3 #5 #6)
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice Update the factory address. Called after deploying a new PartnerVaultFactory.
-    ///         Only callable by owner (Founder Safe). Emits FactoryUpdated.
-    function setFactory(address _factory) external onlyOwner {
-        require(_factory != address(0), "RE: zero factory");
-        address old = address(factory);
-        factory = IPartnerVaultFactory(_factory);
-        emit FactoryUpdated(old, _factory);
+    /// @notice Schedule a factory swap.  Must be preceded by pause() + epoch finalization.
+    ///         Subject to the same UPGRADE_TIMELOCK (7 days) used for implementation upgrades.
+    ///         Only callable by owner (Founder Safe).
+    /// @param _factory  Address of the new PartnerVaultFactory (must be a deployed contract).
+    function scheduleSetFactory(address _factory) external onlyOwner {
+        require(_factory != address(0),          "RE: zero factory");
+        require(_factory.code.length > 0,        "RE: not a contract");  // Nadir obs #6
+        pendingFactory  = _factory;
+        factoryReadyAt  = block.timestamp + UPGRADE_TIMELOCK;
+        emit FactoryScheduled(_factory, factoryReadyAt);
+    }
+
+    /// @notice Cancel a pending factory swap scheduled via scheduleSetFactory().
+    function cancelSetFactory() external onlyOwner {
+        address cancelled = pendingFactory;
+        pendingFactory  = address(0);
+        factoryReadyAt  = 0;
+        emit FactoryUpdateCancelled(cancelled);
+    }
+
+    /// @notice Execute the factory swap after the timelock has elapsed.
+    ///         MUST be called while the engine is paused (whenPaused) to prevent
+    ///         race conditions with in-flight epoch finalizations. (Nadir obs #3)
+    ///         Before calling, ensure all pending epoch rewards are finalized and
+    ///         all partners have claimed owedPartner balances on the old factory. (Nadir obs #2)
+    ///         After execution, call clearVaultScores() to zero out orphaned EMA scores. (Nadir obs #4)
+    function executeSetFactory() external onlyOwner whenPaused {
+        require(pendingFactory != address(0),            "RE: no factory scheduled");
+        require(block.timestamp >= factoryReadyAt,       "RE: timelock not elapsed");
+        address old     = address(factory);
+        factory         = IPartnerVaultFactory(pendingFactory);
+        pendingFactory  = address(0);
+        factoryReadyAt  = 0;
+        emit FactoryUpdated(old, address(factory));
+    }
+
+    /// @notice Zero out EMA scores (R[vault]) and sumR for a list of decommissioned vaults.
+    ///         Call after executeSetFactory() to prevent orphaned scores from inflating
+    ///         sumR and demoting new factory vaults to lower reward tiers. (Nadir obs #4)
+    ///         Only callable by owner. Engine must be paused.
+    /// @param vaults  List of old factory vaults whose R scores should be zeroed.
+    function clearVaultScores(address[] calldata vaults) external onlyOwner whenPaused {
+        for (uint256 i = 0; i < vaults.length; i++) {
+            uint256 score = R[vaults[i]];
+            if (score > 0) {
+                sumR       -= score;
+                R[vaults[i]] = 0;
+            }
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────

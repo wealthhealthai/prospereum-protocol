@@ -148,7 +148,9 @@ contract PartnerVaultFactory is Ownable2Step, ReentrancyGuard, IPartnerVaultFact
     ///         At $0.10 launch price, default 5000 PSRE ≈ $500.
     function setPsreMin(uint256 _psreMin) external onlyOwner {
         require(_psreMin > 0, "Factory: zero psreMin");
+        uint256 old = psreMin;
         psreMin = _psreMin;
+        emit PsreMinUpdated(old, _psreMin);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

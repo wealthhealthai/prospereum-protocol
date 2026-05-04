@@ -93,6 +93,13 @@ contract PartnerVaultFactoryTest is Test {
         factory.setPsreMin(0);
     }
 
+    function test_setPsreMin_emitsEvent() public {
+        vm.prank(admin);
+        vm.expectEmit(true, true, true, true);
+        emit PartnerVaultFactory.PsreMinUpdated(PSRE_MIN, 10_000e18);
+        factory.setPsreMin(10_000e18);
+    }
+
     // ────────────────────────────────────────────────────────────────────────
     // createVault()
     // ────────────────────────────────────────────────────────────────────────

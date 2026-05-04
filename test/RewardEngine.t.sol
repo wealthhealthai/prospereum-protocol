@@ -917,4 +917,143 @@ contract RewardEngineTest is Test {
         assertTrue(re.epochFinalized(0),
             "epoch 0 should be auto-finalized by buy()");
     }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // scheduleSetFactory / cancelSetFactory / executeSetFactory (Nadir obs #3 #5 #6)
+    // ────────────────────────────────────────────────────────────────────────
+
+    function test_scheduleSetFactory_setsStateAndEmits() public {
+        address newFactory = address(new MockFactory());
+        vm.prank(admin);
+        re.scheduleSetFactory(newFactory);
+
+        assertEq(re.pendingFactory(), newFactory);
+        assertGt(re.factoryReadyAt(), block.timestamp);
+    }
+
+    function test_scheduleSetFactory_revertsOnZeroAddress() public {
+        vm.prank(admin);
+        vm.expectRevert("RE: zero factory");
+        re.scheduleSetFactory(address(0));
+    }
+
+    function test_scheduleSetFactory_revertsOnNonContract() public {
+        vm.prank(admin);
+        vm.expectRevert("RE: not a contract");
+        re.scheduleSetFactory(makeAddr("eoa"));
+    }
+
+    function test_scheduleSetFactory_onlyOwner() public {
+        address newFactory = address(new MockFactory()); // deploy before prank
+        vm.prank(partner);
+        vm.expectRevert();
+        re.scheduleSetFactory(newFactory);
+    }
+
+    function test_cancelSetFactory_clearsState() public {
+        address newFactory = address(new MockFactory());
+        vm.prank(admin);
+        re.scheduleSetFactory(newFactory);
+
+        vm.prank(admin);
+        re.cancelSetFactory();
+
+        assertEq(re.pendingFactory(), address(0));
+        assertEq(re.factoryReadyAt(), 0);
+    }
+
+    function test_executeSetFactory_revertsBeforeTimelock() public {
+        address newFactory = address(new MockFactory());
+        vm.prank(admin);
+        re.scheduleSetFactory(newFactory);
+
+        vm.prank(admin);
+        re.pause();
+
+        vm.prank(admin);
+        vm.expectRevert("RE: timelock not elapsed");
+        re.executeSetFactory();
+    }
+
+    function test_executeSetFactory_revertsWhenNotPaused() public {
+        address newFactory = address(new MockFactory());
+        vm.prank(admin);
+        re.scheduleSetFactory(newFactory);
+
+        vm.warp(block.timestamp + 7 days + 1);
+
+        vm.prank(admin);
+        vm.expectRevert();   // whenPaused guard
+        re.executeSetFactory();
+    }
+
+    function test_executeSetFactory_revertsWithNoSchedule() public {
+        vm.prank(admin);
+        re.pause();
+        vm.warp(block.timestamp + 7 days + 1);
+
+        vm.prank(admin);
+        vm.expectRevert("RE: no factory scheduled");
+        re.executeSetFactory();
+    }
+
+    function test_executeSetFactory_swapsFactoryAfterTimelock() public {
+        address newFactory = address(new MockFactory());
+        vm.prank(admin);
+        re.scheduleSetFactory(newFactory);
+
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(admin);
+        re.pause();
+
+        vm.prank(admin);
+        re.executeSetFactory();
+
+        assertEq(address(re.factory()), newFactory);
+        assertEq(re.pendingFactory(), address(0));
+        assertEq(re.factoryReadyAt(), 0);
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // clearVaultScores (Nadir obs #4)
+    // ────────────────────────────────────────────────────────────────────────
+
+    function test_clearVaultScores_zeroesRAndSumR() public {
+        // Give vaults non-zero R scores by running an epoch
+        PartnerVault pv = _createVault(partner, INITIAL_PSRE);
+        _buyPSRE(partner, pv, PSRE_OUT);
+        _finalizeEpoch(0);
+        _finalizeEpoch(1);
+
+        uint256 rBefore   = re.R(address(pv));
+        uint256 sumRBefore = re.sumR();
+        assertGt(rBefore, 0, "R should be non-zero after epoch");
+
+        address[] memory vaults = new address[](1);
+        vaults[0] = address(pv);
+
+        vm.prank(admin);
+        re.pause();
+        vm.prank(admin);
+        re.clearVaultScores(vaults);
+
+        assertEq(re.R(address(pv)), 0, "R should be zeroed");
+        assertEq(re.sumR(), sumRBefore - rBefore, "sumR reduced by cleared score");
+    }
+
+    function test_clearVaultScores_requiresPaused() public {
+        address[] memory vaults = new address[](0);
+        vm.prank(admin);
+        vm.expectRevert();
+        re.clearVaultScores(vaults);
+    }
+
+    function test_clearVaultScores_onlyOwner() public {
+        address[] memory vaults = new address[](0);
+        vm.prank(admin);
+        re.pause();
+        vm.prank(partner);
+        vm.expectRevert();
+        re.clearVaultScores(vaults);
+    }
 }
