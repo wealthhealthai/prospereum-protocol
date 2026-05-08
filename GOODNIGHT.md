@@ -1,38 +1,36 @@
-# GOODNIGHT.md — 2026-04-30
+# GOODNIGHT.md — 2026-05-08
 
 ## Protocol State
 
-- **Epoch 0:** ✅ Finalized clean (0 PSRE minted — no partners yet, correct)
-- **Epoch 1:** Running — closes **May 6 03:52 UTC** (6 days)
+- **Epoch 1:** ✅ Finalized clean — 0 PSRE minted (no partners, no stakers)
+- **Epoch 2:** Running — closes **May 13 03:52 UTC** (5 days)
 - **T (total emitted):** 0
-- **Partners:** 0 registered
-- **PSRE supply:** 8,400,000 (genesis only)
+- **Tests:** 250/250 ✅
+- **PSRE-native refactor:** Complete + Nadir-reviewed (`0aba2e9`)
 
-## ⚠️ Before May 6 (Epoch 1 close)
+## setSplit — NOT Executed
 
-**Shu must sign `setSplit(1e18, 0)` — Founder Safe nonce 2 (Jason already signed)**
+Confirmed on-chain: `psreSplit = 0.5e18`, `lpSplit = 0.5e18`.
+Shu did not co-sign. **Harmless for Epoch 1** (zero emission anyway). **Must happen before May 13** if any stakers appear.
 
-Without this: if any PSRE gets staked before May 6, half the staker allocation goes to the LP sub-pool with zero LP stakers — emission consumed with no claimants. One signature fixes it.
+Founder Safe nonce 2 is still queued — just needs Shu's signature.
 
-## Pending (Shu pace)
+## Week Summary (May 4–8)
 
-| Item | Status |
-|---|---|
-| setSplit(1e18, 0) | Jason ✅ Shu ⏳ |
-| Genesis LP pool ($40K) | ⏳ Shu USDC was clearing ~Apr 29 |
-| Unicrypt LP lock | Blocked on pool creation |
-| Sablier vesting | ⏳ Shu |
+- Epoch 1 finalized clean May 6
+- Nadir reviewed PSRE-native refactor → 6 observations → all fixed (`0aba2e9`)
+- 250/250 tests
 
-## Kin Notes
+## Pending (Shu)
 
-- **Keeper:** Daily 05:00 UTC, mainnet, ANNOUNCE_SKIP until epochs have activity
-- **Epoch 1 closer:** May 6 05:00 UTC — keeper auto-fires
-- **Ops wallet:** Needs mainnet `DEPLOYER_PK` + ≥ 0.05 ETH on Base before May 6
-- **MEMORY.md + SOUL.md updated this week** — bootstrap context is solid
+- setSplit co-sign (nonce 2) — before May 13
+- Genesis LP pool ($40K, Uniswap v3)
+- Unicrypt LP lock (24 months)
+- Sablier vesting (4.2M PSRE)
 
 ## Notes for Tomorrow
 
-1. Nudge Shu on setSplit signature (one tx, Founder Safe nonce 2)
-2. LP pool creation — Shu's USDC should have cleared by now
-3. No urgent protocol work from Kin's side
-4. First real emission test = first partner vault + Epoch 1 finalization
+1. setSplit: 5 days to Epoch 2 close — push Shu if no movement by Monday
+2. Midas blocked on Olympus endpoints — Zeus Phase 2 gate
+3. Mainnet PSRE-native upgrade: Safe batch JSONs ready to prep when timing confirmed
+4. Keeper fires automatically May 13 05:00 UTC
