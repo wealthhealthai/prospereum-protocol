@@ -91,13 +91,17 @@ Prospereum (PSRE) is a decentralized **behavioral mining protocol** on Base (EVM
 
 ---
 
-## 7. Security Audit — BlockApex (April 2026)
+## 7. Security Audit — BlockApex (April–May 2026)
 
-- **Dates:** April 2–17, 2026 (Phase 1 + re-audit)
-- **Fixed commit:** `31eb31384dee7385b14b1f02ac033e2e488e721f`
-- **Findings:** 29 total (5C, 5H, 13M, 5L, 1I) — **all 29 resolved** before mainnet
+- **Dates:** April 2–17, 2026 (Phase 1 + re-audit) + May 2026 delta review
+- **Original fixed commit:** `31eb31384dee7385b14b1f02ac033e2e488e721f`
+- **Original findings:** 29 total (5C, 5H, 13M, 5L, 1I) — **all 29 resolved** before mainnet
 - **Public report:** https://github.com/BlockApex/Audit-Reports/blob/master/Prospereum%20Protocol_Final%20Audit%20Report.pdf
 - **Scope hashes:** Initial `7e96ba9`, Revised `2073cfe`, Fixed `31eb313`
+- **PSRE-native delta review:** Nadir reviewed `f4d4cc6` (PSRE-native refactor), issued 6 observations, all fixed in `0aba2e9`
+- **Delta cleared:** Nadir confirmed "all good to proceed" — May 8, 2026
+- **Fully audited through:** `0aba2e9` — 250/250 tests passing
+- **Full findings log:** `audit/blockapex-findings-response.csv` (PSRE-Delta #1–#6 appended)
 
 ---
 
@@ -122,22 +126,33 @@ Prospereum (PSRE) is a decentralized **behavioral mining protocol** on Base (EVM
 
 ---
 
-## 10. Current Open Items (as of 2026-04-28)
+## 10. Current Open Items (as of 2026-05-08)
 
-### 🔴 Immediate
-- **setSplit(1e18, 0):** Founder Safe nonce 2, Jason signed (1/2). **Shu must sign before April 29 03:52 UTC.** Without this, 50% of Epoch 0 staker rewards unclaimed.
-  - Batch file: `audit/setSplit-safe-batch.json` (commit `5070094`)
+### 🟢 Cleared This Week
+- **PSRE-native delta audit:** Nadir cleared all 6 observations — `0aba2e9` is fully audited
+- **Epoch 0 + Epoch 1:** Both finalized clean — 0 PSRE minted (0 partners, expected)
 
-### 🟠 Soon
-- **LP pool creation:** Treasury Safe → app.uniswap.org. After Shu's USDC clears (~Apr 29).
-- **Unicrypt LP lock:** 24 months, after pool is seeded
-- **Sablier vesting stream:** Shu to set up for 4.2M PSRE in Founder Safe
-- **Contract verification on Basescan:** Need Etherscan API key. All 8 mainnet contracts unverified — "Unverified contract" shows in Safe UI (cosmetic, not blocking).
+### 🔴 Urgent
+- **setSplit(1e18, 0):** Epoch 1 closed with default split (50/50) — 0 harm (0 partners). Still must execute before any partner joins. Founder Safe nonce 2, Jason signed. Shu pending.
+  - Batch file: `audit/setSplit-safe-batch.json`
+
+### 🟠 Soon (Shu)
+- **LP pool creation:** Treasury Safe → `https://app.uniswap.org/positions/create/v3` (~200K PSRE + $20K USDC, 1% fee)
+- **Unicrypt LP lock:** 24 months, after pool seeded
+- **Sablier vesting stream:** 4.2M PSRE team allocation from Founder Safe
+- **Send updated CSV to Nadir:** `audit/blockapex-findings-response.csv` with PSRE-Delta #1–#6 appended
+
+### 🟠 Soon (Kin — awaiting timing confirmation)
+- **Mainnet factory upgrade:** Deploy new PSRE-native PartnerVaultFactory + RE upgrade
+  - Step 1: Deploy new RE impl + new factory (deployer wallet)
+  - Step 2: Founder Safe `re.scheduleSetFactory(newFactory)` → 7-day timelock
+  - Step 3 (after 7 days): `re.executeSetFactory()` while paused
 
 ### 🟡 Backlog
+- **Contract verification on Basescan:** Need Etherscan API key (at etherscan.io/myapikey)
 - **setSplit re-enable for LP:** Once ERC-20 LP wrapper exists (future RE upgrade)
-- **Dev spec v3.3 approval:** Superseded by v3.4 (frozen). No action needed.
 - **Admin dashboard:** Update to mainnet addresses
+- **Website:** "Audited by BlockApex" badge + link
 
 ---
 
@@ -162,14 +177,14 @@ Prospereum (PSRE) is a decentralized **behavioral mining protocol** on Base (EVM
 ```
 EPOCH_DURATION     = 7 days
 S_EMISSION         = 12,600,000e18
-S_MIN              = 500e6 (USDC)
+psreMin            = 5_000e18 (min PSRE to createVault — replaces USDC S_MIN, governance-adjustable)
 alphaBase          = 0.10e18 (10%)
 E0                 = S_EMISSION / 1000 = 12,600 PSRE/week
 E0_MAX             = S_EMISSION * 2 / 1000 = 25,200 PSRE/week
 PARTNER_SPLIT      = 0.70e18 (70%)
 STAKER_SPLIT       = 0.30e18 (30%)
-psreSplit          = 0.50e18 (50%) — pending setSplit to 1e18
-lpSplit            = 0.50e18 (50%) — pending setSplit to 0
+psreSplit          = 0.50e18 (50%) — setSplit(1e18, 0) pending (Founder Safe nonce 2, Jason signed, Shu pending)
+lpSplit            = 0.50e18 (50%) — pending 0 via setSplit above
 REWARD_PRECISION   = 1e36
 AUTO_FINALIZE_MAX_EPOCHS = 10
 MAX_MINT_PER_EPOCH = 25,200e18
