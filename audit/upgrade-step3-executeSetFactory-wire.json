@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "chainId": "8453",
+  "createdAt": 0,
+  "meta": {
+    "name": "Prospereum Factory Upgrade — STEP 3 of 3: executeSetFactory + wire + unpause",
+    "description": "Execute 7 days after Step 2. Batch: pause RE, execute factory swap, clear any old vault scores, unpause RE, wire new factory to RE. FILL IN newFactory address in the final setRewardEngine tx before importing.",
+    "txBuilderVersion": "1.16.5"
+  },
+  "transactions": [
+    {
+      "to": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5",
+      "value": "0",
+      "data": "0x8456cb59",
+      "contractMethod": {
+        "name": "pause",
+        "inputs": []
+      },
+      "contractInputsValues": {}
+    },
+    {
+      "to": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5",
+      "value": "0",
+      "data": "0xf899d67d",
+      "contractMethod": {
+        "name": "executeSetFactory",
+        "inputs": []
+      },
+      "contractInputsValues": {}
+    },
+    {
+      "to": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5",
+      "value": "0",
+      "data": "0xfbe3fcf200000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+      "contractMethod": {
+        "name": "clearVaultScores",
+        "inputs": [
+          {
+            "name": "vaults",
+            "type": "address[]"
+          }
+        ]
+      },
+      "contractInputsValues": {
+        "vaults": "[]"
+      }
+    },
+    {
+      "to": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5",
+      "value": "0",
+      "data": "0x3f4ba83a",
+      "contractMethod": {
+        "name": "unpause",
+        "inputs": []
+      },
+      "contractInputsValues": {}
+    },
+    {
+      "to": "FILL_IN_NEW_FACTORY_ADDRESS",
+      "value": "0",
+      "data": "0xae505d2700000000000000000000000009ab37fc6d01b85491ed0863b7f832784be717ef5",
+      "contractMethod": {
+        "name": "setRewardEngine",
+        "inputs": [
+          {
+            "name": "_rewardEngine",
+            "type": "address"
+          }
+        ]
+      },
+      "contractInputsValues": {
+        "_rewardEngine": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5"
+      }
+    }
+  ]
+}

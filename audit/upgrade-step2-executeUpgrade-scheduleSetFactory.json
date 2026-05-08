@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "chainId": "8453",
+  "createdAt": 0,
+  "meta": {
+    "name": "Prospereum Factory Upgrade — STEP 2 of 3: executeUpgrade + scheduleSetFactory",
+    "description": "Execute 7 days after Step 1. Batch: (1) executeUpgrade() upgrades RE proxy to new impl, (2) scheduleSetFactory(newFactory) starts 7-day factory swap timelock. FILL IN newFactory address before importing.",
+    "txBuilderVersion": "1.16.5"
+  },
+  "transactions": [
+    {
+      "to": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5",
+      "value": "0",
+      "data": "0x7e896214",
+      "contractMethod": {
+        "name": "executeUpgrade",
+        "inputs": []
+      },
+      "contractInputsValues": {}
+    },
+    {
+      "to": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5",
+      "value": "0",
+      "data": "FILL_AFTER_DEPLOY_scheduleSetFactory(NEW_FACTORY)",
+      "contractMethod": {
+        "name": "scheduleSetFactory",
+        "inputs": [
+          {
+            "name": "_factory",
+            "type": "address"
+          }
+        ]
+      },
+      "contractInputsValues": {
+        "_factory": "FILL_IN: newFactory address from DeployFactoryUpgrade output"
+      }
+    }
+  ]
+}

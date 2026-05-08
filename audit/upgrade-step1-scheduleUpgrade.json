@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "chainId": "8453",
+  "createdAt": 0,
+  "meta": {
+    "name": "Prospereum Factory Upgrade — STEP 1 of 3: scheduleUpgrade(newReImpl)",
+    "description": "Schedules the RewardEngine implementation upgrade to the new impl (which adds scheduleSetFactory, clearVaultScores, etc.). Starts 7-day upgrade timelock. FILL IN newReImpl address from DeployFactoryUpgrade.s.sol output before importing.",
+    "txBuilderVersion": "1.16.5"
+  },
+  "transactions": [
+    {
+      "to": "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5",
+      "value": "0",
+      "data": "FILL_AFTER_DEPLOY_scheduleUpgrade(NEW_RE_IMPL)",
+      "contractMethod": {
+        "name": "scheduleUpgrade",
+        "inputs": [
+          {
+            "name": "newImplementation",
+            "type": "address"
+          }
+        ]
+      },
+      "contractInputsValues": {
+        "newImplementation": "FILL_IN: newReImpl address from DeployFactoryUpgrade output"
+      }
+    }
+  ]
+}
