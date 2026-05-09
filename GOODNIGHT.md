@@ -1,36 +1,49 @@
-# GOODNIGHT.md — 2026-05-08
+# GOODNIGHT.md — 2026-05-09 (EOD May 8)
+
+## What Was Done Today
+
+**Audit: FULLY CLOSED.** Nadir cleared all 6 PSRE-native delta observations. CSV updated. Decision logged.
+
+**Mainnet upgrade: STAGED.** Deploy script + 3-step Safe batch JSONs committed and ready.
+
+| Commit | What |
+|---|---|
+| `54d0e67` | PSRE-delta #1-#6 added to audit CSV — Nadir cleared all |
+| `7a938c4` | MEMORY.md updated, decision logged: audit closed |
+| `be00860` | DeployFactoryUpgrade.s.sol + 3 Safe batch JSONs |
+
+## Mainnet Upgrade Plan (PSRE-Native)
+
+**3 steps, 14 days, 0 migration pain (0 partners)**
+
+| Step | When | Action |
+|---|---|---|
+| 1 | Day 0 (whenever) | Founder Safe: `scheduleUpgrade(newReImpl)` → 7-day timelock |
+| 2 | Day 7 | Founder Safe: `executeUpgrade()` + `scheduleSetFactory(newFactory)` → 7-day timelock |
+| 3 | Day 14 | Founder Safe: `pause()` + `executeSetFactory()` + `clearVaultScores([])` + `unpause()` |
+
+**Ready to execute Step 1 any time Jason and Shu confirm.**
 
 ## Protocol State
 
-- **Epoch 1:** ✅ Finalized clean — 0 PSRE minted (no partners, no stakers)
-- **Epoch 2:** Running — closes **May 13 03:52 UTC** (5 days)
-- **T (total emitted):** 0
-- **Tests:** 250/250 ✅
-- **PSRE-native refactor:** Complete + Nadir-reviewed (`0aba2e9`)
+- **Epoch 2:** Running — closes **May 13 03:52 UTC** (~91h)
+- **setSplit:** Still 50/50 — Shu co-sign still pending (Founder Safe nonce 2)
+- **T (total emitted):** 0 | **Partners:** 0
 
-## setSplit — NOT Executed
+## Open Items
 
-Confirmed on-chain: `psreSplit = 0.5e18`, `lpSplit = 0.5e18`.
-Shu did not co-sign. **Harmless for Epoch 1** (zero emission anyway). **Must happen before May 13** if any stakers appear.
-
-Founder Safe nonce 2 is still queued — just needs Shu's signature.
-
-## Week Summary (May 4–8)
-
-- Epoch 1 finalized clean May 6
-- Nadir reviewed PSRE-native refactor → 6 observations → all fixed (`0aba2e9`)
-- 250/250 tests
-
-## Pending (Shu)
-
-- setSplit co-sign (nonce 2) — before May 13
-- Genesis LP pool ($40K, Uniswap v3)
-- Unicrypt LP lock (24 months)
-- Sablier vesting (4.2M PSRE)
+| Item | Who | Urgency |
+|---|---|---|
+| setSplit co-sign (nonce 2) | Shu | 🔴 Before May 13 |
+| Upgrade Step 1: scheduleUpgrade | Jason + Shu | 🟠 Any time |
+| Genesis LP pool | Shu | 🟠 |
+| Unicrypt LP lock | Shu + Jason | 🟠 After LP pool |
+| Sablier vesting | Shu | 🟠 |
+| Nadir closing message | Jason | 🟡 |
+| Basescan verification | Kin | 🟡 Needs API key |
 
 ## Notes for Tomorrow
 
-1. setSplit: 5 days to Epoch 2 close — push Shu if no movement by Monday
-2. Midas blocked on Olympus endpoints — Zeus Phase 2 gate
-3. Mainnet PSRE-native upgrade: Safe batch JSONs ready to prep when timing confirmed
-4. Keeper fires automatically May 13 05:00 UTC
+1. setSplit: 4 days to May 13 — ping Shu
+2. Upgrade: confirm timing with Jason — Step 1 can happen any time
+3. Keeper fires automatically May 13 05:00 UTC
