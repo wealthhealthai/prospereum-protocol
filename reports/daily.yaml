@@ -1,0 +1,74 @@
+agent: kin
+date: "2026-05-11"
+generated: "2026-05-11T10:46:00Z"
+
+status: holding
+summary: >
+  Quiet Monday. No code changes. Protocol live on Base mainnet.
+  Epoch 2 closes in ~41h (May 13 03:52 UTC). setSplit still pending
+  Shu co-sign on Founder Safe nonce 2 — Jason must ping today.
+  261/261 tests clean. Audit 34/34 closed.
+
+protocol:
+  epoch_current: 2
+  epoch_2_closes: "2026-05-13T03:52:00Z"
+  epoch_2_hours_remaining: 41
+  total_psre_emitted: 0
+  partners_registered: 0
+  tests_passing: 261
+  tests_total: 261
+  audit_status: "CLOSED — 34/34 findings resolved"
+
+open_items:
+  critical:
+    - id: setSplit
+      description: "Shu co-sign Founder Safe nonce 2 — setSplit(1e18, 0)"
+      deadline: "2026-05-13T03:52:00Z"
+      blocker: shu
+      hours_remaining: 41
+
+  soon:
+    - id: upgrade_step1
+      description: "scheduleUpgrade(newReImpl) from Founder Safe — starts 14-day PSRE-native upgrade"
+      blocker: "jason+shu timing decision"
+
+    - id: genesis_lp
+      description: "Treasury Safe → Uniswap v3 PSRE/USDC $40K genesis LP"
+      blocker: shu
+
+    - id: unicrypt_lock
+      description: "Lock LP NFT on Unicrypt for 24 months"
+      blocker: "after genesis LP"
+
+    - id: sablier_vesting
+      description: "Set up Sablier vesting stream for 4.2M PSRE from Founder Safe"
+      blocker: shu
+
+  backlog:
+    - id: basescan_verify
+      description: "Verify all 8 mainnet contracts on Basescan"
+      blocker: "Jason: need mainnet Etherscan API key"
+
+    - id: nadir_closing
+      description: "Send Nadir final mainnet commit hash to formally close audit"
+      blocker: jason
+
+    - id: audit_badge
+      description: "Add BlockApex audit badge to Prospereum website"
+      blocker: jason
+
+keeper:
+  cron_id: "3fc22360-5453-4ee8-a09d-914a214a98c3"
+  schedule: "0 5 * * * UTC daily"
+  network: mainnet
+  next_run: "2026-05-13T05:00:00Z"
+  status: active
+
+contracts:
+  psre: "0x2fE08f304f1Af799Bc29E3D4E210973291d96702"
+  reward_engine_proxy: "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5"
+  factory: "0xFF84408633f79b8f562314cC5A3bCaedA8f76902"
+  staking_vault: "0x684BEA07e979CB5925d546b2E2099aA1c632ED2D"
+  founder_safe: "0xc59816CAC94A969E50EdFf7CF49ce727aec1489F"
+  treasury_safe: "0xa9Fde837EBC15BEE101d0D895c41a296Ac2CAfCe"
+  chain_id: 8453

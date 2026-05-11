@@ -1,35 +1,27 @@
-# GOODNIGHT.md — 2026-05-10 (Sunday)
+# GOODNIGHT.md — 2026-05-11
 
 ## Protocol State
 
-- **Epoch 2:** Running — closes **May 13 03:52 UTC** (~3 days)
-- **T (total emitted):** 0 | **Partners:** 0
-- **Tests:** 261/261 ✅ (confirmed this session — clean tree, nothing to commit)
-- **Audit:** 34/34 FULLY CLOSED ✅
+- **Epoch 2:** Running — closes **May 13 03:52 UTC** (~41h)
+- **Tests:** 261/261 ✅ | **Audit:** 34/34 CLOSED ✅ | **T:** 0 | **Partners:** 0
+- **Keeper:** Auto-fires May 13 05:00 UTC — no action needed
 
-## ⚠️ setSplit — 3 Days Left
+## ⚠️ setSplit — 41 Hours Left
 
-Shu has not co-signed. Founder Safe nonce 2. Jason needs to ping Shu Monday morning.
-Harmless while T=0 and no stakers — but must happen before Epoch 2 closes or any staker appears.
+Shu has not co-signed Founder Safe nonce 2. Jason must ping Shu **today**.
 
-## For Monday — Jason Notes
+If T stays at 0 and no stakers appear: harmless again. But this can't keep slipping.
 
-- **Close "forge build → test → commit" task** in Archon's tracker — it's done. 261/261, clean tree.
-- **Ping Shu on setSplit** — 3 days to May 13
-- **Basescan API key** — need for contract verification
+## Pending (Jason + Shu, this week)
 
-## Upgrade — Staged and Ready
-
-3-step PSRE-native upgrade (14 days total). Step 1 can happen any time. Jason + Shu just need to confirm timing and pull up the Founder Safe.
-
-## Pending (Shu)
-
-- Genesis LP pool ($40K, Treasury Safe → Uniswap v3)
-- Unicrypt LP lock (24 months)
-- Sablier vesting (4.2M PSRE from Founder Safe)
+| Item | Urgency |
+|---|---|
+| Shu: setSplit co-sign | 🔴 Today |
+| Jason + Shu: Upgrade Step 1 | 🟠 Any time |
+| Shu: Genesis LP + Unicrypt + Sablier | 🟠 At his pace |
 
 ## Notes for Tomorrow
 
-1. setSplit: Monday morning ping to Shu
-2. Keeper fires May 13 05:00 UTC — automatic
-3. Wiki fully updated (ingest pass done last night)
+1. setSplit: 41h — if Shu doesn't sign by Tuesday UTC morning, window closes
+2. Keeper fires automatically May 13 05:00 UTC
+3. No code work needed — protocol is stable
