@@ -224,3 +224,16 @@ All 8 contracts: ✅ `exact_match` on Sourcify
 - stakingVault.setRewardEngine → `0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5` ✅
 - psre.grantRole(MINTER_ROLE, RE) ✅
 - **Protocol live as of this tx.**
+
+## Uniswap v3 PSRE/USDC Genesis LP Pool
+- Network: Base mainnet (chainId 8453)
+- Pool address: 0x0Adc6BE14E76b89584216fAd4E458df5F996D336
+- Pair: PSRE / USDC
+- Fee tier: 1% (10000)
+- Initial price: 0.10 USDC = 1 PSRE ($0.10)
+- Price range: Full (0 → ∞)
+- Deposited: 200,000 PSRE + ~19,998 USDC
+- LP NFT: UNI-V3-POS #5112697 (held by Treasury Safe)
+- Created: 2026-05-12
+- Created by: Treasury Safe (0xa9Fde837EBC15BEE101d0D895c41a296Ac2CAfCe)
+- Notes: Genesis liquidity. Pre-computed address matched exactly. Next: Unicrypt 24-month lock.
