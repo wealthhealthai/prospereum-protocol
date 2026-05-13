@@ -1,26 +1,31 @@
-# GOODNIGHT.md — 2026-05-12
+# GOODNIGHT.md — 2026-05-13
 
-## ⚠️ Epoch 2 Closes TONIGHT
+## Protocol State — All Clear
 
-- **8:52 PM PDT** (May 13 03:52 UTC) — ~17 hours
-- Keeper auto-fires at **9:52 PM PDT** (1h after close)
-- setSplit: Shu still has NOT co-signed (confirmed on-chain 03:47 AM PDT)
-
-**If T=0 and no stakers tonight:** zero-staker guard fires → 0 PSRE minted → harmless (3rd time). Still needs to happen before first real partner/staker.
-
-## Protocol State
-
+- **setSplit:** ✅ EXECUTED — `psreSplit=100%, lpSplit=0%`
+- **Epoch 2:** ✅ Finalized — 0 PSRE minted
+- **Epoch 3:** Running — closes **May 20 03:52 UTC (Wednesday)**
 - **T (total emitted):** 0 | **Partners:** 0 | **Tests:** 261/261
 - **Audit:** 34/34 CLOSED ✅
-- **Keeper:** Auto-fires 9:52 PM PDT tonight — no manual action needed
+- **Keeper:** Auto-fires daily 05:00 UTC. Epoch 3 fire: May 20 05:00 UTC.
 
-## What Needs to Happen Today
+## Jason — Korea (~2 weeks, autonomous mode)
 
-**Shu must co-sign Founder Safe nonce 2.** Jason is texting him.
+No Jason-gated decisions needed during this period. Protocol is self-running.
 
-## After Epoch 2
+## Pending (no urgency)
 
-- Epoch 3 opens, closes May 20 03:52 UTC (next Wednesday)
-- setSplit should execute before Epoch 3 — but same logic applies: harmless without stakers
-- Upgrade Step 1 (`scheduleUpgrade`) can happen any time once Jason + Shu confirm timing
-- LP pool / Unicrypt / Sablier all pending Shu
+| Item | Who | Notes |
+|---|---|---|
+| Genesis LP pool | Shu | Treasury Safe → Uniswap v3 |
+| Unicrypt LP lock | Shu | After LP pool |
+| Sablier vesting | Shu | 4.2M PSRE from Founder Safe |
+| Factory upgrade Step 1 | Kin → Shu/Jason timing | 14-day timelock chain |
+| Basescan verification | Kin | Needs mainnet API key |
+| Midas / Olympus Phase 2 | Jason on return | Privy + Neon DB |
+
+## Notes for Tomorrow
+
+- Nothing urgent. Protocol is healthy and ticking.
+- Epoch 3 keeper fires automatically May 20 at 05:00 UTC.
+- Watch `#prospereum` Discord for any keeper alerts.
