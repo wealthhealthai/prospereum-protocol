@@ -1,16 +1,12 @@
-# GOODNIGHT.md — 2026-05-14 (Korea Day 2)
+# GOODNIGHT.md — 2026-05-15 (Korea Day 3)
 
 ## Protocol State — Stable
 
-- **Epoch 3:** Running — closes **May 20 03:52 UTC** (~137h)
-- **setSplit:** ✅ Done | **T:** 0 | **Partners:** 0 | **Tests:** 261/261
-- **Keeper:** `nextToFinalize: 3` — auto-fires May 20 05:00 UTC
-- **Jason:** Korea, ~13 days remaining
+- **Epoch 3:** Running — closes **May 20 03:52 UTC** (~113h)
+- **setSplit:** ✅ | **T:** 0 | **Partners:** 0 | **Tests:** 261/261
+- **Keeper:** Auto-fires May 20 05:00 UTC — no action needed
+- **Jason:** Korea, ~12 days remaining
 
 ## Nothing Urgent
 
-All pending items (LP pool, Unicrypt, Sablier, factory upgrade, Midas) either belong to Shu or wait for Jason's return. Protocol is self-running.
-
-## Next Protocol Event
-
-**Epoch 3 closes May 20 03:52 UTC** — keeper auto-fires at 05:00 UTC. No manual action needed.
+Next protocol event: **Epoch 3 → May 20**. Everything else holds for Jason's return or Shu.
