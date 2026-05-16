@@ -1,12 +1,22 @@
-# GOODNIGHT.md — 2026-05-15 (Korea Day 3)
+# GOODNIGHT.md — 2026-05-16 (Korea Day 4)
 
-## Protocol State — Stable
+## Protocol State
 
-- **Epoch 3:** Running — closes **May 20 03:52 UTC** (~113h)
+- **Epoch 3:** Running — closes **May 20 03:52 UTC** (~89h)
 - **setSplit:** ✅ | **T:** 0 | **Partners:** 0 | **Tests:** 261/261
 - **Keeper:** Auto-fires May 20 05:00 UTC — no action needed
-- **Jason:** Korea, ~12 days remaining
+- **Jason:** Korea — returns **~May 27** (~10 days)
 
-## Nothing Urgent
+## Next Events
 
-Next protocol event: **Epoch 3 → May 20**. Everything else holds for Jason's return or Shu.
+| Date | Event |
+|---|---|
+| May 20 03:52 UTC | Epoch 3 closes |
+| May 20 05:00 UTC | Keeper auto-fires → verify 0 PSRE minted |
+| ~May 27 | Jason returns → factory upgrade, Midas unblock, LP pool |
+
+## Holding
+
+LP pool, Unicrypt, Sablier: Shu's lane, no rush.
+Factory upgrade: waits for Jason to confirm timing.
+Everything else: stable.
