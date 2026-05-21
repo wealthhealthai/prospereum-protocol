@@ -1,67 +1,48 @@
 agent: kin
-date: "2026-05-11"
-generated: "2026-05-11T10:46:00Z"
+date: "2026-05-21"
+generated: "2026-05-21T10:47:00Z"
 
 status: holding
 summary: >
-  Quiet Monday. No code changes. Protocol live on Base mainnet.
-  Epoch 2 closes in ~41h (May 13 03:52 UTC). setSplit still pending
-  Shu co-sign on Founder Safe nonce 2 — Jason must ping today.
-  261/261 tests clean. Audit 34/34 closed.
+  Korea Day 9. Quiet autonomous mode. Epoch 4 running — closes May 27 03:52 UTC
+  (~137h), same day Jason returns. All previous epochs finalized with 0 PSRE minted.
+  Protocol self-running. No action items until Jason returns.
 
 protocol:
-  epoch_current: 2
-  epoch_2_closes: "2026-05-13T03:52:00Z"
-  epoch_2_hours_remaining: 41
+  epoch_current: 4
+  epoch_4_closes: "2026-05-27T03:52:00Z"
+  epoch_4_hours_remaining: 137
+  epochs_finalized: [0, 1, 2, 3]
   total_psre_emitted: 0
   partners_registered: 0
   tests_passing: 261
   tests_total: 261
   audit_status: "CLOSED — 34/34 findings resolved"
+  set_split: "psreSplit=1e18 (100%), lpSplit=0"
+
+upcoming:
+  - date: "2026-05-27T03:52:00Z"
+    event: "Epoch 4 closes — keeper auto-fires 05:00 UTC"
+  - date: "2026-05-27"
+    event: "Jason returns from Korea"
+  - note: "Day 1 back: factory upgrade Step 1, Midas/Olympus unblock, LP pool direction"
 
 open_items:
-  critical:
-    - id: setSplit
-      description: "Shu co-sign Founder Safe nonce 2 — setSplit(1e18, 0)"
-      deadline: "2026-05-13T03:52:00Z"
-      blocker: shu
-      hours_remaining: 41
-
-  soon:
-    - id: upgrade_step1
-      description: "scheduleUpgrade(newReImpl) from Founder Safe — starts 14-day PSRE-native upgrade"
-      blocker: "jason+shu timing decision"
-
-    - id: genesis_lp
-      description: "Treasury Safe → Uniswap v3 PSRE/USDC $40K genesis LP"
-      blocker: shu
-
-    - id: unicrypt_lock
-      description: "Lock LP NFT on Unicrypt for 24 months"
-      blocker: "after genesis LP"
-
-    - id: sablier_vesting
-      description: "Set up Sablier vesting stream for 4.2M PSRE from Founder Safe"
-      blocker: shu
-
-  backlog:
-    - id: basescan_verify
-      description: "Verify all 8 mainnet contracts on Basescan"
-      blocker: "Jason: need mainnet Etherscan API key"
-
-    - id: nadir_closing
-      description: "Send Nadir final mainnet commit hash to formally close audit"
-      blocker: jason
-
-    - id: audit_badge
-      description: "Add BlockApex audit badge to Prospereum website"
-      blocker: jason
+  shu:
+    - Genesis LP pool ($40K, Treasury Safe → Uniswap v3 PSRE/USDC 1%)
+    - Unicrypt LP lock (24 months)
+    - Sablier vesting stream (4.2M PSRE from Founder Safe)
+  jason_on_return:
+    - Factory upgrade Step 1 (scheduleUpgrade → 14-day process)
+    - Midas/Olympus Phase 2 (Privy + Neon DB env vars)
+    - Nadir audit closing message
+    - Basescan mainnet API key
 
 keeper:
   cron_id: "3fc22360-5453-4ee8-a09d-914a214a98c3"
   schedule: "0 5 * * * UTC daily"
   network: mainnet
-  next_run: "2026-05-13T05:00:00Z"
+  next_epoch_fire: "2026-05-27T05:00:00Z"
   status: active
 
 contracts:
