@@ -1,26 +1,19 @@
-# GOODNIGHT.md — 2026-05-20 (Korea Day 8)
+# GOODNIGHT.md — 2026-05-22 (Korea Day 10)
 
-## Epoch 3 — ✅ Finalized Clean
+## Protocol State — Stable
 
-On-chain: `lastFinalizedEpoch=3`, `T=0`. Keeper fired 05:00 UTC as scheduled. 0 PSRE minted.
-
-## Protocol State
-
-- **Epoch 4:** Running — closes **May 27 03:52 UTC (Wed)** — same day Jason returns
-- **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261
+- **Epoch 4:** Running — closes **May 27 03:52 UTC** (~113h)
+- **setSplit:** ✅ Executed May 13 (psreSplit=100%, lpSplit=0) — confirmed on-chain
+- **T:** 0 | **Partners:** 0 | **Tests:** 261/261
 - **Keeper:** Auto-fires May 27 05:00 UTC
-- **Jason:** Returns ~May 27 (~7 days)
+- **Jason:** Returns ~May 27 (~5 days)
 
-## Epoch History
+## ⚠️ Flag for Archon
 
-| Epoch | Status | PSRE Minted |
-|---|---|---|
-| 0 | ✅ Apr 29 | 0 |
-| 1 | ✅ May 6 | 0 |
-| 2 | ✅ May 13 | 0 |
-| 3 | ✅ May 20 | 0 |
-| **4** | **Running → May 27** | — |
+PHOENIX brief mentioned "setSplit Epoch 4 / Shu nonce 3" — setSplit is already executed and confirmed. Either:
+(a) Tracker item is stale, or (b) "nonce 3" refers to factory upgrade Step 1 on Founder Safe.
+No action needed on setSplit. Awaiting clarification.
 
-## On Jason's Return
+## On Jason's Return (~May 27)
 
-Factory upgrade, Midas/Olympus, LP pool, Basescan, Nadir close — all ready to move.
+Factory upgrade Step 1, Midas/Olympus, LP pool, Nadir close, Basescan.

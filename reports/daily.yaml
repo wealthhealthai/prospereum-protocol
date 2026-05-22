@@ -1,31 +1,38 @@
 agent: kin
-date: "2026-05-21"
-generated: "2026-05-21T10:47:00Z"
+date: "2026-05-22"
+generated: "2026-05-22T10:46:00Z"
 
 status: holding
 summary: >
-  Korea Day 9. Quiet autonomous mode. Epoch 4 running — closes May 27 03:52 UTC
-  (~137h), same day Jason returns. All previous epochs finalized with 0 PSRE minted.
-  Protocol self-running. No action items until Jason returns.
+  Korea Day 10. Quiet autonomous day. Epoch 4 running ~113h to May 27 close.
+  setSplit confirmed on-chain (psreSplit=100%, lpSplit=0) — DONE, not pending.
+  Brief flag "setSplit nonce 3" may be stale or refer to factory upgrade. Flagging.
+  Jason returns ~May 27.
+
+flags:
+  - item: setSplit_nonce3
+    note: >
+      PHOENIX brief flagged "setSplit Epoch 4 / nonce 3". setSplit already executed
+      May 13 (confirmed on-chain psreSplit=1e18, lpSplit=0). This tracker item may be
+      stale or mislabeled. Could refer to factory upgrade Step 1 as nonce 3 on Founder Safe.
+      Flagging to Archon for clarification.
 
 protocol:
   epoch_current: 4
   epoch_4_closes: "2026-05-27T03:52:00Z"
-  epoch_4_hours_remaining: 137
+  epoch_4_hours_remaining: 113
   epochs_finalized: [0, 1, 2, 3]
   total_psre_emitted: 0
   partners_registered: 0
   tests_passing: 261
   tests_total: 261
-  audit_status: "CLOSED — 34/34 findings resolved"
-  set_split: "psreSplit=1e18 (100%), lpSplit=0"
+  set_split: "psreSplit=1e18 (100%), lpSplit=0 — EXECUTED May 13"
 
 upcoming:
   - date: "2026-05-27T03:52:00Z"
     event: "Epoch 4 closes — keeper auto-fires 05:00 UTC"
   - date: "2026-05-27"
     event: "Jason returns from Korea"
-  - note: "Day 1 back: factory upgrade Step 1, Midas/Olympus unblock, LP pool direction"
 
 open_items:
   shu:
@@ -33,7 +40,7 @@ open_items:
     - Unicrypt LP lock (24 months)
     - Sablier vesting stream (4.2M PSRE from Founder Safe)
   jason_on_return:
-    - Factory upgrade Step 1 (scheduleUpgrade → 14-day process)
+    - Factory upgrade Step 1 (scheduleUpgrade → 14-day process, Founder Safe)
     - Midas/Olympus Phase 2 (Privy + Neon DB env vars)
     - Nadir audit closing message
     - Basescan mainnet API key
@@ -41,7 +48,6 @@ open_items:
 keeper:
   cron_id: "3fc22360-5453-4ee8-a09d-914a214a98c3"
   schedule: "0 5 * * * UTC daily"
-  network: mainnet
   next_epoch_fire: "2026-05-27T05:00:00Z"
   status: active
 
@@ -50,6 +56,4 @@ contracts:
   reward_engine_proxy: "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5"
   factory: "0xFF84408633f79b8f562314cC5A3bCaedA8f76902"
   staking_vault: "0x684BEA07e979CB5925d546b2E2099aA1c632ED2D"
-  founder_safe: "0xc59816CAC94A969E50EdFf7CF49ce727aec1489F"
-  treasury_safe: "0xa9Fde837EBC15BEE101d0D895c41a296Ac2CAfCe"
   chain_id: 8453
