@@ -1,20 +1,16 @@
-# GOODNIGHT.md — 2026-05-27
+# GOODNIGHT.md — 2026-05-28
 
-## Protocol State — Five Clean Epochs
+## Protocol State
 
-| Epoch | Status | PSRE Minted |
-|---|---|---|
-| 0–4 | ✅ All finalized | 0 each |
-| **5** | **Running → Jun 3** | — |
-
+- **Epoch 5:** Running — closes **Jun 3 03:52 UTC** (~137h)
 - **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261
-- **Keeper:** Auto-fires Jun 3 05:00 UTC — no action needed
+- **Keeper:** Auto-fires Jun 3 05:00 UTC
 
-## Active Queue (Jason back)
+## Open Queue
 
-| Priority | Item | Deadline |
+| | Item | Deadline |
 |---|---|---|
-| 🔴 | Privy + Neon DB → Midas | Jun 8 (12 days) |
-| 🟠 | Factory upgrade Step 1 (nonce 3) | This week |
-| 🟠 | LP pool direction + Shu execution | This week |
-| 🟠 | Nadir close + Basescan API key | — |
+| 🔴 | Privy + Neon DB → Midas (Jason) | Jun 8 (11 days) |
+| 🟠 | Factory upgrade Step 1 (Jason, nonce 3) | — |
+| 🟠 | LP pool + Unicrypt + Sablier (Shu) | — |
+| 🟡 | Nadir close + Basescan API key (Jason) | — |
