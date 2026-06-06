@@ -1,6 +1,10 @@
-# GOODNIGHT.md — 2026-06-05
+# GOODNIGHT.md — 2026-06-06
 
-- **Epoch 6:** ~113h → closes Jun 10 03:52 UTC | Keeper fires 05:00 UTC
+- **Epoch 6:** ~89h → closes Jun 10 | Keeper auto-fires
 - **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261
-- 🔴 Privy + Neon → Midas: **June 8 = 3 DAYS**
+
+## ⚠️ June 8 = 2 DAYS
+
+Helio SOW meeting with Bharat. **Privy App ID + Neon DB URL → Zeus → Olympus Phase 2 → Midas** must be unblocked before Monday. Jason needs to action this today or tomorrow.
+
 - 🟠 Factory upgrade Step 1 (Jason) | LP pool + Unicrypt + Sablier (Shu)
