@@ -1,10 +1,15 @@
-# GOODNIGHT.md — 2026-06-06
+# GOODNIGHT.md — 2026-06-07
 
-- **Epoch 6:** ~89h → closes Jun 10 | Keeper auto-fires
+## ⚠️ June 8 = TOMORROW — Helio SOW
+
+Privy App ID + Neon DB URL must land today. Jason's action before the Bharat meeting.
+
+## Protocol State
+
+- **Epoch 6:** ~65h → closes Jun 10 03:52 UTC | Verification cron `bbf58e10` Jun 10 05:30 UTC
 - **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261
 
-## ⚠️ June 8 = 2 DAYS
+## Queue
 
-Helio SOW meeting with Bharat. **Privy App ID + Neon DB URL → Zeus → Olympus Phase 2 → Midas** must be unblocked before Monday. Jason needs to action this today or tomorrow.
-
+- 🔴 **TODAY (Jason):** Privy + Neon DB → Zeus → Midas
 - 🟠 Factory upgrade Step 1 (Jason) | LP pool + Unicrypt + Sablier (Shu)
