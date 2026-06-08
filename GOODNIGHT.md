@@ -1,15 +1,16 @@
-# GOODNIGHT.md — 2026-06-07
+# GOODNIGHT.md — 2026-06-08 (Helio SOW Day)
 
-## ⚠️ June 8 = TOMORROW — Helio SOW
+## Today: June 8 — Helio SOW 10 AM
 
-Privy App ID + Neon DB URL must land today. Jason's action before the Bharat meeting.
+Bharat meeting. WH deliverables + SOW. Good luck, Jason.
 
-## Protocol State
+## Protocol State — Stable
 
-- **Epoch 6:** ~65h → closes Jun 10 03:52 UTC | Verification cron `bbf58e10` Jun 10 05:30 UTC
-- **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261
+- **Epoch 6:** ~41h → closes Jun 10 03:52 UTC | Verify cron `bbf58e10` Jun 10 05:30 UTC
+- **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261 | **Audit:** 34/34 ✅
 
-## Queue
+## After the Meeting
 
-- 🔴 **TODAY (Jason):** Privy + Neon DB → Zeus → Midas
-- 🟠 Factory upgrade Step 1 (Jason) | LP pool + Unicrypt + Sablier (Shu)
+- Privy + Neon DB → Zeus → Olympus Phase 2 → Midas
+- Factory upgrade Step 1 (nonce 3, 14-day clock)
+- LP pool direction (Shu)
