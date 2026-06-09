@@ -1,16 +1,15 @@
-# GOODNIGHT.md — 2026-06-08 (Helio SOW Day)
+# GOODNIGHT.md — 2026-06-09
 
-## Today: June 8 — Helio SOW 10 AM
+## ⚡ Epoch 6 Closes TONIGHT
 
-Bharat meeting. WH deliverables + SOW. Good luck, Jason.
+- **8:52 PM PDT** (Jun 10 03:52 UTC) — ~17h
+- Keeper fires **10:00 PM PDT** | Verify cron `bbf58e10` fires **10:30 PM PDT**
+- Expected: `lastFinalizedEpoch=6`, `T=0` → seven consecutive clean epochs
 
-## Protocol State — Stable
+## State
 
-- **Epoch 6:** ~41h → closes Jun 10 03:52 UTC | Verify cron `bbf58e10` Jun 10 05:30 UTC
 - **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261 | **Audit:** 34/34 ✅
 
-## After the Meeting
+## Queue (Jason + Shu)
 
-- Privy + Neon DB → Zeus → Olympus Phase 2 → Midas
-- Factory upgrade Step 1 (nonce 3, 14-day clock)
-- LP pool direction (Shu)
+- Privy + Neon DB → Midas | Factory upgrade Step 1 | LP pool + Unicrypt + Sablier
