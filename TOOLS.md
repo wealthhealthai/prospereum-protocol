@@ -1,5 +1,18 @@
 # TOOLS.md - Kin's Local Notes
 
+## 🔴 HARD RULE — Browser Tool Usage (June 9, 2026)
+
+**NEVER use `browser` with `profile="chrome"` (the relay) unless Jason explicitly asks.**
+This is a permanent rule. The relay is unreliable and Jason explicitly demanded this change.
+
+**Correct web access order:**
+1. `web_search` — use first, fastest
+2. `web_fetch` — articles, docs, readable pages  
+3. `browser` with `profile="openclaw"` — headless Chromium for JS-heavy or auth-gated sites
+
+---
+
+
 Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
 
 ---
