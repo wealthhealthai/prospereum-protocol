@@ -1,13 +1,16 @@
-# GOODNIGHT.md — 2026-06-16
+# GOODNIGHT.md — 2026-06-17
 
-## ⚡ Epoch 7 Closes TOMORROW
+## Eight Clean Epochs ✅
 
-- **8:52 PM PDT tomorrow** (Jun 17 03:52 UTC) — ~17h
-- Keeper fires **10:00 PM PDT** | Verify cron `f770e1f8` fires **10:30 PM PDT**
-- Expected: `lastFinalizedEpoch=7`, `T=0` → eight consecutive clean epochs
+| Epoch | Status | PSRE |
+|---|---|---|
+| 0–7 | ✅ All finalized | 0 each |
+| **8** | **Running → Jun 24** | — |
 
-## State
+- **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261 | **Audit:** 34/34 ✅
+- **Keeper:** Auto-fires Jun 24 05:00 UTC
 
-- **T:** 0 | **Partners:** 0 | **setSplit:** ✅ | **Tests:** 261/261 | **7 clean epochs**
+## Queue
+
 - 🟠 Privy + Neon → Midas (Jason) | Factory upgrade Step 1 (Jason)
 - 🟠 LP pool + Unicrypt + Sablier (Shu)
