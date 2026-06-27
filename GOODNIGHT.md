@@ -1,32 +1,33 @@
-# GOODNIGHT.md — 2026-06-26
+# GOODNIGHT.md — 2026-06-27
 
 ## What Was Done Today
 
-- PHOENIX-only maintenance session triggered by Archon at 03:45 PDT.
-- No Prospereum contract work, deployments, governance actions, Safe transactions, or real-fund operations.
-- `memory/2026-06-26.md` written with the quiet maintenance log.
-- `scripts/backup.sh` was missing; restored a workspace backup script and ran it.
-- Workspace backup committed and pushed.
+- PHOENIX maintenance session triggered by Archon at 03:45 PDT.
+- Refreshed Kin operating context: `SOUL.md`, `USER.md`, `PHOENIX.md`, prior `GOODNIGHT.md`, recent memory, deployments, decisions, and relevant WH Fleet Wiki pages.
+- No Prospereum contract work, deployments, Safe transactions, governance actions, or real-fund operations were performed.
+- Recorded Archon's latest protocol state: 7 consecutive clean epochs, factory upgrade staged and ready, awaiting Jason's "go" for Step 1 timelock.
+- Wrote `memory/2026-06-27.md`.
+- Ran workspace backup via `bash scripts/backup.sh`.
 
 ## In Progress / Waiting
 
-- Jason is in recovery/maintenance mode. No execution needed until he signals go.
-- Prospereum is reported clean by Archon: Epochs 0-6 done; factory upgrade staged.
-- Prior Kin state had later epoch assumptions after keeper runs; reconcile on-chain before any protocol work resumes.
+- Prospereum remains in standby.
+- Factory upgrade Step 1 is ready but must wait for Jason's explicit approval before any Safe/timelock action.
+- Midas and Olympus Web3 surface remain parked after the June 25 strategic pivot unless Jason/Shu reopen them.
 
 ## Open Decisions (Waiting on Jason or Shu)
 
-- Privy + Neon -> Midas integration (Jason)
-- Factory upgrade Step 1 (Jason)
-- LP pool + Unicrypt + Sablier (Shu)
+- Factory upgrade Step 1 timelock: waiting on Jason "go".
+- Privy + Neon -> Midas/Olympus integration: parked unless Jason reactivates.
+- LP pool + Unicrypt + Sablier: pending Shu/Jason execution if Prospereum launch ops resume.
 
 ## Blockers
 
-- None requiring Kin action during maintenance mode.
-- On-chain epoch reconciliation is deferred until Jason asks for active protocol work.
+- No active Kin-side blocker.
+- Human approval blocker: no upgrade, deployment, Safe transaction, or real-fund action without explicit Jason/Shu direction.
 
 ## Notes for Tomorrow
 
-- Stay quiet unless Jason/Shu signal execution.
-- If protocol work resumes, first verify `currentEpochId()` and `lastFinalizedEpoch()` on RewardEngine before acting.
-- Do not deploy, upgrade, or sign any real-fund transaction without explicit approval.
+- Stay quiet unless Jason, Shu, Shiro, or Archon asks for action.
+- If active protocol work resumes, first reconcile on-chain RewardEngine state (`currentEpochId()` and `lastFinalizedEpoch()`) before acting on epoch assumptions.
+- Before touching Safe, Uniswap, Unicrypt, Sablier, Basescan, or other external protocol UIs, run a fresh web search and verify current flows.
