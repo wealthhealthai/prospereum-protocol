@@ -1,13 +1,12 @@
-# GOODNIGHT.md — 2026-06-27
+# GOODNIGHT.md — 2026-06-28
 
 ## What Was Done Today
 
-- PHOENIX maintenance session triggered by Archon at 03:45 PDT.
+- PHOENIX maintenance session triggered by Shiro/Archon cron handoff at 03:40 PDT.
 - Refreshed Kin operating context: `SOUL.md`, `USER.md`, `PHOENIX.md`, prior `GOODNIGHT.md`, recent memory, deployments, decisions, and relevant WH Fleet Wiki pages.
 - No Prospereum contract work, deployments, Safe transactions, governance actions, or real-fund operations were performed.
-- Recorded Archon's latest protocol state: 7 consecutive clean epochs, factory upgrade staged and ready, awaiting Jason's "go" for Step 1 timelock.
-- Wrote `memory/2026-06-27.md`.
-- Ran workspace backup via `bash scripts/backup.sh`.
+- Wrote `memory/2026-06-28.md`.
+- Wrote `memory/sessions/2026-06-28-direct-jason.md` for MACHINE aggregation.
 
 ## In Progress / Waiting
 
