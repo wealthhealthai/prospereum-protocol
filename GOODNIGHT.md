@@ -1,19 +1,20 @@
-# GOODNIGHT.md — 2026-06-28
+# GOODNIGHT.md - 2026-06-29
 
 ## What Was Done Today
 
-- PHOENIX maintenance session triggered by Shiro/Archon cron handoff at 03:40 PDT.
+- PHOENIX maintenance session triggered by Archon cron handoff at 03:45 PDT.
 - Refreshed Kin operating context: `SOUL.md`, `USER.md`, `PHOENIX.md`, prior `GOODNIGHT.md`, recent memory, deployments, decisions, and relevant WH Fleet Wiki pages.
-- No Prospereum contract work, deployments, Safe transactions, governance actions, or real-fund operations were performed.
-- Wrote `memory/2026-06-28.md`.
-- Wrote `memory/sessions/2026-06-28-direct-jason.md` for MACHINE aggregation.
-- Ran workspace backup via `bash scripts/backup.sh` after Archon's 03:45 PHOENIX cron handoff.
+- No active Jason/Shu session occurred tonight.
+- No Prospereum contract work, deployment, Safe transaction, governance action, or real-fund operation was performed.
+- Wrote `memory/2026-06-29.md`.
+- Wrote `memory/sessions/2026-06-29-direct-jason.md` for PHOENIX continuity.
+- Ran workspace backup via `bash scripts/backup.sh`.
 
 ## In Progress / Waiting
 
 - Prospereum remains in standby.
-- Factory upgrade Step 1 is ready but must wait for Jason's explicit approval before any Safe/timelock action.
-- Midas and Olympus Web3 surface remain parked after the June 25 strategic pivot unless Jason/Shu reopen them.
+- Factory upgrade Step 1 remains staged but must wait for Jason's explicit approval before any Safe/timelock action.
+- Midas and Olympus Web3 surfaces remain parked after the June 25 strategic pivot unless Jason/Shu reopen them.
 
 ## Open Decisions (Waiting on Jason or Shu)
 
