@@ -1,4 +1,4 @@
-# GOODNIGHT.md - 2026-06-30
+# GOODNIGHT.md - 2026-07-01
 
 ## What Was Done Today
 
@@ -6,19 +6,19 @@
 - Refreshed Kin operating context: `SOUL.md`, `USER.md`, `PHOENIX.md`, prior `GOODNIGHT.md`, recent memory, deployments, decisions, and relevant WH Fleet Wiki pages.
 - No active Jason/Shu protocol session occurred tonight.
 - No Prospereum contract work, deployment, Safe transaction, governance action, or real-fund operation was performed.
-- Wrote `memory/2026-06-30.md`.
-- Wrote `memory/sessions/2026-06-30-direct-jason.md` for PHOENIX continuity.
+- Wrote `memory/2026-07-01.md`.
 - Ran workspace backup via `bash scripts/backup.sh`.
 
 ## In Progress / Waiting
 
 - Prospereum remains in standby.
-- Factory upgrade Step 1 remains staged but must wait for Jason's explicit approval before any Safe/timelock action.
+- Handoff state reports 7 clean epochs (0-6), with factory upgrade staged.
+- Factory upgrade Step 1 remains staged but must wait for Jason's explicit "start Step 1" approval before any Safe/timelock action.
 - Midas and Olympus Web3 surfaces remain parked after the June 25 strategic pivot unless Jason/Shu reopen them.
 
 ## Open Decisions (Waiting on Jason or Shu)
 
-- Factory upgrade Step 1 timelock: waiting on Jason "go".
+- Factory upgrade Step 1 timelock: waiting on Jason "start Step 1".
 - Privy + Neon -> Midas/Olympus integration: parked unless Jason reactivates.
 - LP pool + Unicrypt + Sablier: pending Shu/Jason execution if Prospereum launch ops resume.
 
