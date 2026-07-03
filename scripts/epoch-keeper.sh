@@ -42,6 +42,16 @@ err() { log "ERROR: $*" >&2; exit 1; }
 # Strip cast's bracket notation e.g. "604800 [6.048e5]" → "604800"
 strip() { awk '{print $1}'; }
 
+eth_fmt() {
+    python3 - "$1" <<'PY'
+from decimal import Decimal
+import sys
+wei = Decimal(sys.argv[1])
+eth = wei / Decimal(10) ** 18
+print(format(eth, "f").rstrip("0").rstrip(".") or "0")
+PY
+}
+
 # ── Read chain state ──────────────────────────────────────────────────────────
 
 log "Checking RewardEngine @ $REWARD_ENGINE"
@@ -94,6 +104,17 @@ while true; do
     fi
 
     log "Calling finalizeEpoch($EPOCH_ID)..."
+    FROM_ADDR=$("$CAST" wallet address --private-key "$PRIVATE_KEY")
+    GAS_PRICE=$("$CAST" gas-price --rpc-url "$RPC_URL" 2>/dev/null | strip)
+    BALANCE=$("$CAST" balance "$FROM_ADDR" --rpc-url "$RPC_URL" 2>/dev/null | strip)
+    REQUIRED=$(( GAS_LIMIT * GAS_PRICE ))
+
+    if (( BALANCE < REQUIRED )); then
+        BALANCE_ETH=$(eth_fmt "$BALANCE")
+        REQUIRED_ETH=$(eth_fmt "$REQUIRED")
+        err "Insufficient keeper gas balance. Wallet $FROM_ADDR has ${BALANCE_ETH} ETH; needs up to ${REQUIRED_ETH} ETH for gas-limit $GAS_LIMIT at current gas price $GAS_PRICE wei."
+    fi
+
     OUTPUT=$("$CAST" send "$REWARD_ENGINE" \
         "finalizeEpoch(uint256)" "$EPOCH_ID" \
         --rpc-url "$RPC_URL" \
