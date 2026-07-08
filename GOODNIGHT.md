@@ -1,15 +1,15 @@
-# GOODNIGHT.md - 2026-07-07
+# GOODNIGHT.md - 2026-07-08
 
 ## What Was Done Today
 
-- PHOENIX / GOODNIGHT maintenance triggered by Archon for Jason's nightly wrap-up.
+- PHOENIX / GOODNIGHT maintenance triggered by Shiro cron for MACHINE aggregation.
 - Refreshed Kin operating context from `SOUL.md`, `USER.md`, `PHOENIX.md`, prior `GOODNIGHT.md`, recent memory, deployments, decisions, and relevant WH Fleet Wiki pages.
-- Earlier PHOENIX routing requested a session summary; wrote `memory/sessions/2026-07-07-direct-jason.md`, committed `a22f7b4`, rebased cleanly, and pushed to `origin/master`.
-- Created `memory/2026-07-07.md`.
+- Confirmed current session key is `agent:kin:direct:jason`, so main-session PHOENIX protocol applies.
+- Created `memory/2026-07-08.md`.
+- Wrote `memory/sessions/2026-07-08-direct-jason.md` for MACHINE aggregation.
 - Confirmed no new deployment, Safe transaction, governance action, contract upgrade, keeper transaction, or real-fund operation occurred during this PHOENIX / GOODNIGHT pass.
 - Confirmed `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` did not need updates.
 - No external protocol UI, Safe, Base transaction, keeper transaction, or dApp flow was touched.
-- Ran workspace backup via `bash scripts/backup.sh`.
 
 ## In Progress / Waiting
 
