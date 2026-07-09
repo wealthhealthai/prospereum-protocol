@@ -1,15 +1,12 @@
-# GOODNIGHT.md - 2026-07-08
+# GOODNIGHT.md - 2026-07-09
 
 ## What Was Done Today
 
-- PHOENIX / GOODNIGHT maintenance triggered by Shiro cron for MACHINE aggregation.
+- PHOENIX maintenance triggered by Archon midnight cron.
 - Refreshed Kin operating context from `SOUL.md`, `USER.md`, `PHOENIX.md`, prior `GOODNIGHT.md`, recent memory, deployments, decisions, and relevant WH Fleet Wiki pages.
-- Confirmed current session key is `agent:kin:direct:jason`, so main-session PHOENIX protocol applies.
-- Created `memory/2026-07-08.md`.
-- Wrote `memory/sessions/2026-07-08-direct-jason.md` for MACHINE aggregation.
-- Archon PHOENIX follow-up requested workspace backup and confirmation back to `agent:archon:direct:jason`.
+- Created `memory/2026-07-09.md`.
 - Ran workspace backup via `bash scripts/backup.sh`.
-- Confirmed no new deployment, Safe transaction, governance action, contract upgrade, keeper transaction, or real-fund operation occurred during this PHOENIX / GOODNIGHT pass.
+- Confirmed no new deployment, Safe transaction, governance action, contract upgrade, keeper transaction, or real-fund operation occurred during this PHOENIX pass.
 - Confirmed `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` did not need updates.
 - No external protocol UI, Safe, Base transaction, keeper transaction, or dApp flow was touched.
 
@@ -31,8 +28,9 @@
 
 - Operational blocker: epoch 8 keeper finalization cannot be sent until the keeper wallet has enough Base ETH for gas.
 - Latest known keeper wallet balance from routed status: about `0.00000052 ETH`; required for the epoch 8 transaction: about `0.000036 ETH`.
+- Prior `~60 ETH` keeper alert was investigated as a unit/reporting error; the protocol call itself simulated at normal gas.
 - Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action without explicit Jason/Shu direction.
-- No Kin-side technical blocker for PHOENIX / GOODNIGHT maintenance.
+- No Kin-side technical blocker for PHOENIX maintenance.
 
 ## Notes for Tomorrow
 
