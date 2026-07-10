@@ -1,10 +1,11 @@
-# GOODNIGHT.md - 2026-07-09
+# GOODNIGHT.md - 2026-07-10
 
 ## What Was Done Today
 
-- PHOENIX maintenance triggered by Archon midnight cron.
+- PHOENIX maintenance triggered by Archon 3:45 AM PDT cron.
 - Refreshed Kin operating context from `SOUL.md`, `USER.md`, `PHOENIX.md`, prior `GOODNIGHT.md`, recent memory, deployments, decisions, and relevant WH Fleet Wiki pages.
-- Created `memory/2026-07-09.md`.
+- Created `memory/2026-07-10.md`.
+- Updated Kin-owned WH Fleet Wiki pages to reflect the current Prospereum standby state and epoch 8 keeper-gas blocker.
 - Ran workspace backup via `bash scripts/backup.sh`.
 - Confirmed no new deployment, Safe transaction, governance action, contract upgrade, keeper transaction, or real-fund operation occurred during this PHOENIX pass.
 - Confirmed `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` did not need updates.
