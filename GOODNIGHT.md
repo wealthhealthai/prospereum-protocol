@@ -1,10 +1,10 @@
-# GOODNIGHT.md — 2026-07-20
+# GOODNIGHT.md — 2026-07-21
 
 ## What Was Done Today
 
 - Completed the scheduled main-session PHOENIX closeout and reviewed the current Prospereum state.
-- Found no recorded July 19–20 code, contract, deployment, Safe, governance, keeper-send, token-transfer, or other real-fund activity.
-- Preserved the scheduled `DREAMS.md` diary refresh in the workspace backup.
+- Found no recorded July 21 code, contract, deployment, Safe, governance, keeper-send, token-transfer, or other real-fund activity.
+- Preserved the pre-existing scheduled `DREAMS.md` and `MEMORY.md` refreshes in the workspace backup.
 - Confirmed `projects/prospereum/deployments.md`, `projects/prospereum/decisions.md`, and the Kin-owned Fleet Wiki pages did not need updates because project state remained unchanged.
 - Updated today's memory log and this state snapshot, then ran the prescribed workspace backup.
 
@@ -15,7 +15,7 @@
 - Factory upgrade Step 1 remains staged and urgent, but still requires Jason's explicit "start Step 1" approval before any Safe/timelock action.
 - Midas and Olympus Web3 surfaces remain parked after the June 25 strategic pivot unless Jason or Shu reopens them.
 
-## Open Decisions (Waiting on Jason or Shu)
+## Open Decisions (waiting on Jason or Shu)
 
 - Keeper wallet funding: Jason or Shu should top up `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` with a small amount of Base ETH, or provide alternative direction, before retrying epoch 8 finalization.
 - Factory upgrade Step 1 timelock: waiting on Jason's explicit approval to start Step 1.
