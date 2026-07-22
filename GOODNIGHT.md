@@ -1,9 +1,9 @@
-# GOODNIGHT.md — 2026-07-21
+# GOODNIGHT.md — 2026-07-22
 
 ## What Was Done Today
 
 - Completed the scheduled main-session PHOENIX closeout and reviewed the current Prospereum state.
-- Found no recorded July 21 code, contract, deployment, Safe, governance, keeper-send, token-transfer, or other real-fund activity.
+- Found no recorded July 22 code, contract, deployment, Safe, governance, keeper-send, token-transfer, or other real-fund activity.
 - Preserved the pre-existing scheduled `DREAMS.md` and `MEMORY.md` refreshes in the workspace backup.
 - Confirmed `projects/prospereum/deployments.md`, `projects/prospereum/decisions.md`, and the Kin-owned Fleet Wiki pages did not need updates because project state remained unchanged.
 - Updated today's memory log and this state snapshot, then ran the prescribed workspace backup.
@@ -14,6 +14,7 @@
 - Epoch 8 finalization remains ready to retry once the keeper wallet has enough Base ETH for gas and current RewardEngine state is rechecked.
 - Factory upgrade Step 1 remains staged and urgent, but still requires Jason's explicit "start Step 1" approval before any Safe/timelock action.
 - Midas and Olympus Web3 surfaces remain parked after the June 25 strategic pivot unless Jason or Shu reopens them.
+- Archon reports that the May 22 status report is stale; the next GOODMORNING run should perform a fresh status refresh.
 
 ## Open Decisions (waiting on Jason or Shu)
 
@@ -32,6 +33,7 @@
 
 ## Notes for Tomorrow
 
+- Run the GOODMORNING status refresh to replace Archon's stale May 22 report with current state.
 - Stay quiet unless Jason, Shu, Shiro, or Archon asks for action.
 - Before retrying epoch finalization, verify keeper wallet Base ETH balance and current RewardEngine state (`currentEpochId()` and `lastFinalizedEpoch()`).
 - If Jason is ready for the factory upgrade, start with Step 1 only after explicit approval and fresh Safe/timelock verification.
