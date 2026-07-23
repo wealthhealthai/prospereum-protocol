@@ -1,40 +1,40 @@
-# GOODNIGHT.md — 2026-07-22
+# GOODNIGHT.md — 2026-07-23
 
 ## What Was Done Today
 
-- Completed the scheduled main-session PHOENIX closeout and reviewed the current Prospereum state.
-- Found no recorded July 22 code, contract, deployment, Safe, governance, keeper-send, token-transfer, or other real-fund activity.
-- Preserved the pre-existing scheduled `DREAMS.md` and `MEMORY.md` refreshes in the workspace backup.
-- Confirmed `projects/prospereum/deployments.md`, `projects/prospereum/decisions.md`, and the Kin-owned Fleet Wiki pages did not need updates because project state remained unchanged.
-- Updated today's memory log and this state snapshot, then ran the prescribed workspace backup.
+- Ran the scheduled Base mainnet epoch keeper check at 2026-07-22 22:00 PDT (2026-07-23 05:00 UTC).
+- Confirmed from RewardEngine that `lastFinalizedEpoch = 7`, `firstEpochFinalized = true`, and epoch 8 is ready to finalize.
+- The keeper correctly halted before submitting a transaction because wallet `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` now has exactly `0 ETH`; its conservative gas requirement was approximately `0.000036 ETH`.
+- Posted the keeper failure and funding request to the Prospereum Discord channel.
+- Reviewed the current Prospereum deployment registry, decisions log, repository state, recent session activity, and relevant Fleet Wiki pages.
+- Found no contract deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action today.
+- Preserved the pre-existing scheduled `DREAMS.md` and `MEMORY.md` refreshes in the PHOENIX workspace backup.
 
 ## In Progress / Waiting
 
 - Prospereum remains live on Base mainnet and in standby.
-- Epoch 8 finalization remains ready to retry once the keeper wallet has enough Base ETH for gas and current RewardEngine state is rechecked.
-- Factory upgrade Step 1 remains staged and urgent, but still requires Jason's explicit "start Step 1" approval before any Safe/timelock action.
+- Epoch 8 finalization is ready to retry after the keeper wallet receives Base ETH and current RewardEngine state is rechecked.
+- Factory upgrade Step 1 remains staged and requires Jason's explicit "start Step 1" approval before any Safe/timelock action.
 - Midas and Olympus Web3 surfaces remain parked after the June 25 strategic pivot unless Jason or Shu reopens them.
-- Archon reports that the May 22 status report is stale; the next GOODMORNING run should perform a fresh status refresh.
+- The stale May 22 project status should be replaced by a current status refresh during the next GOODMORNING run.
 
 ## Open Decisions (waiting on Jason or Shu)
 
-- Keeper wallet funding: Jason or Shu should top up `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` with a small amount of Base ETH, or provide alternative direction, before retrying epoch 8 finalization.
-- Factory upgrade Step 1 timelock: waiting on Jason's explicit approval to start Step 1.
-- Privy + Neon -> Midas/Olympus integration: parked unless Jason reactivates it.
-- LP pool + Unicrypt + Sablier: pending Shu/Jason execution if Prospereum launch operations resume.
+- Keeper gas funding: Jason or Shu should fund `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` with at least the required Base ETH reserve, or provide alternative direction.
+- Factory upgrade Step 1: waiting on Jason's explicit approval to begin the first Safe/timelock action.
+- Privy + Neon → Midas/Olympus integration remains parked unless Jason reactivates it.
+- Genesis LP pool, Unicrypt lock, and Sablier vesting remain pending Shu/Jason execution if Prospereum launch operations resume.
 
 ## Blockers
 
-- Operational blocker: epoch 8 keeper finalization cannot be sent until the keeper wallet has enough Base ETH for gas.
-- Latest saved keeper wallet balance: about `0.00000052 ETH`; conservative reserve needed for the epoch 8 transaction: about `0.000036 ETH`.
-- The prior `~60 ETH` keeper alert was investigated as a unit/reporting error; the protocol call itself simulated at normal gas.
-- Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action without explicit Jason/Shu direction.
+- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet balance is `0 ETH`; the latest preflight calculated up to approximately `0.000036 ETH` for the configured gas limit at the observed Base gas price.
+- Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization.
 - No Kin-side technical blocker for PHOENIX maintenance or workspace backup.
 
 ## Notes for Tomorrow
 
 - Run the GOODMORNING status refresh to replace Archon's stale May 22 report with current state.
-- Stay quiet unless Jason, Shu, Shiro, or Archon asks for action.
-- Before retrying epoch finalization, verify keeper wallet Base ETH balance and current RewardEngine state (`currentEpochId()` and `lastFinalizedEpoch()`).
-- If Jason is ready for the factory upgrade, start with Step 1 only after explicit approval and fresh Safe/timelock verification.
-- Before touching Safe, Uniswap, Unicrypt, Sablier, Basescan, Coinbase, or another external protocol UI, run a fresh web search and verify current flows.
+- Stay in standby unless Jason, Shu, Shiro, or Archon asks for action.
+- Before retrying epoch 8, verify the keeper wallet Base ETH balance and RewardEngine `currentEpochId()` / `lastFinalizedEpoch()`.
+- If Jason approves the factory upgrade, begin with Step 1 only after fresh Safe/timelock verification.
+- Before touching Safe, Uniswap, Unicrypt, Sablier, Basescan, Coinbase, or another external protocol UI, run a fresh web search and verify the current flow and contract addresses.
