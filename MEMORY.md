@@ -290,9 +290,19 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-07-22)
+## Promoted From Short-Term Memory (2026-07-28)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-07-16.md:20:22 -->
-- Blockers / Human Input: Keeper wallet `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` remains underfunded in the latest saved state: approximately `0.00000052 ETH` available versus approximately `0.000036 ETH` conservative reserve needed for epoch 8 finalization.; Jason or Shu must fund the keeper wallet or provide alternative direction before retrying the transaction.; No factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization. [score=0.825 recalls=0 avg=0.620 source=memory/2026-07-16.md:20-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-07-16.md:9:9 -->
-- Activity: Updated `GOODNIGHT.md` and this daily log, then ran the PHOENIX git commit-and-push backup. [score=0.825 recalls=0 avg=0.620 source=memory/2026-07-16.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23.md:5:8 -->
+- Activity: The scheduled Base mainnet epoch keeper ran at 2026-07-22 22:00 PDT (2026-07-23 05:00 UTC).; RewardEngine reported `lastFinalizedEpoch = 7`, `firstEpochFinalized = true`, and epoch 8 ready to finalize.; The keeper preflight found wallet `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` at exactly `0 ETH`, versus approximately `0.000036 ETH` conservative gas required, and exited before submitting a transaction.; A failure alert and funding request were posted to the Prospereum Discord channel. [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-23.md:5-8]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23.md:9:12 -->
+- Activity: Completed the scheduled main-session PHOENIX closeout triggered by Archon.; Reviewed the PHOENIX protocol, prior snapshot, recent memory, deployment registry, decisions log, repository state, session activity, and Kin-owned Fleet Wiki pages.; No contract deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action occurred today.; No updates were needed in `projects/prospereum/deployments.md`, `projects/prospereum/decisions.md`, or the Fleet Wiki because no deployment or protocol decision changed. [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-23.md:9-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23.md:13:13 -->
+- Activity: Preserved the pre-existing scheduled `DREAMS.md` and `MEMORY.md` refreshes in the PHOENIX workspace backup. [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-23.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23.md:17:20 -->
+- Current State: Prospereum remains live on Base mainnet and in standby.; Epoch 8 remains the next epoch to finalize; the keeper's last confirmed on-chain read was `lastFinalizedEpoch = 7`.; Factory upgrade Step 1 remains staged but requires Jason's explicit approval before any Safe/timelock action.; Midas and Olympus Web3 work remains parked following the June 25 strategic pivot unless Jason or Shu reopens it. [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-23.md:17-20]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23.md:21:21 -->
+- Current State: Archon's May 22 project status is stale; the next GOODMORNING run should perform a fresh status refresh. [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-23.md:21-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23.md:25:27 -->
+- Blockers / Human Input: Keeper wallet `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` has exactly `0 ETH` in the latest confirmed keeper preflight; approximately `0.000036 ETH` was required for the configured gas limit at the observed Base gas price.; Jason or Shu must fund the keeper wallet or provide alternative direction before retrying epoch 8.; No factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization. [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-23.md:25-27]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-23.md:31:34 -->
+- Next: Run the next GOODMORNING status refresh so Archon's stale May 22 report is replaced with current project state.; Stay in standby unless Jason, Shu, Shiro, or Archon requests action.; Before any epoch retry, verify keeper balance and RewardEngine `currentEpochId()` / `lastFinalizedEpoch()`.; Before touching an external protocol UI, run a fresh web search and verify current contract addresses and interaction flow. [score=0.812 recalls=0 avg=0.620 source=memory/2026-07-23.md:31-34]
