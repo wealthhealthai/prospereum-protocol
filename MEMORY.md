@@ -290,13 +290,13 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-08-10)
+## Promoted From Short-Term Memory (2026-08-11)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-08-04.md:6:9 -->
-- Activity: Closed the August 4 operating day after Archon's early-August 5 PHOENIX trigger.; No Prospereum or Midas implementation work, contract deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action was recorded for August 4. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-04.md:6-7]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-04.md:12:15 -->
-- Current State: Prospereum remains live on Base mainnet and in standby based on the latest saved verified state.; Epoch 8 remains the next finalization target; fresh keeper balance and RewardEngine state checks are required before retrying.; Factory upgrade Step 1 remains staged and approval-gated.; Midas and Olympus Web3 work remains parked unless Jason or Shu reopens it. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-04.md:12-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-04.md:18:19 -->
-- Blockers / Human Input: Keeper gas funding or alternative direction is required before retrying epoch 8.; Jason's explicit approval is required before Factory upgrade Step 1 or any Safe/timelock action. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-04.md:18-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-04.md:22:24 -->
-- Next: Stay in standby unless Jason, Shu, Shiro, or Archon requests action.; Before an epoch retry, verify the keeper wallet balance and RewardEngine `currentEpochId()` / `lastFinalizedEpoch()` on-chain.; Before interacting with an external protocol UI, run a fresh web search and verify the current flow and contract addresses. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-04.md:22-24]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-05.md:6:9 -->
+- Activity: Closed the August 5 operating day during Archon's early-August 6 PHOENIX run.; No Prospereum or Midas contract work, deployment, Safe/timelock action, governance change, token transfer, or other real-fund action occurred during the day.; No deployment or protocol decision changed, so `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` required no update.; Preserved the scheduled `DREAMS.md` and `MEMORY.md` refreshes as separate pre-existing workspace changes. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-05.md:6-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-05.md:12:13 -->
+- Current State: Prospereum remains in standby on Base mainnet according to the latest saved state.; No authorization-gated action was initiated. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-05.md:12-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-05.md:16:17 -->
+- Open Items / Blockers: Before any epoch keeper retry, verify the keeper balance and current RewardEngine epoch state on-chain.; Factory upgrade Step 1 remains authorization-gated; do not initiate Safe/timelock action without explicit approval. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-05.md:16-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-05.md:20:21 -->
+- Next: Remain in standby until Jason, Shu, Shiro, or Archon requests action.; Run fresh verification before any external protocol or on-chain interaction. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-05.md:20-21]
