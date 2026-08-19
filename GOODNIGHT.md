@@ -1,11 +1,11 @@
-# GOODNIGHT.md — 2026-08-17
+# GOODNIGHT.md — 2026-08-18
 
 ## What Was Done Today
 
-- Completed the August 17 PHOENIX closeout triggered early on August 18.
-- Logged and adopted Archon's Jason-ordered quarantine of all inbound Jake / Antaris / Antaris Analytics content and repositories pending Jason's explicit per-item permission.
-- Reviewed locally available Kin records for the prior two weeks and found no Antaris-related inbound activity requiring escalation.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 17.
+- Completed the August 18 PHOENIX closeout triggered early on August 19.
+- Adopted Jason's fleet-standard `loop-engineering` directive in Kin's operating notes: architect in-session, Opus 5 executes, GPT-5.6 Sol reviews adversarially, every finding is triaged, and the loop is capped at three iterations.
+- Preserved the scheduled `DREAMS.md` and `MEMORY.md` maintenance updates, including promotion of the durable keeper-wallet funding fact.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 18.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
@@ -23,7 +23,7 @@
 
 ## Blockers
 
-- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet is underfunded. The latest saved preflight found exactly `0 ETH` and estimated approximately `0.000036 ETH` for the configured transaction.
+- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet is underfunded. The latest durable balance is approximately `0.000000518710830711 ETH`, versus an estimated approximately `0.000036 ETH` required for finalization.
 - Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization.
 - Security quarantine: do not open, process, execute, or pull any inbound Jake / Antaris / Antaris Analytics content without Jason's explicit permission for that specific item; report any arrival to Archon.
 - No Kin-side technical blocker for PHOENIX maintenance or workspace backup.

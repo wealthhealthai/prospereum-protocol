@@ -290,11 +290,7 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-08-16)
+## Promoted From Short-Term Memory (2026-08-18)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-08-10.md:3:6 -->
-- PHOENIX: Closed the August 10 operating day after Archon triggered PHOENIX early on August 11.; No Prospereum or Midas implementation work occurred on August 10.; No contract deployment, Safe/timelock transaction, governance action, protocol decision, token transfer, or other real-fund action occurred.; `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` required no update because durable protocol state did not change. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-10.md:3-6]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-10.md:7:10 -->
-- PHOENIX: Prospereum remains live on Base mainnet and in standby. Epoch 8 finalization remains ready to retry only after the keeper wallet is funded and current RewardEngine state is freshly verified.; Factory upgrade Step 1 remains staged and requires Jason's explicit approval before any Safe/timelock action.; Midas and Olympus Web3 surfaces remain parked after the June 25 strategic pivot unless Jason or Shu reopens them.; Reviewed Kin's Fleet Wiki index and relevant Kin, Prospereum, and Midas pages; no PHOENIX wiki update was warranted. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-10.md:7-10]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-10.md:11:11 -->
-- PHOENIX: Preserved the pre-existing scheduled `DREAMS.md` and `MEMORY.md` refreshes for inclusion in the workspace backup. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-10.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-03.md:21:24 -->
+- Keeper wallet `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` is genuinely underfunded with about `0.000000518710830711 ETH`. [score=0.875 recalls=3 avg=0.867 source=memory/2026-07-03.md:21-21]
