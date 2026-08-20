@@ -1,11 +1,10 @@
-# GOODNIGHT.md — 2026-08-18
+# GOODNIGHT.md — 2026-08-19
 
 ## What Was Done Today
 
-- Completed the August 18 PHOENIX closeout triggered early on August 19.
-- Adopted Jason's fleet-standard `loop-engineering` directive in Kin's operating notes: architect in-session, Opus 5 executes, GPT-5.6 Sol reviews adversarially, every finding is triaged, and the loop is capped at three iterations.
-- Preserved the scheduled `DREAMS.md` and `MEMORY.md` maintenance updates, including promotion of the durable keeper-wallet funding fact.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 18.
+- Completed the August 19 PHOENIX closeout triggered early on August 20.
+- Preserved the scheduled `DREAMS.md` maintenance update; no new durable memory candidate was promoted.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 19.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
