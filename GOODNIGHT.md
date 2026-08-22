@@ -1,10 +1,10 @@
-# GOODNIGHT.md — 2026-08-20
+# GOODNIGHT.md — 2026-08-21
 
 ## What Was Done Today
 
-- Completed the August 20 PHOENIX closeout triggered early on August 21.
-- Preserved the scheduled `DREAMS.md` maintenance update; no durable memory candidate was promoted.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 20.
+- Completed the August 21 PHOENIX closeout triggered early on August 22.
+- Preserved the automated August 21 `DREAMS.md` additions; no durable protocol state was inferred from them.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 21.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
