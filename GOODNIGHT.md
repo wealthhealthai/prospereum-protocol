@@ -1,10 +1,11 @@
-# GOODNIGHT.md — 2026-08-22
+# GOODNIGHT.md — 2026-08-23
 
 ## What Was Done Today
 
-- Completed the August 22 PHOENIX closeout triggered early on August 23.
-- Preserved the automated August 22 dreaming and memory-promotion updates; no durable protocol state was inferred from dream prose.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 22.
+- Completed the August 23 PHOENIX closeout triggered early on August 24.
+- The scheduled epoch keeper ran against Base mainnet but could not finalize epoch 8 because the keeper wallet had `0 ETH`.
+- Preserved the automated August 23 dreaming and memory-promotion updates; no durable protocol state was inferred from dream prose.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 23.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
@@ -22,7 +23,7 @@
 
 ## Blockers
 
-- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet is underfunded. The latest durable balance is approximately `0.000000518710830711 ETH`, versus an estimated approximately `0.000036 ETH` required for finalization.
+- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet is underfunded. The August 23 keeper run recorded `0 ETH`, versus an estimated approximately `0.000036 ETH` required for finalization.
 - Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization.
 - Security quarantine: do not open, process, execute, or pull any inbound Jake / Antaris / Antaris Analytics content without Jason's explicit permission for that specific item; report any arrival to Archon.
 - No Kin-side technical blocker for PHOENIX maintenance or workspace backup.
