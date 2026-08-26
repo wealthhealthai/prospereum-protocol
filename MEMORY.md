@@ -290,15 +290,11 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-08-24)
+## Promoted From Short-Term Memory (2026-08-25)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-08-18.md:5:8 -->
-- What changed: Closed the August 18 operating day after Archon triggered PHOENIX early on August 19.; Adopted Jason's fleet-standard `loop-engineering` directive in Kin's operating notes: non-trivial engineering now uses an in-session architecture note, Opus 5 execution, GPT-5.6 Sol adversarial review, written triage, and a maximum of three fix/review iterations.; Scheduled memory maintenance refreshed `DREAMS.md` and promoted the durable keeper-wallet funding fact into `MEMORY.md`.; No Prospereum or Midas implementation work, contract deployment, Safe/timelock transaction, governance action, token transfer, or other real-fund... [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-18.md:5-8]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-18.md:9:9 -->
-- What changed: `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` required no update because no durable protocol state changed. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-18.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-18.md:13:16 -->
-- Current state / open items: Prospereum remains live on Base mainnet and in standby.; Epoch 8 remains unfinalized and ready to retry only after the keeper wallet is funded and current RewardEngine state is freshly verified.; Keeper wallet `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` remains underfunded; the last durable balance is approximately `0.000000518710830711 ETH`, versus an estimated approximately `0.000036 ETH` required for finalization.; Factory upgrade Step 1 remains staged and requires Jason's explicit approval before any Safe/timelock action. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-18.md:13-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-18.md:17:17 -->
-- Current state / open items: Midas and Olympus Web3 surfaces remain parked unless Jason or Shu reopens them. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-18.md:17-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-18.md:21:23 -->
-- Blockers / decisions needed: Keeper gas funding is still required before epoch 8 can be finalized.; Factory upgrade Step 1 remains blocked on Jason's explicit authorization.; Maintain the standing quarantine on inbound Jake / Antaris / Antaris Analytics content; do not open or process any such item without Jason's explicit per-item permission. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-18.md:21-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-19.md:3:6 -->
+- PHOENIX: Closed the August 19 operating day via PHOENIX, triggered by Archon early on August 20.; No Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action occurred during the day.; Prospereum remained live on Base mainnet and in standby. Epoch 8 remained unfinalized pending keeper-wallet Base ETH funding and a fresh on-chain state check before retrying.; Factory upgrade Step 1 remained staged and awaiting Jason's explicit approval; no Safe or timelock action was initiated. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-19.md:3-6]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-19.md:7:8 -->
+- PHOENIX: `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` were left unchanged because no deployment or durable protocol decision occurred.; Scheduled dreaming maintenance updated `DREAMS.md`; no new durable memory candidate was promoted. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-19.md:7-8]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-19.md:12:15 -->
+- Open items / blockers: Fund keeper wallet `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` with enough Base ETH, or provide alternate direction, before retrying epoch 8 finalization.; Before any retry, verify keeper balance plus RewardEngine `currentEpochId()` and `lastFinalizedEpoch()`.; Factory upgrade Step 1 requires Jason's explicit approval before any Safe/timelock transaction.; Maintain the Jake / Antaris / Antaris Analytics quarantine unless Jason explicitly authorizes processing a specific item. [score=0.812 recalls=0 avg=0.620 source=memory/2026-08-19.md:12-15]
