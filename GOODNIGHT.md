@@ -1,10 +1,10 @@
-# GOODNIGHT.md — 2026-08-29
+# GOODNIGHT.md — 2026-08-30
 
 ## What Was Done Today
 
-- Completed the August 29 PHOENIX closeout triggered early on August 30.
-- Preserved the automated dreaming and memory-promotion updates present in the workspace; no durable protocol state was inferred from dream prose.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 29.
+- Completed the August 30 PHOENIX closeout triggered early on August 31.
+- Recorded the mainnet keeper failure: Epoch 8 is ready to finalize, but keeper `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` has `0 ETH` on Base and cannot submit the transaction.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for August 30.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
@@ -22,7 +22,7 @@
 
 ## Blockers
 
-- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet is underfunded; the latest saved estimate is approximately `0.000036 ETH` required for finalization.
+- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet has `0 ETH`; the latest saved estimate is approximately `0.000036 ETH` required for finalization, with at least `0.01 ETH` recommended for operating headroom.
 - Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization.
 - Security quarantine: do not open, process, execute, or pull any inbound Jake / Antaris / Antaris Analytics content without Jason's explicit permission for that specific item; report any arrival to Archon.
 - No Kin-side technical blocker for PHOENIX maintenance or workspace backup.
