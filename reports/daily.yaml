@@ -1,59 +1,49 @@
 agent: kin
-date: "2026-05-22"
-generated: "2026-05-22T10:46:00Z"
+date: "2026-09-01"
+generated: "2026-09-02T03:45:00-07:00"
 
-status: holding
+status: blocked
 summary: >
-  Korea Day 10. Quiet autonomous day. Epoch 4 running ~113h to May 27 close.
-  setSplit confirmed on-chain (psreSplit=100%, lpSplit=0) — DONE, not pending.
-  Brief flag "setSplit nonce 3" may be stale or refer to factory upgrade. Flagging.
-  Jason returns ~May 27.
+  Prospereum remained live and unchanged on Base mainnet. Epoch 8 is ready to
+  finalize, but the keeper wallet has 0 ETH and cannot pay gas. No contract,
+  deployment, governance, Safe, token-transfer, or protocol-decision activity
+  occurred on September 1.
 
 flags:
-  - item: setSplit_nonce3
+  - item: epoch_8_keeper_gas
+    severity: high
     note: >
-      PHOENIX brief flagged "setSplit Epoch 4 / nonce 3". setSplit already executed
-      May 13 (confirmed on-chain psreSplit=1e18, lpSplit=0). This tracker item may be
-      stale or mislabeled. Could refer to factory upgrade Step 1 as nonce 3 on Founder Safe.
-      Flagging to Archon for clarification.
+      Keeper 0xa3C082910FF91425d45EBf15C52120cBc97aFef5 has 0 ETH on
+      Base. Estimated finalization gas is approximately 0.000036 ETH; funding
+      at least 0.01 ETH is recommended for operating headroom. No funds were
+      moved autonomously.
 
 protocol:
-  epoch_current: 4
-  epoch_4_closes: "2026-05-27T03:52:00Z"
-  epoch_4_hours_remaining: 113
-  epochs_finalized: [0, 1, 2, 3]
-  total_psre_emitted: 0
-  partners_registered: 0
-  tests_passing: 261
-  tests_total: 261
-  set_split: "psreSplit=1e18 (100%), lpSplit=0 — EXECUTED May 13"
-
-upcoming:
-  - date: "2026-05-27T03:52:00Z"
-    event: "Epoch 4 closes — keeper auto-fires 05:00 UTC"
-  - date: "2026-05-27"
-    event: "Jason returns from Korea"
+  network: "Base mainnet"
+  chain_id: 8453
+  epoch_ready: 8
+  epochs_finalized: "0-7"
+  epoch_8_status: "ready; blocked on keeper gas"
+  deployments_changed: false
+  decisions_changed: false
+  contracts_changed: false
 
 open_items:
-  shu:
-    - Genesis LP pool ($40K, Treasury Safe → Uniswap v3 PSRE/USDC 1%)
-    - Unicrypt LP lock (24 months)
-    - Sablier vesting stream (4.2M PSRE from Founder Safe)
-  jason_on_return:
-    - Factory upgrade Step 1 (scheduleUpgrade → 14-day process, Founder Safe)
-    - Midas/Olympus Phase 2 (Privy + Neon DB env vars)
-    - Nadir audit closing message
-    - Basescan mainnet API key
+  jason:
+    - "Fund the keeper wallet with Base ETH or provide alternate direction."
+    - "Explicitly approve Factory upgrade Step 1 before any Safe/timelock action."
+  shu_or_jason:
+    - "Resume Genesis LP lock and Sablier vesting operations if launch work is reopened."
 
 keeper:
   cron_id: "3fc22360-5453-4ee8-a09d-914a214a98c3"
-  schedule: "0 5 * * * UTC daily"
-  next_epoch_fire: "2026-05-27T05:00:00Z"
-  status: active
+  wallet: "0xa3C082910FF91425d45EBf15C52120cBc97aFef5"
+  balance_eth: "0"
+  status: blocked
+  retry_condition: "Fund wallet, then verify currentEpochId and lastFinalizedEpoch before retrying."
 
 contracts:
   psre: "0x2fE08f304f1Af799Bc29E3D4E210973291d96702"
   reward_engine_proxy: "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5"
   factory: "0xFF84408633f79b8f562314cC5A3bCaedA8f76902"
   staking_vault: "0x684BEA07e979CB5925d546b2E2099aA1c632ED2D"
-  chain_id: 8453
