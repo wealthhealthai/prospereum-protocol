@@ -1,10 +1,10 @@
-# GOODNIGHT.md — 2026-09-01
+# GOODNIGHT.md — 2026-09-02
 
 ## What Was Done Today
 
-- Completed the September 1 PHOENIX closeout triggered early on September 2.
-- Confirmed the mainnet keeper blocker persists: Epoch 8 is ready to finalize, but keeper `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` still has `0 ETH` on Base and cannot submit the transaction.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 1.
+- Completed the September 2 PHOENIX closeout triggered early on September 3.
+- Preserved the latest mainnet keeper state: Epoch 8 is ready to finalize, but keeper `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` had `0 ETH` on Base at the latest verification and cannot submit the transaction until funded.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 2.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting

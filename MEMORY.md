@@ -290,15 +290,17 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-09-01)
+## Promoted From Short-Term Memory (2026-09-02)
 
-<!-- openclaw-memory-promotion:memory:claim:0d9099e81be2 -->
-- In progress / blockers: Factory upgrade Step 1 remains staged and requires Jason's explicit approval before any Safe/timelock action. [score=0.822 signals=5 recalls=0 avg=0.620 source=memory/2026-08-30.md:12-12] <!-- trigger: safe/timelock, progress, blockers --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:9bf0d0378fcf -->
-- Open items / blockers: Genesis LP pool, Unicrypt lock, and Sablier vesting remain pending Shu/Jason execution if launch operations resume. [score=0.817 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:18-18] <!-- trigger: shu/jason, open, items --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:e4e254233701 -->
-- Current state / open items: Factory upgrade Step 1 remains staged and requires Jason's explicit approval before any Safe/timelock action. [score=0.776 signals=4 recalls=0 avg=0.620 source=memory/2026-08-24.md:15-15] <!-- trigger: safe/timelock, current, state --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:bdd50979df49 -->
-- Blockers / decisions needed: Factory upgrade Step 1 remains blocked on Jason's explicit authorization. [score=0.776 signals=4 recalls=0 avg=0.620 source=memory/2026-08-24.md:20-20] <!-- trigger: blockers, decisions, needed --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:865bb50758de -->
-- Blockers / decisions needed: Maintain the standing quarantine on inbound Jake / Antaris / Antaris Analytics content; do not open or process any such item without Jason's explicit per-item permission. [score=0.776 signals=4 recalls=0 avg=0.620 source=memory/2026-08-24.md:22-22] <!-- trigger: per-item, blockers, decisions --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:dccbbc9a9158 -->
+- Open items / blockers: Factory upgrade Step 1 is blocked on Jason's explicit approval. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-22.md:23-23] <!-- trigger: open, items, blockers --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:cf1b011c8c42 -->
+- PHOENIX: No Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action occurred during the day. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:6-6] <!-- trigger: real-fund, phoenix, prospereum --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:490c737404ac -->
+- PHOENIX: Prospereum remained live on Base mainnet and in standby. Epoch 8 remained unfinalized pending keeper-wallet Base ETH funding and a fresh on-chain state check before retrying. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:7-7] <!-- trigger: keeper-wallet, on-chain, phoenix --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:cb523e4c7d3f -->
+- PHOENIX: Factory upgrade Step 1 remained staged and awaiting Jason's explicit approval; no Safe or timelock action was initiated. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:8-8] <!-- trigger: phoenix, factory, upgrade --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:6091efdd333b -->
+- PHOENIX: `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` were left unchanged because no deployment or durable protocol decision occurred. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:9-9] <!-- trigger: projects/prospereum/decisions.md, phoenix, projects --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:0c6581614d49 -->
+- Open items / blockers: Factory upgrade Step 1 requires Jason's explicit approval before any Safe/timelock transaction. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:17-17] <!-- trigger: safe/timelock, open, items --> <!-- importance: 8 -->
