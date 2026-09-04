@@ -290,17 +290,17 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-09-02)
+## Promoted From Short-Term Memory (2026-09-03)
 
-<!-- openclaw-memory-promotion:memory:claim:dccbbc9a9158 -->
-- Open items / blockers: Factory upgrade Step 1 is blocked on Jason's explicit approval. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-22.md:23-23] <!-- trigger: open, items, blockers --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:cf1b011c8c42 -->
-- PHOENIX: No Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action occurred during the day. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:6-6] <!-- trigger: real-fund, phoenix, prospereum --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:490c737404ac -->
-- PHOENIX: Prospereum remained live on Base mainnet and in standby. Epoch 8 remained unfinalized pending keeper-wallet Base ETH funding and a fresh on-chain state check before retrying. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:7-7] <!-- trigger: keeper-wallet, on-chain, phoenix --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:cb523e4c7d3f -->
-- PHOENIX: Factory upgrade Step 1 remained staged and awaiting Jason's explicit approval; no Safe or timelock action was initiated. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:8-8] <!-- trigger: phoenix, factory, upgrade --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:6091efdd333b -->
-- PHOENIX: `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` were left unchanged because no deployment or durable protocol decision occurred. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:9-9] <!-- trigger: projects/prospereum/decisions.md, phoenix, projects --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:0c6581614d49 -->
-- Open items / blockers: Factory upgrade Step 1 requires Jason's explicit approval before any Safe/timelock transaction. [score=0.770 signals=6 recalls=0 avg=0.620 source=memory/2026-08-26.md:17-17] <!-- trigger: safe/timelock, open, items --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:caa6a7c8bed6 -->
+- Needs Jason or Shu: Explicit approval remains required before Factory upgrade Step 1 begins. [score=0.871 signals=6 recalls=0 avg=0.620 source=memory/2026-08-31.md:16-16] <!-- trigger: needs, jason, shu --> <!-- importance: 9 -->
+<!-- openclaw-memory-promotion:memory:claim:8dc02ec805ba -->
+- What changed: No protocol decision was made or revised. `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` remain unchanged. [score=0.852 signals=6 recalls=0 avg=0.620 source=memory/2026-08-31.md:7-7] <!-- trigger: projects/prospereum/decisions.md, what, changed --> <!-- importance: 9 -->
+<!-- openclaw-memory-promotion:memory:claim:9226a6190018 -->
+- PHOENIX: Factory upgrade Step 1 remains staged and requires Jason's explicit approval before any Safe/timelock action. [score=0.787 signals=8 recalls=0 avg=0.620 source=memory/2026-08-27.md:6-6] <!-- trigger: safe/timelock, phoenix, factory --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:b62340c82bb5 -->
+- Open items / blockers: Factory upgrade Step 1 is blocked on Jason's explicit authorization. [score=0.787 signals=8 recalls=0 avg=0.620 source=memory/2026-08-27.md:13-13] <!-- trigger: open, items, blockers --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:a2dde59781c4 -->
+- Open items / blockers: Continue the standing Jake / Antaris / Antaris Analytics quarantine unless Jason explicitly authorizes a specific item. [score=0.787 signals=8 recalls=0 avg=0.620 source=memory/2026-08-27.md:15-15] <!-- trigger: open, items, blockers --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:dea85d18d642 -->
+- What changed: `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` required no update because no durable protocol state changed. [score=0.762 signals=6 recalls=0 avg=0.620 source=memory/2026-08-24.md:9-9] <!-- trigger: projects/prospereum/decisions.md, what, changed --> <!-- importance: 8 -->
