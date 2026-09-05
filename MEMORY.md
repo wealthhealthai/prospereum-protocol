@@ -290,17 +290,17 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-09-03)
+## Promoted From Short-Term Memory (2026-09-04)
 
-<!-- openclaw-memory-promotion:memory:claim:caa6a7c8bed6 -->
-- Needs Jason or Shu: Explicit approval remains required before Factory upgrade Step 1 begins. [score=0.871 signals=6 recalls=0 avg=0.620 source=memory/2026-08-31.md:16-16] <!-- trigger: needs, jason, shu --> <!-- importance: 9 -->
-<!-- openclaw-memory-promotion:memory:claim:8dc02ec805ba -->
-- What changed: No protocol decision was made or revised. `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` remain unchanged. [score=0.852 signals=6 recalls=0 avg=0.620 source=memory/2026-08-31.md:7-7] <!-- trigger: projects/prospereum/decisions.md, what, changed --> <!-- importance: 9 -->
-<!-- openclaw-memory-promotion:memory:claim:9226a6190018 -->
-- PHOENIX: Factory upgrade Step 1 remains staged and requires Jason's explicit approval before any Safe/timelock action. [score=0.787 signals=8 recalls=0 avg=0.620 source=memory/2026-08-27.md:6-6] <!-- trigger: safe/timelock, phoenix, factory --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:b62340c82bb5 -->
-- Open items / blockers: Factory upgrade Step 1 is blocked on Jason's explicit authorization. [score=0.787 signals=8 recalls=0 avg=0.620 source=memory/2026-08-27.md:13-13] <!-- trigger: open, items, blockers --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:a2dde59781c4 -->
-- Open items / blockers: Continue the standing Jake / Antaris / Antaris Analytics quarantine unless Jason explicitly authorizes a specific item. [score=0.787 signals=8 recalls=0 avg=0.620 source=memory/2026-08-27.md:15-15] <!-- trigger: open, items, blockers --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:dea85d18d642 -->
-- What changed: `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` required no update because no durable protocol state changed. [score=0.762 signals=6 recalls=0 avg=0.620 source=memory/2026-08-24.md:9-9] <!-- trigger: projects/prospereum/decisions.md, what, changed --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:1820a7d843bd -->
+- What changed: No Prospereum or Midas implementation work, contract changes, deployments, Safe/timelock transactions, governance actions, token transfers, or other real-fund actions occurred. [score=0.921 signals=8 recalls=0 avg=0.620 source=memory/2026-08-31.md:6-6] <!-- trigger: safe/timelock, real-fund, what --> <!-- importance: 9 -->
+<!-- openclaw-memory-promotion:memory:claim:17f0cb267857 -->
+- Contract state: No deployment registry update was needed. [score=0.871 signals=6 recalls=0 avg=0.620 source=memory/2026-09-01.md:13-13] <!-- trigger: contract, state, deployment --> <!-- importance: 9 -->
+<!-- openclaw-memory-promotion:memory:claim:ef8934a34b4f -->
+- Contract state: RewardEngine proxy remains `0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5`. [score=0.810 signals=6 recalls=0 avg=0.620 source=memory/2026-09-01.md:12-12] <!-- trigger: contract, state, rewardengine --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:294776de298e -->
+- Contract state: Prospereum remains live on Base mainnet. Epochs 0–7 are finalized; Epoch 8 is ready but unfinalized. [score=0.810 signals=4 recalls=0 avg=0.620 source=memory/2026-09-01.md:11-11] <!-- trigger: contract, state, prospereum --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:c48ec3584aac -->
+- Current state / open items: Prospereum remains live on Base mainnet and in standby. [score=0.768 signals=7 recalls=0 avg=0.620 source=memory/2026-08-24.md:12-12] <!-- trigger: current, state, open --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:5b62f4adfa46 -->
+- Current state / open items: Midas and Olympus Web3 surfaces remain parked unless Jason or Shu reopens them. [score=0.768 signals=7 recalls=0 avg=0.620 source=memory/2026-08-24.md:16-16] <!-- trigger: current, state, open --> <!-- importance: 8 -->
