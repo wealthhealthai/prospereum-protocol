@@ -290,15 +290,7 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-09-05)
+## Promoted From Short-Term Memory (2026-09-06)
 
-<!-- openclaw-memory-promotion:memory:claim:3e9807f2ab2d -->
-- In progress / blockers: Before retrying, verify the keeper Base ETH balance and RewardEngine `currentEpochId()` / `lastFinalizedEpoch()`. [score=0.921 signals=8 recalls=0 avg=0.620 source=memory/2026-09-01.md:17-17] <!-- trigger: progress, blockers, retrying --> <!-- importance: 9 -->
-<!-- openclaw-memory-promotion:memory:claim:ff8e7c6fc6b3 -->
-- Contract state: Prospereum remains live on Base mainnet. The latest saved state has Epochs 0–7 finalized and Epoch 8 ready but unfinalized. [score=0.810 signals=4 recalls=0 avg=0.620 source=memory/2026-09-02.md:11-11] <!-- trigger: contract, state, prospereum --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:ed6b2713db8a -->
-- Open items / blockers: Factory upgrade Step 1 remains blocked on Jason's explicit approval. [score=0.761 signals=7 recalls=0 avg=0.620 source=memory/2026-08-23.md:15-15] <!-- trigger: open, items, blockers --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:ab318aea8f19 -->
-- Open items / blockers: Maintain the Antaris quarantine and escalate any newly received Antaris-related item to Archon without processing it. [score=0.761 signals=7 recalls=0 avg=0.620 source=memory/2026-08-23.md:18-18] <!-- trigger: antaris-related, open, items --> <!-- importance: 8 -->
-<!-- openclaw-memory-promotion:memory:claim:8a683b3ef1fe -->
-- Needs Jason or Shu: Jason must fund the keeper with Base ETH or provide alternate direction. No transfer was attempted autonomously. [score=0.761 signals=7 recalls=0 avg=0.620 source=memory/2026-09-01.md:21-21] <!-- trigger: needs, jason, shu --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:e96b41463040 -->
+- Needs Jason or Shu: Jason must authorize and perform any Base ETH funding transfer to the keeper wallet or provide alternate direction. Kin did not move funds autonomously. [score=0.871 signals=6 recalls=0 avg=0.620 source=memory/2026-09-03.md:21-21] <!-- trigger: needs, jason, shu --> <!-- importance: 9 -->
