@@ -1,10 +1,10 @@
-# GOODNIGHT.md — 2026-09-06
+# GOODNIGHT.md — 2026-09-07
 
 ## What Was Done Today
 
-- Completed the September 6 PHOENIX closeout triggered early on September 7.
-- Preserved the latest saved mainnet keeper state without claiming a fresh on-chain check: Epoch 7 was last finalized; Epoch 8 was ready but unfinalized because keeper `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` lacked Base ETH for gas.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 6.
+- Completed the September 7 PHOENIX closeout triggered early on September 8.
+- Recorded a fresh mainnet keeper failure: Epoch 8 remains ready but unfinalized because keeper `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` had `0 ETH` for gas; the latest report estimated approximately `0.0001 ETH` is required.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 7.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
@@ -22,7 +22,7 @@
 
 ## Blockers
 
-- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet has `0 ETH`; the latest saved estimate is approximately `0.000036 ETH` required for finalization, with at least `0.01 ETH` recommended for operating headroom.
+- Operational blocker: epoch 8 cannot be finalized by the keeper while its wallet has `0 ETH`; the latest keeper report estimates approximately `0.0001 ETH` is required for finalization, with additional operating headroom prudent.
 - Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization.
 - Security quarantine: do not open, process, execute, or pull any inbound Jake / Antaris / Antaris Analytics content without Jason's explicit permission for that specific item; report any arrival to Archon.
 - No Kin-side technical blocker for PHOENIX maintenance or workspace backup.
