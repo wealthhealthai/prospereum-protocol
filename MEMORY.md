@@ -290,7 +290,13 @@ All paths relative to `/Users/wealthhealth_admin/.openclaw/workspace-kin/`
 *Decisions log: `projects/prospereum/decisions.md`*
 *Deployments: `projects/prospereum/deployments.md`*
 
-## Promoted From Short-Term Memory (2026-09-06)
+## Promoted From Short-Term Memory (2026-09-09)
 
-<!-- openclaw-memory-promotion:memory:claim:e96b41463040 -->
-- Needs Jason or Shu: Jason must authorize and perform any Base ETH funding transfer to the keeper wallet or provide alternate direction. Kin did not move funds autonomously. [score=0.871 signals=6 recalls=0 avg=0.620 source=memory/2026-09-03.md:21-21] <!-- trigger: needs, jason, shu --> <!-- importance: 9 -->
+<!-- openclaw-memory-promotion:memory:claim:fea496fdb009 -->
+- Contract state: Prospereum remains live on Base mainnet. In the latest saved state, Epochs 0–7 are finalized and Epoch 8 is ready but unfinalized. [score=0.810 signals=4 recalls=0 avg=0.620 source=memory/2026-09-06.md:11-11] <!-- trigger: contract, state, prospereum --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:5bb42fccea29 -->
+- In progress / blockers: Before retrying, freshly verify the keeper Base ETH balance and RewardEngine `currentEpochId()` / `lastFinalizedEpoch()`. [score=0.810 signals=4 recalls=0 avg=0.620 source=memory/2026-09-06.md:17-17] <!-- trigger: progress, blockers, retrying --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:1e838aaa0cb4 -->
+- Needs Jason or Shu: If fresh verification confirms the keeper remains unfunded, Jason must authorize and perform any Base ETH funding transfer or provide alternate direction. Kin did not move funds autonomously. [score=0.810 signals=4 recalls=0 avg=0.620 source=memory/2026-09-06.md:21-21] <!-- trigger: needs, jason, shu --> <!-- importance: 8 -->
+<!-- openclaw-memory-promotion:memory:claim:675dc89f7ca9 -->
+- What changed: No Prospereum or Midas implementation work, contract changes, deployments, Safe/timelock transactions, governance actions, token transfers, or other real-fund actions were recorded. [score=0.778 signals=4 recalls=0 avg=0.620 source=memory/2026-09-06.md:6-6] <!-- trigger: safe/timelock, real-fund, what --> <!-- importance: 8 -->
