@@ -61,6 +61,14 @@
     "unrelated_prestaged_work_included": false
   },
   "backup": {
-    "status": "pending"
+    "status": "completed",
+    "completed_at": "2026-09-10T09:48:35-07:00",
+    "exit_status": 0,
+    "commit": "b6b871f72da08f9421186971389c7e2b932d672f",
+    "remote": "origin/master",
+    "remote_commit": "b6b871f72da08f9421186971389c7e2b932d672f",
+    "remote_verified": true,
+    "post_backup_evidence_committed": false,
+    "post_backup_evidence_note": "Intentionally left uncommitted to avoid a recursive evidence commit."
   }
 }
