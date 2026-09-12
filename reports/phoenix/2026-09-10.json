@@ -3,7 +3,7 @@
   "date_closed": "2026-09-10",
   "generated_at": "2026-09-11T03:49:30-07:00",
   "session_kind": "main",
-  "maintenance_status": "prebackup_complete",
+  "maintenance_status": "completed",
   "product_status": "blocked",
   "preflight": {
     "filesystem_read": "permitted",
@@ -95,6 +95,18 @@
     "unrelated_files_included": false
   },
   "backup": {
-    "status": "pending"
+    "status": "completed",
+    "completed_at": "2026-09-11T03:51:24-07:00",
+    "exit_status": 0,
+    "commit": "b99b1d1082f558bfe5843a2cfcc9b83975852a5e",
+    "remote": "origin/master",
+    "remote_commit": "b99b1d1082f558bfe5843a2cfcc9b83975852a5e",
+    "remote_verified": true,
+    "post_backup_untracked_observed": [
+      "reports/phoenix/2026-09-10-direct-jason-handoff-0349.json"
+    ],
+    "post_backup_untracked_action": "excluded; appeared after the reviewed backup and was not inspected or staged",
+    "post_backup_evidence_committed": false,
+    "post_backup_evidence_note": "Intentionally left uncommitted to avoid recursively committing final metadata."
   }
 }

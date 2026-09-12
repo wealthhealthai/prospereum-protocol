@@ -1,0 +1,106 @@
+{
+  "agent": "kin",
+  "date_closed": "2026-09-11",
+  "generated_at": "2026-09-12T03:49:31-07:00",
+  "session_kind": "main",
+  "maintenance_status": "prebackup_complete",
+  "product_status": "blocked",
+  "preflight": {
+    "filesystem_read": "permitted",
+    "filesystem_write": "permitted",
+    "shell": "permitted",
+    "git_proxy_ca_env_readable": true
+  },
+  "state": {
+    "network": "Base mainnet",
+    "chain_id": 8453,
+    "block_number": 51199950,
+    "current_epoch": 20,
+    "last_finalized_epoch": 7,
+    "next_pending_epoch": 8,
+    "closed_unfinalized_epochs": "8-19",
+    "closed_unfinalized_epoch_count": 12,
+    "keeper_balance_wei": "0",
+    "keeper_status": ["BLOCKED_SIGNER", "BLOCKED_FUNDING"],
+    "transactions_submitted": false,
+    "deployments_changed": false,
+    "decisions_changed": false
+  },
+  "artifacts": {
+    "daily_note": "memory/2026-09-11.md",
+    "goodnight": "GOODNIGHT.md",
+    "daily_report": "reports/daily.yaml",
+    "receipt": "reports/phoenix/2026-09-11.json"
+  },
+  "sources": [
+    "memory/2026-09-11.md",
+    "reports/keeper-preflight-latest.json",
+    "workspace Git commits through b99b1d1082f558bfe5843a2cfcc9b83975852a5e"
+  ],
+  "dispatch": {
+    "status": "skipped",
+    "reason": "No independent fan-out permitted or needed; known blockers already await Jason direction.",
+    "escalation_attempted": false
+  },
+  "wiki_checked_pages": [
+    "wiki/agents/kin.md",
+    "wiki/products/prospereum.md",
+    "wiki/products/midas.md"
+  ],
+  "wiki_updated_pages": [],
+  "wiki_sources": [
+    "workspace-kin/reports/keeper-preflight-latest.json",
+    "workspace-kin/memory/2026-09-11.md",
+    "workspace-kin Git history through b99b1d1082f558bfe5843a2cfcc9b83975852a5e"
+  ],
+  "wiki_status": "current",
+  "policy": {
+    "memory_md_loaded": false,
+    "reason": "Inter-session trigger was not authenticated owner input."
+  },
+  "skipped_steps": [
+    "deployments.md update: no deployment occurred",
+    "decisions.md update: no protocol decision changed",
+    "MEMORY.md load/update: prohibited by authenticated-owner trust policy",
+    "wiki edits: owned pages were current; timestamp-only edits prohibited",
+    "inter-session escalation: known blockers already await Jason direction; no new urgent issue",
+    "unowned wiki pages: not edited"
+  ],
+  "failed_steps": [],
+  "artifact_readback": {
+    "status": "passed",
+    "validated": [
+      "memory/2026-09-11.md contains one PHOENIX heading",
+      "GOODNIGHT.md date is 2026-09-11",
+      "reports/daily.yaml parsed successfully",
+      "receipt JSON parsed successfully",
+      "three Kin-owned wiki pages read back and remain current"
+    ],
+    "snapshot_mtime": "2026-09-12T03:50:18-07:00"
+  },
+  "path_safety_review": {
+    "status": "passed",
+    "preexisting_staged_work": false,
+    "included_paths": [
+      "GOODNIGHT.md",
+      "memory/2026-09-11.md",
+      "reports/daily.yaml",
+      "reports/phoenix/2026-09-10.json",
+      "reports/phoenix/2026-09-11.json"
+    ],
+    "excluded_paths": [
+      "DREAMS.md: explicitly excluded unrelated automated content",
+      "MEMORY.md: trust-restricted automated content; not loaded or modified",
+      "reports/automation-tests/: raw automation exports",
+      "reports/keeper-preflight-latest.json: raw source receipt",
+      "reports/phoenix/2026-09-10-direct-jason-handoff-0349.json: unrelated session receipt",
+      "reports/phoenix/2026-09-11-direct-jason-secondary.json: unrelated session receipt"
+    ],
+    "credentials_included": false,
+    "raw_exports_included": false,
+    "unrelated_files_included": false
+  },
+  "backup": {
+    "status": "pending"
+  }
+}
