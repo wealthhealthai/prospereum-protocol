@@ -1,0 +1,96 @@
+{
+  "agent": "kin",
+  "date_closed": "2026-09-12",
+  "session_id": "619f98ff-7a79-46cf-8b03-4e4947d0e482",
+  "generated_at": "2026-09-13T03:49:09-07:00",
+  "session_kind": "additional_durable_working_context",
+  "status": "prebackup_complete",
+  "preflight": {
+    "filesystem_read": "permitted",
+    "filesystem_write": "permitted",
+    "shell": "permitted",
+    "pre_existing_staged_work": "none"
+  },
+  "artifacts": {
+    "session_summary": "memory/sessions/2026-09-12-619f98ff-7a79-46cf-8b03-4e4947d0e482.md",
+    "session_receipt": "reports/phoenix/2026-09-12-session-619f98ff-7a79-46cf-8b03-4e4947d0e482.json"
+  },
+  "shared_artifacts_modified": [],
+  "closed_day_evidence": {
+    "daily_source": "memory/2026-09-12.md",
+    "daily_source_mtime": "2026-09-12T22:00:58-07:00",
+    "keeper_source": "reports/keeper-preflight-latest.json",
+    "keeper_source_mtime": "2026-09-12T22:00:50-07:00",
+    "network": "Base mainnet",
+    "chain_id": 8453,
+    "block_number": 51243151,
+    "current_epoch": 20,
+    "last_finalized_epoch": 7,
+    "closed_unfinalized_epochs": "8-19",
+    "closed_unfinalized_epoch_count": 12,
+    "keeper_balance_wei": "0",
+    "keeper_blockers": ["BLOCKED_SIGNER", "BLOCKED_FUNDING"],
+    "credentials_read": false,
+    "transactions_submitted": false,
+    "additional_session_product_work_found": false
+  },
+  "dispatch": {
+    "status": "skipped",
+    "independent_fanout": false,
+    "reason": "Working-session override forbids independent fan-out; no new escalation-worthy issue surfaced."
+  },
+  "wiki": {
+    "wiki_status": "deferred_to_main",
+    "wiki_checked_pages": [],
+    "wiki_updated_pages": [],
+    "wiki_sources": [
+      "memory/2026-09-12.md",
+      "reports/keeper-preflight-latest.json",
+      "local Git history for 2026-09-12"
+    ],
+    "reason": "The main closeout owns wiki review and curation to avoid concurrent edits."
+  },
+  "canonical_receipt": {
+    "path": "reports/phoenix/2026-09-12.json",
+    "status_at_handoff": "pending; file not present during this working-session preflight"
+  },
+  "policy": {
+    "memory_md_loaded": false,
+    "memory_md_reason": "Inter-session trigger was not authenticated owner input; MEMORY.md trust policy forbids loading it.",
+    "jason_dm_sent": false,
+    "archon_escalation_sent": false,
+    "archon_escalation_reason": "No new urgent or decision-worthy issue surfaced beyond documented keeper blockers."
+  },
+  "artifact_readback": {
+    "status": "passed",
+    "session_summary_phoenix_heading_count": 1,
+    "session_summary_mtime": "2026-09-13T03:49:44-07:00",
+    "session_receipt_mtime_before_backup": "2026-09-13T03:49:44-07:00",
+    "json_parse": "passed"
+  },
+  "path_safety_review": {
+    "status": "passed",
+    "pre_existing_staged_work": false,
+    "included_paths": [
+      "memory/sessions/2026-09-12-619f98ff-7a79-46cf-8b03-4e4947d0e482.md",
+      "reports/phoenix/2026-09-12-session-619f98ff-7a79-46cf-8b03-4e4947d0e482.json"
+    ],
+    "excluded_unrelated_paths": [
+      "DREAMS.md",
+      "MEMORY.md",
+      "reports/automation-tests/",
+      "reports/keeper-preflight-latest.json",
+      "reports/phoenix/2026-09-10-direct-jason-handoff-0349.json",
+      "reports/phoenix/2026-09-11-direct-jason-secondary.json",
+      "reports/phoenix/2026-09-11.json"
+    ]
+  },
+  "backup": {
+    "status": "pending",
+    "paths": [
+      "memory/sessions/2026-09-12-619f98ff-7a79-46cf-8b03-4e4947d0e482.md",
+      "reports/phoenix/2026-09-12-session-619f98ff-7a79-46cf-8b03-4e4947d0e482.json"
+    ]
+  },
+  "failures": []
+}
