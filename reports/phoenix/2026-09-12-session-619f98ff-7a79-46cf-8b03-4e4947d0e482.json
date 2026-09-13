@@ -4,7 +4,7 @@
   "session_id": "619f98ff-7a79-46cf-8b03-4e4947d0e482",
   "generated_at": "2026-09-13T03:49:09-07:00",
   "session_kind": "additional_durable_working_context",
-  "status": "prebackup_complete",
+  "status": "completed",
   "preflight": {
     "filesystem_read": "permitted",
     "filesystem_write": "permitted",
@@ -86,11 +86,20 @@
     ]
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "paths": [
       "memory/sessions/2026-09-12-619f98ff-7a79-46cf-8b03-4e4947d0e482.md",
       "reports/phoenix/2026-09-12-session-619f98ff-7a79-46cf-8b03-4e4947d0e482.json"
-    ]
+    ],
+    "completed_at": "2026-09-13T03:50:00-07:00",
+    "exit_status": 0,
+    "commit": "8ddac2d462204e59cad640d62b80b40343c70a51",
+    "remote": "origin/master",
+    "remote_commit": "8ddac2d462204e59cad640d62b80b40343c70a51",
+    "remote_verified": true,
+    "proxy_ca_env_sourced_for_network_operations": true,
+    "post_backup_evidence_committed": false,
+    "post_backup_evidence_note": "Final verification was appended after backup and intentionally left uncommitted to avoid a recursive metadata commit."
   },
   "failures": []
 }

@@ -1,9 +1,9 @@
 {
   "agent": "kin",
-  "date_closed": "2026-09-11",
-  "generated_at": "2026-09-12T03:49:31-07:00",
+  "date_closed": "2026-09-12",
+  "generated_at": "2026-09-13T03:48:00-07:00",
   "session_kind": "main",
-  "maintenance_status": "completed",
+  "maintenance_status": "prebackup_complete",
   "product_status": "blocked",
   "preflight": {
     "filesystem_read": "permitted",
@@ -14,7 +14,7 @@
   "state": {
     "network": "Base mainnet",
     "chain_id": 8453,
-    "block_number": 51199950,
+    "block_number": 51243151,
     "current_epoch": 20,
     "last_finalized_epoch": 7,
     "next_pending_epoch": 8,
@@ -27,16 +27,34 @@
     "decisions_changed": false
   },
   "artifacts": {
-    "daily_note": "memory/2026-09-11.md",
+    "daily_note": "memory/2026-09-12.md",
     "goodnight": "GOODNIGHT.md",
     "daily_report": "reports/daily.yaml",
-    "receipt": "reports/phoenix/2026-09-11.json"
+    "receipt": "reports/phoenix/2026-09-12.json"
   },
   "sources": [
-    "memory/2026-09-11.md",
+    "memory/2026-09-12.md",
     "reports/keeper-preflight-latest.json",
-    "workspace Git commits through b99b1d1082f558bfe5843a2cfcc9b83975852a5e"
+    "keeper session handoff in current conversation context",
+    "workspace Git history through 8ddac2d462204e59cad640d62b80b40343c70a51"
   ],
+  "handoff_reconciliation": {
+    "status": "matched",
+    "dated_handoff_files_found": 2,
+    "dated_handoff_files": [
+      "memory/sessions/2026-09-12-619f98ff-7a79-46cf-8b03-4e4947d0e482.md",
+      "reports/phoenix/2026-09-12-session-619f98ff-7a79-46cf-8b03-4e4947d0e482.json"
+    ],
+    "conversation_handoff": "BLOCKED_SIGNER and BLOCKED_FUNDING at block 51243151; no credentials or transactions",
+    "local_receipt": "matched",
+    "session_handoff": "matched; no additional product work",
+    "session_backup": {
+      "status": "completed",
+      "commit": "8ddac2d462204e59cad640d62b80b40343c70a51",
+      "remote_verified": true,
+      "final_metadata_reused": true
+    }
+  },
   "dispatch": {
     "status": "skipped",
     "reason": "No independent fan-out permitted or needed; known blockers already await Jason direction.",
@@ -50,8 +68,8 @@
   "wiki_updated_pages": [],
   "wiki_sources": [
     "workspace-kin/reports/keeper-preflight-latest.json",
-    "workspace-kin/memory/2026-09-11.md",
-    "workspace-kin Git history through b99b1d1082f558bfe5843a2cfcc9b83975852a5e"
+    "workspace-kin/memory/2026-09-12.md",
+    "workspace-kin Git history through 8ddac2d462204e59cad640d62b80b40343c70a51"
   ],
   "wiki_status": "current",
   "policy": {
@@ -70,46 +88,40 @@
   "artifact_readback": {
     "status": "passed",
     "validated": [
-      "memory/2026-09-11.md contains one PHOENIX heading",
-      "GOODNIGHT.md date is 2026-09-11",
+      "memory/2026-09-12.md contains one PHOENIX heading",
+      "GOODNIGHT.md date is 2026-09-12",
       "reports/daily.yaml parsed successfully",
-      "receipt JSON parsed successfully",
+      "canonical receipt JSON parsed successfully",
+      "durable session handoff and session receipt matched the canonical keeper evidence",
       "three Kin-owned wiki pages read back and remain current"
     ],
-    "snapshot_mtime": "2026-09-12T03:50:18-07:00"
+    "snapshot_mtime": "2026-09-13T03:49:33-07:00"
   },
   "path_safety_review": {
     "status": "passed",
     "preexisting_staged_work": false,
     "included_paths": [
       "GOODNIGHT.md",
-      "memory/2026-09-11.md",
+      "memory/2026-09-12.md",
+      "memory/sessions/2026-09-12-619f98ff-7a79-46cf-8b03-4e4947d0e482.md",
       "reports/daily.yaml",
-      "reports/phoenix/2026-09-10.json",
-      "reports/phoenix/2026-09-11.json"
+      "reports/phoenix/2026-09-11.json",
+      "reports/phoenix/2026-09-12-session-619f98ff-7a79-46cf-8b03-4e4947d0e482.json",
+      "reports/phoenix/2026-09-12.json"
     ],
     "excluded_paths": [
       "DREAMS.md: explicitly excluded unrelated automated content",
       "MEMORY.md: trust-restricted automated content; not loaded or modified",
       "reports/automation-tests/: raw automation exports",
       "reports/keeper-preflight-latest.json: raw source receipt",
-      "reports/phoenix/2026-09-10-direct-jason-handoff-0349.json: unrelated session receipt",
-      "reports/phoenix/2026-09-11-direct-jason-secondary.json: unrelated session receipt"
+      "reports/phoenix/2026-09-10-direct-jason-handoff-0349.json: unrelated older session receipt",
+      "reports/phoenix/2026-09-11-direct-jason-secondary.json: unrelated older session receipt"
     ],
     "credentials_included": false,
     "raw_exports_included": false,
     "unrelated_files_included": false
   },
   "backup": {
-    "status": "completed",
-    "completed_at": "2026-09-12T03:51:08-07:00",
-    "exit_status": 0,
-    "commit": "6d534d7fabea78069712fa2f6e3e82969be9c791",
-    "remote": "origin/master",
-    "remote_commit": "6d534d7fabea78069712fa2f6e3e82969be9c791",
-    "remote_verified": true,
-    "proxy_ca_env_sourced_for_network_operations": true,
-    "post_backup_evidence_committed": false,
-    "post_backup_evidence_note": "Intentionally left uncommitted to avoid recursively committing final metadata."
+    "status": "pending"
   }
 }
