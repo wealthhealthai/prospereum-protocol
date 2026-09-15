@@ -1,20 +1,20 @@
 agent: kin
-date: "2026-09-13"
-generated: "2026-09-14T03:48:00-07:00"
+date: "2026-09-14"
+generated: "2026-09-15T03:47:00-07:00"
 
 status: blocked
 summary: >
   Prospereum remains live on Base mainnet. Public RPC preflight at block
-  51287105 found current epoch 20 and last finalized epoch 7, leaving epochs
+  51329541 found current epoch 20 and last finalized epoch 7, leaving epochs
   8-19 closed and unfinalized. Keeper balance is 0 wei and no approved
   protected signer was configured. No transaction or protocol-state change occurred.
 
 shipped:
-  - "Completed the September 13 PHOENIX state snapshot and workspace closeout."
+  - "Completed the September 14 PHOENIX state snapshot and workspace closeout."
   - "Preserved current Base mainnet deployment and decision records without changes."
-  - "Updated Kin-owned agent and Prospereum wiki pages with the newer September 13 preflight evidence; Midas remained current."
+  - "Updated Kin-owned agent and Prospereum wiki pages with the September 14 preflight evidence; Midas remained current."
   - "Reconciled the keeper status with the verified local preflight receipt."
-  - "Created reports/phoenix/2026-09-13.json for machine-readable closeout evidence."
+  - "Created reports/phoenix/2026-09-14.json for machine-readable closeout evidence."
 
 blocked:
   - item: epoch_backlog_finalization
@@ -29,7 +29,7 @@ flags:
     severity: high
     note: >
       Keeper 0xa3C082910FF91425d45EBf15C52120cBc97aFef5 has 0 wei on
-      Base. Public RPC at block 51287105 returned current epoch 20 and last finalized epoch 7.
+      Base. Public RPC at block 51329541 returned current epoch 20 and last finalized epoch 7.
       No credentials were read and no transaction was submitted.
   - item: keeper_signer
     severity: high
@@ -65,15 +65,9 @@ keeper:
   status: "BLOCKED_SIGNER; BLOCKED_FUNDING"
   retry_condition: "Fund wallet, approve protected signer, then verify currentEpochId and lastFinalizedEpoch before retrying."
 
-contracts:
-  psre: "0x2fE08f304f1Af799Bc29E3D4E210973291d96702"
-  reward_engine_proxy: "0x9Ab37Fc6D01B85491Ed0863B7F832784bE717EF5"
-  factory: "0xFF84408633f79b8f562314cC5A3bCaedA8f76902"
-  staking_vault: "0x684BEA07e979CB5925d546b2E2099aA1c632ED2D"
-
 maintenance:
   repair_rerun: false
-  completed_at: "2026-09-14T03:48:00-07:00"
+  completed_at: "2026-09-15T03:47:00-07:00"
   memory_md_loaded: false
   memory_md_reason: "Inter-session trigger was not authenticated owner input; trust policy forbids loading MEMORY.md."
   escalation: "skipped; blockers are already known and require Jason direction"

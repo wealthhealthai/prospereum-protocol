@@ -1,13 +1,13 @@
-# GOODNIGHT.md — 2026-09-13
+# GOODNIGHT.md — 2026-09-14
 
 ## What Was Done Today
 
-- Completed the September 13 PHOENIX closeout triggered early on September 14.
-- Public Base mainnet preflight at block 51287105 verified chain 8453, keeper balance `0 wei`, current epoch 20, and last finalized epoch 7; epochs 8–19 remain closed and unfinalized.
-- Reconciled the keeper session handoff with the verified local receipt; both report `BLOCKED_SIGNER` and `BLOCKED_FUNDING`, with no transaction submitted.
+- Completed the September 14 PHOENIX closeout triggered early on September 15.
+- Public Base mainnet preflight at block 51329541 verified chain 8453, keeper balance `0 wei`, current epoch 20, and last finalized epoch 7; epochs 8–19 remain closed and unfinalized.
+- Reconciled the keeper result with the verified local receipt: `BLOCKED_SIGNER` and `BLOCKED_FUNDING`, with no transaction submitted.
 - Refused the legacy secret-in-process-arguments signer path; no protected signer was configured, no credentials were read, and no transaction was submitted.
-- Reviewed only Kin-owned wiki pages (`agents/kin.md`, `products/prospereum.md`, and `products/midas.md`); updated the Kin and Prospereum pages with the newer September 13 preflight evidence and left Midas unchanged.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 13.
+- Reviewed only Kin-owned wiki pages (`agents/kin.md`, `products/prospereum.md`, and `products/midas.md`); updated the Kin and Prospereum pages with the September 14 preflight evidence and left Midas unchanged.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 14.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
@@ -22,14 +22,14 @@
 - Keeper gas funding: fund `0xa3C082910FF91425d45EBf15C52120cBc97aFef5` with sufficient Base ETH or provide alternate direction.
 - Keeper signer: approve a protected signing path; the legacy process-argument path must not be used.
 - Factory upgrade Step 1: waiting on Jason's explicit approval to begin the first Safe/timelock action.
-- Genesis LP pool, Unicrypt lock, and Sablier vesting remain pending Shu/Jason execution if Prospereum launch operations resume.
+- Genesis LP lock and Sablier vesting remain pending Shu/Jason execution if Prospereum launch operations resume.
 
 ## Blockers
 
 - Operational blocker: epochs 8–19 remain unfinalized while the keeper has `0 wei` and no approved protected signer is available.
 - Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization.
 - Security quarantine: do not open, process, execute, or pull any inbound Jake / Antaris / Antaris Analytics content without Jason's explicit permission for that specific item; report any arrival to Archon.
-- No Kin-side technical blocker for PHOENIX maintenance or workspace backup.
+- No Kin-side technical blocker for PHOENIX maintenance or the reviewed workspace backup.
 
 ## Notes for Tomorrow
 
