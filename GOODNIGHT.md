@@ -1,13 +1,13 @@
-# GOODNIGHT.md — 2026-09-19
+# GOODNIGHT.md — 2026-09-20
 
 ## What Was Done Today
 
-- Completed the September 19 PHOENIX closeout triggered early on September 20.
-- Public Base mainnet preflight at block 51545537 verified chain 8453, keeper balance `0 wei`, derived current epoch 21, and last finalized epoch 7; epochs 8–20 remain closed and unfinalized.
+- Completed the September 20 PHOENIX closeout triggered early on September 21.
+- Public Base mainnet preflight at block 51588814 verified chain 8453, keeper balance `0 wei`, derived current epoch 21, and last finalized epoch 7; epochs 8–20 remain closed and unfinalized.
 - Reconciled the keeper result with the verified local receipt: `BLOCKED_SIGNER` and `BLOCKED_FUNDING`, with no transaction submitted.
 - Refused the legacy secret-in-process-arguments signer path; no protected signer was configured, no credentials were read, and no transaction was submitted.
-- Reviewed only Kin-owned wiki pages (`agents/kin.md`, `products/prospereum.md`, and `products/midas.md`); all remained current because September 19 did not materially change the compiled state, so no timestamp-only wiki edit was made.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 19.
+- Reviewed only Kin-owned wiki pages (`agents/kin.md`, `products/prospereum.md`, and `products/midas.md`); all remained current because September 20 did not materially change the compiled state, so no timestamp-only wiki edit was made.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 20.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
