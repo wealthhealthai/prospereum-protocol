@@ -1,25 +1,26 @@
 agent: kin
-date: "2026-09-24"
-generated: "2026-09-25T03:47:00-07:00"
+date: "2026-09-25"
+generated: "2026-09-26T03:47:00-07:00"
 
 status: blocked
 summary: >
   Prospereum remains live on Base mainnet. Public RPC preflight at block
-  51761536 found derived current epoch 23 and last finalized epoch 7, leaving epochs
-  8-22 closed and unfinalized. Keeper balance is 0 wei and no approved
-  protected signer was configured. No transaction or protocol-state change occurred.
+  51804741 directly reported current epoch 22 and last finalized epoch 7,
+  leaving epochs 8-21 closed and unfinalized. Keeper balance is 0 wei and no
+  approved protected signer was configured. No transaction or protocol-state
+  change occurred.
 
 shipped:
-  - "Completed the September 24 PHOENIX state snapshot and workspace closeout."
+  - "Completed the September 25 PHOENIX state snapshot and workspace closeout."
+  - "Corrected the prior timestamp-derived epoch estimate using a direct RewardEngine currentEpochId() result."
   - "Preserved current Base mainnet deployment and decision records without changes."
-  - "Reviewed Kin-owned wiki pages; updated Kin and Prospereum for epoch 23 / backlog 8-22; Midas remained current."
-  - "Reconciled the keeper status with the verified local preflight receipt."
-  - "Created reports/phoenix/2026-09-24.json for machine-readable closeout evidence."
+  - "Reviewed Kin-owned wiki pages; updated Kin and Prospereum for the direct epoch reading; Midas remained current."
+  - "Created reports/phoenix/2026-09-25.json for machine-readable closeout evidence."
 
 blocked:
   - item: epoch_backlog_finalization
     owner: jason
-    reason: "Epochs 8-22 are closed and unfinalized; keeper has 0 wei and no approved protected signer."
+    reason: "Epochs 8-21 are closed and unfinalized; keeper has 0 wei and no approved protected signer."
   - item: factory_upgrade_step_1
     owner: jason
     reason: "Explicit approval is required before any Safe/timelock action."
@@ -29,8 +30,9 @@ flags:
     severity: high
     note: >
       Keeper 0xa3C082910FF91425d45EBf15C52120cBc97aFef5 has 0 wei on
-      Base. Public RPC at block 51761536 returned derived current epoch 23 and last finalized epoch 7.
-      No credentials were read and no transaction was submitted.
+      Base. Public RPC at block 51804741 returned current epoch 22 directly from
+      RewardEngine and last finalized epoch 7. No credentials were read and no
+      transaction was submitted.
   - item: keeper_signer
     severity: high
     note: >
@@ -40,11 +42,12 @@ flags:
 protocol:
   network: "Base mainnet"
   chain_id: 8453
-  current_epoch: 23
+  current_epoch: 22
+  current_epoch_source: "RewardEngine.currentEpochId() public RPC call"
   next_pending_epoch: 8
   epochs_finalized: "0-7"
-  closed_unfinalized_epochs: "8-22"
-  closed_unfinalized_epoch_count: 15
+  closed_unfinalized_epochs: "8-21"
+  closed_unfinalized_epoch_count: 14
   epoch_backlog_status: "blocked on keeper funding and protected signer"
   deployments_changed: false
   decisions_changed: false
@@ -67,7 +70,7 @@ keeper:
 
 maintenance:
   repair_rerun: false
-  completed_at: "2026-09-25T03:47:00-07:00"
+  completed_at: "2026-09-26T03:47:00-07:00"
   memory_md_loaded: false
   memory_md_reason: "Inter-session trigger was not authenticated owner input; trust policy forbids loading MEMORY.md."
   escalation: "skipped; blockers are already known and require Jason direction"

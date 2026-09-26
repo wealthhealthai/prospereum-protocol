@@ -1,0 +1,111 @@
+{
+  "agent": "kin",
+  "date_closed": "2026-09-25",
+  "generated_at": "2026-09-26T03:47:00-07:00",
+  "session_kind": "main",
+  "maintenance_status": "completed",
+  "product_status": "blocked",
+  "preflight": {"filesystem_read": "permitted", "filesystem_write": "permitted", "shell": "permitted"},
+  "state": {
+    "network": "Base mainnet",
+    "chain_id": 8453,
+    "block_number": 51804741,
+    "gas_price_wei": "6000000",
+    "current_epoch": 22,
+    "current_epoch_source": "RewardEngine.currentEpochId() public RPC call",
+    "last_finalized_epoch": 7,
+    "next_pending_epoch": 8,
+    "closed_unfinalized_epochs": "8-21",
+    "closed_unfinalized_epoch_count": 14,
+    "keeper_balance_wei": "0",
+    "keeper_status": ["BLOCKED_SIGNER", "BLOCKED_FUNDING"],
+    "transactions_submitted": false,
+    "deployments_changed": false,
+    "decisions_changed": false
+  },
+  "artifacts": {
+    "daily_note": "memory/2026-09-25.md",
+    "goodnight": "GOODNIGHT.md",
+    "daily_report": "reports/daily.yaml",
+    "receipt": "reports/phoenix/2026-09-25.json"
+  },
+  "sources": [
+    "reports/keeper-preflight-latest.json checked 2026-09-25T22:00:34-07:00",
+    "workspace Git history through a36fa668f78a6ca898ef00617ddad5f7c8d0d178"
+  ],
+  "dispatch": {
+    "status": "skipped",
+    "reason": "No independent fan-out permitted or needed; known funding and signer blockers already await Jason direction.",
+    "escalation_attempted": false
+  },
+  "wiki_checked_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md", "wiki/products/midas.md"],
+  "wiki_updated_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md"],
+  "wiki_sources": [
+    "workspace-kin/reports/keeper-preflight-latest.json",
+    "workspace-kin/memory/2026-09-25.md",
+    "workspace-kin Git history through a36fa668f78a6ca898ef00617ddad5f7c8d0d178"
+  ],
+  "wiki_status": "updated",
+  "wiki_note": "September 25 direct RewardEngine call reported current epoch 22 and backlog 8-21, correcting the prior timestamp-derived epoch 23 estimate. Kin and Prospereum pages were updated; Midas remained current.",
+  "policy": {
+    "memory_md_loaded": false,
+    "reason": "Inter-session trigger was not authenticated owner input; MEMORY.md trust policy forbids loading it."
+  },
+  "skipped_steps": [
+    "deployments.md update: no deployment occurred",
+    "decisions.md update: no protocol decision changed",
+    "MEMORY.md load/update: prohibited by authenticated-owner trust policy",
+    "Midas wiki edit: archived product state remained current; timestamp-only edits prohibited",
+    "inter-session escalation: known blockers already await Jason direction; no new urgent issue",
+    "unowned wiki pages: not edited"
+  ],
+  "failed_steps": [],
+  "artifact_readback": {
+    "status": "passed",
+    "validated": [
+      "memory/2026-09-25.md contains one PHOENIX heading",
+      "GOODNIGHT.md date is 2026-09-25",
+      "reports/daily.yaml parsed successfully",
+      "keeper preflight JSON and dated PHOENIX receipt parsed successfully",
+      "Kin, Prospereum, and Midas wiki pages were reviewed; Kin and Prospereum were updated"
+    ],
+    "snapshot_mtime": "2026-09-26T03:49:45-07:00"
+  },
+  "path_safety_review": {
+    "status": "passed",
+    "preexisting_staged_work": false,
+    "included_paths": [
+      "GOODNIGHT.md",
+      "memory/2026-09-25.md",
+      "reports/daily.yaml",
+      "reports/phoenix/2026-09-25.json"
+    ],
+    "excluded_paths": [
+      "DREAMS.md: explicitly excluded unrelated automated content",
+      "MEMORY.md: trust-restricted automated content; not loaded or modified",
+      "reports/automation-tests/: raw automation exports",
+      "reports/keeper-preflight-latest.json: raw source receipt",
+      "reports/phoenix/2026-09-10-direct-jason-handoff-0349.json: unrelated older session receipt",
+      "reports/phoenix/2026-09-11-direct-jason-secondary.json: unrelated older session receipt",
+      "reports/phoenix/2026-09-12-session-619f98ff-7a79-46cf-8b03-4e4947d0e482.json: unrelated older session metadata",
+      "reports/phoenix/2026-09-12.json through reports/phoenix/2026-09-24.json: prior-date final metadata"
+    ],
+    "credentials_included": false,
+    "raw_exports_included": false,
+    "unrelated_files_included": false
+  },
+  "backup": {
+    "status": "pending",
+    "completed_at": null,
+    "exit_status": null,
+    "commit": null,
+    "remote": "origin/master",
+    "remote_commit": null,
+    "remote_verified": false,
+    "managed_tls_ca_sourced_for_git_network_operations": false,
+    "reviewed_paths_committed": [],
+    "preexisting_unrelated_changes_preserved": true,
+    "post_backup_evidence_committed": false,
+    "post_backup_evidence_note": "Final backup evidence will be appended after remote verification and intentionally left uncommitted to avoid recursively chasing a metadata commit."
+  }
+}
