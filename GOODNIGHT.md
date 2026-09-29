@@ -1,12 +1,12 @@
-# GOODNIGHT.md — 2026-09-27
+# GOODNIGHT.md — 2026-09-28
 
 ## What Was Done Today
 
-- Completed the September 27 PHOENIX closeout triggered early on September 28.
-- Public Base mainnet preflight at block 51891144 verified chain 8453, keeper balance `0 wei`, direct RewardEngine current epoch 22, and last finalized epoch 7; epochs 8–21 remain closed and unfinalized.
+- Completed the September 28 PHOENIX closeout triggered early on September 29.
+- Public Base mainnet preflight at block 51934341 verified chain 8453, keeper balance `0 wei`, direct RewardEngine current epoch 22, and last finalized epoch 7; epochs 8–21 remain closed and unfinalized.
 - Reconciled the keeper result as `BLOCKED_SIGNER` and `BLOCKED_FUNDING`, with no credentials read and no transaction submitted.
 - Reviewed only Kin-owned wiki pages; Kin, Prospereum, and Midas remain current, so no timestamp-only edit was made.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 27.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 28.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
