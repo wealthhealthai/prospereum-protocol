@@ -1,18 +1,18 @@
-# GOODNIGHT.md — 2026-09-28
+# GOODNIGHT.md — 2026-09-29
 
 ## What Was Done Today
 
-- Completed the September 28 PHOENIX closeout triggered early on September 29.
-- Public Base mainnet preflight at block 51934341 verified chain 8453, keeper balance `0 wei`, direct RewardEngine current epoch 22, and last finalized epoch 7; epochs 8–21 remain closed and unfinalized.
+- Completed the September 29 PHOENIX closeout triggered early on September 30.
+- Public Base mainnet preflight at block 51977542 verified chain 8453, keeper balance `0 wei`, direct RewardEngine current epoch 23, and last finalized epoch 7; epochs 8–22 remain closed and unfinalized.
 - Reconciled the keeper result as `BLOCKED_SIGNER` and `BLOCKED_FUNDING`, with no credentials read and no transaction submitted.
-- Reviewed only Kin-owned wiki pages; Kin, Prospereum, and Midas remain current, so no timestamp-only edit was made.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 28.
+- Reviewed only Kin-owned wiki pages; updated Kin and Prospereum with the September 29 direct on-chain state, while Midas remained current.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for September 29.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
 
 - Prospereum remains live on Base mainnet and in standby.
-- Epochs 8–21 remain closed and unfinalized; epoch 8 is next pending after keeper funding, fresh RewardEngine checks, and an approved protected signer are available.
+- Epochs 8–22 remain closed and unfinalized; epoch 8 is next pending after keeper funding, fresh RewardEngine checks, and an approved protected signer are available.
 - Factory upgrade Step 1 remains staged and requires Jason's explicit approval before any Safe/timelock action.
 - Midas and Olympus Web3 surfaces remain parked unless Jason or Shu reopens them.
 
@@ -25,7 +25,7 @@
 
 ## Blockers
 
-- Operational blocker: epochs 8–21 remain unfinalized while the keeper has `0 wei` and no approved protected signer is available.
+- Operational blocker: epochs 8–22 remain unfinalized while the keeper has `0 wei` and no approved protected signer is available.
 - Human approval blocker: no factory upgrade, deployment, Safe transaction, governance action, or real-fund action may proceed without the required explicit authorization.
 - Security quarantine: do not open, process, execute, or pull any inbound Jake / Antaris / Antaris Analytics content without Jason's explicit permission for that specific item; report any arrival to Archon.
 - No Kin-side technical blocker for PHOENIX maintenance or the reviewed workspace backup.
