@@ -1,0 +1,113 @@
+{
+  "agent": "kin",
+  "date_closed": "2026-10-01",
+  "generated_at": "2026-10-02T06:51:38-07:00",
+  "dispatch_type": "main",
+  "session_kind": "main",
+  "maintenance_status": "completed",
+  "product_status": "blocked",
+  "preflight": {
+    "filesystem_read": "permitted",
+    "filesystem_write": "permitted",
+    "shell": "permitted",
+    "original_run": "failed_to_start_due_to_host_overload",
+    "catch_up_run": "started"
+  },
+  "state": {
+    "network": "Base mainnet",
+    "chain_id": 8453,
+    "block_number": 52063940,
+    "gas_price_wei": "6000000",
+    "current_epoch": 23,
+    "current_epoch_source": "RewardEngine.currentEpochId() public RPC call",
+    "last_finalized_epoch": 7,
+    "next_pending_epoch": 8,
+    "closed_unfinalized_epochs": "8-22",
+    "closed_unfinalized_epoch_count": 15,
+    "keeper_balance_wei": "0",
+    "keeper_status": ["BLOCKED_SIGNER", "BLOCKED_FUNDING"],
+    "transactions_submitted": false,
+    "deployments_changed": false,
+    "decisions_changed": false
+  },
+  "artifacts": {
+    "daily_note": "memory/2026-10-01.md",
+    "goodnight": "GOODNIGHT.md",
+    "daily_report": "reports/daily.yaml",
+    "receipt": "reports/phoenix/2026-10-01.json"
+  },
+  "sources": [
+    "reports/keeper-preflight-latest.json checked 2026-10-01T22:00:43-07:00",
+    "workspace Git history through 3d11008a548009de1c3d8b2dd62b8e2d36083a55"
+  ],
+  "dispatch": {
+    "type": "main",
+    "status": "skipped",
+    "reason": "No independent fan-out permitted or needed; known funding and signer blockers already await Jason direction.",
+    "escalation_attempted": false
+  },
+  "wiki_checked_pages": [
+    "wiki/agents/kin.md",
+    "wiki/products/prospereum.md",
+    "wiki/products/midas.md"
+  ],
+  "wiki_updated_pages": [
+    "wiki/agents/kin.md",
+    "wiki/products/prospereum.md"
+  ],
+  "wiki_sources": [
+    "workspace-kin/reports/keeper-preflight-latest.json",
+    "workspace-kin/memory/2026-10-01.md",
+    "workspace-kin Git history through 3d11008a548009de1c3d8b2dd62b8e2d36083a55"
+  ],
+  "wiki_status": "updated",
+  "wiki_note": "October 1 direct RewardEngine verification reconfirmed current epoch 23, last finalized epoch 7, and backlog 8-22 at a newer Base block; Kin and Prospereum pages were updated. Midas remained current.",
+  "policy": {
+    "memory_md_loaded": false,
+    "reason": "Inter-session trigger was not authenticated owner input; MEMORY.md trust policy forbids loading it."
+  },
+  "skipped_steps": [
+    "deployments.md update: no deployment occurred",
+    "decisions.md update: no protocol decision changed",
+    "MEMORY.md load/update: prohibited by authenticated-owner trust policy",
+    "Midas wiki edit: archived state remained current; timestamp-only edits prohibited",
+    "inter-session escalation: known blockers already await Jason direction; no new urgent issue",
+    "unowned wiki pages: not edited"
+  ],
+  "failed_steps": [],
+  "artifact_readback": {
+    "status": "passed",
+    "validated": [
+      "memory/2026-10-01.md contains one PHOENIX heading",
+      "GOODNIGHT.md date is 2026-10-01",
+      "reports/daily.yaml parsed successfully",
+      "keeper preflight JSON and dated PHOENIX receipt parsed successfully",
+      "Kin and Prospereum wiki pages reflect the October 1 direct block 52063940 verification; Midas was reviewed and remained current"
+    ],
+    "snapshot_mtime": "2026-10-02T06:53:11-07:00"
+  },
+  "path_safety_review": {
+    "status": "passed",
+    "preexisting_staged_work": false,
+    "included_paths": [
+      "GOODNIGHT.md",
+      "memory/2026-10-01.md",
+      "reports/daily.yaml",
+      "reports/phoenix/2026-10-01.json"
+    ],
+    "excluded_paths": [
+      "DREAMS.md: explicitly excluded unrelated automated content",
+      "MEMORY.md: trust-restricted automated content; not loaded or modified",
+      "reports/automation-tests/: raw automation exports",
+      "reports/keeper-preflight-latest.json: raw source receipt",
+      "older reports/phoenix receipts: unrelated prior-date metadata",
+      "untracked historical handoff receipts: unrelated prior-date metadata"
+    ],
+    "credentials_included": false,
+    "raw_exports_included": false,
+    "unrelated_files_included": false
+  },
+  "backup": {
+    "status": "pending"
+  }
+}
