@@ -51,7 +51,7 @@
     "reason": "No new urgent or decision-worthy issue beyond known keeper and approval blockers."
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "type": "git_remote",
     "scope": [
       "GOODNIGHT.md",
@@ -61,8 +61,14 @@
     ],
     "preexisting_staged_paths": [],
     "unrelated_dirty_paths_preserved": true,
-    "commit": null,
-    "remote_verified": false
+    "commit": "17a2c352a64a1136c8ed35b6c028a7b52114c934",
+    "remote": "origin/master",
+    "remote_commit": "17a2c352a64a1136c8ed35b6c028a7b52114c934",
+    "push_exit_status": 0,
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the maintenance commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields were included in a follow-up closure commit and the resulting remote HEAD was verified after push."
   },
   "failed_steps": [],
   "skipped_steps": [
