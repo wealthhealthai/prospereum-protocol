@@ -1,11 +1,11 @@
-# GOODNIGHT.md — 2026-10-17
+# GOODNIGHT.md — 2026-10-18
 
 ## What Was Done Today
 
-- Public Base mainnet preflight at block 52755137 verified chain 8453, keeper balance `0 wei`, direct RewardEngine current epoch 25, and last finalized epoch 7; epochs 8–24 remain closed and unfinalized.
+- Public Base mainnet preflight at block 52798341 verified chain 8453, keeper balance `0 wei`, direct RewardEngine current epoch 25, and last finalized epoch 7; epochs 8–24 remain closed and unfinalized.
 - Reconciled the keeper result as `BLOCKED_SIGNER` and `BLOCKED_FUNDING`, with no credentials read and no transaction submitted.
-- Reviewed only Kin-owned wiki pages; updated Kin and Prospereum with the October 17 direct on-chain verification, while Midas remained current.
-- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for October 17.
+- Reviewed only Kin-owned wiki pages; updated Kin and Prospereum with the October 18 direct on-chain verification, while Midas remained current.
+- Found no Prospereum or Midas implementation work, deployment, Safe transaction, governance action, protocol upgrade, token transfer, or other real-fund action for October 18.
 - Left `projects/prospereum/deployments.md` and `projects/prospereum/decisions.md` unchanged because no durable protocol state changed.
 
 ## In Progress / Waiting
