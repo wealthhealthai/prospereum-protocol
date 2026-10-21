@@ -4,8 +4,8 @@
   "dispatch_type": "main_catch_up",
   "session_key": "agent:kin:direct:jason",
   "dispatch_source": "Archon 04:20 completion check; source session id was not included in the delivered request",
-  "status": "backup_pending",
-  "completed_at": "2026-10-21T04:25:00-07:00",
+  "status": "completed_with_product_blockers",
+  "completed_at": "2026-10-21T04:27:57-07:00",
   "artifacts": {
     "daily_note": "memory/2026-10-20.md",
     "goodnight": "GOODNIGHT.md",
@@ -59,7 +59,7 @@
     "reason": "No new urgent or decision-worthy issue beyond known keeper and approval blockers."
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "type": "git_remote",
     "scope": [
       "GOODNIGHT.md",
@@ -77,7 +77,15 @@
         "reports/keeper-preflight-latest.json",
         "all pre-existing unrelated dirty and untracked paths"
       ]
-    }
+    },
+    "commit": "4884ee3ec7387db76edf220085e3f27dccf5c11a",
+    "remote": "origin/master",
+    "remote_commit": "4884ee3ec7387db76edf220085e3f27dccf5c11a",
+    "push_exit_status": 0,
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the maintenance commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields were included in a follow-up closure commit; the resulting remote HEAD was verified after push."
   },
   "failed_steps": [],
   "skipped_steps": [
