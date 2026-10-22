@@ -15,8 +15,8 @@
   "artifact_readbacks": {
     "daily_note_exists": true,
     "goodnight_exists": true,
-    "daily_report_yaml_parsed": false,
-    "receipt_json_parsed": false
+    "daily_report_yaml_parsed": true,
+    "receipt_json_parsed": true
   },
   "source_evidence": [
     "memory/2026-10-21.md",
@@ -77,7 +77,7 @@
     "reason": "Critical migration defects were already surfaced to Jason during the October 21 review; PHOENIX found no new urgent issue requiring duplicate escalation."
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "type": "git_remote",
     "scope": [
       "GOODNIGHT.md",
@@ -97,12 +97,14 @@
         "all pre-existing unrelated dirty and untracked paths"
       ]
     },
-    "commit": null,
+    "commit": "2c4c61ff8f9ce3a1457bf00e7684136f181bc4ce",
     "remote": "origin/master",
-    "remote_commit": null,
-    "push_exit_status": null,
-    "remote_verified": false,
-    "verification": "pending"
+    "remote_commit": "2c4c61ff8f9ce3a1457bf00e7684136f181bc4ce",
+    "push_exit_status": 0,
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the maintenance commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields were included in a follow-up closure commit; the resulting remote HEAD was verified after push."
   },
   "failed_steps": [],
   "skipped_steps": [
