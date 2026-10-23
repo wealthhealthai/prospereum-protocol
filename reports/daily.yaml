@@ -1,79 +1,65 @@
 agent: kin
-date: "2026-10-21"
-generated: "2026-10-22T03:46:47-07:00"
+date: "2026-10-22"
+generated: "2026-10-23T03:47:23-07:00"
 
 status: blocked
 summary: >
-  Completed the Prospereum handoff and SDK/Token-page reviews for Fire. Live
-  Base state remains on the original USDC/Uniswap architecture with current
-  epoch 26, last finalized epoch 7, and no active partner vaults. The staged
-  PSRE-native migration is not safe to execute: Step 2 calls a nonexistent
-  function and the proposed RewardEngine storage ordering is incompatible with
-  the live implementation. No chain write or external configuration change
-  occurred.
+  Fire's Token-page v5 incorporated the requested pinned-block, stale-state,
+  RPC-role, backlog-copy, and pool-label changes, but still needs server-side
+  handling for secret provider credentials and internally consistent refresh
+  semantics. Base keeper preflight at block 52971138 remains blocked by an
+  unfunded wallet and no approved protected signer. No chain write or external
+  configuration change occurred.
 
 shipped:
-  - "Produced the Fire handoff with verified chain, repository, website, DNS, and integration guidance."
-  - "Reviewed SDK revisions through v4 and Token-page revisions through v4; accepted SDK v4 provisionally and returned the remaining Token-page precision requirements."
-  - "Identified the invalid executeUpgrade() Step-2 call and RewardEngine storage-layout incompatibility before any Safe batch was signed."
-  - "Verified the current PSRE-native Foundry suite passes 261/261 tests while documenting the missing live-layout transition test."
+  - "Reviewed Fire Token-page v5 read-only and returned two implementation requirements plus editorial cleanup."
+  - "Verified Base chain 8453 at block 52971138, current epoch 26, last finalized epoch 7, keeper balance 0 wei, and backlog epochs 8-25."
+  - "Preserved the legacy signer prohibition; no credentials were read and no transaction was submitted."
   - "Updated Kin-owned Kin and Prospereum wiki pages; Midas remained current."
-  - "Created reports/phoenix/2026-10-21.json for machine-readable closeout evidence."
+  - "Created reports/phoenix/2026-10-22.json for machine-readable closeout evidence."
 
 blocked:
+  - item: token_page_rpc_secrecy
+    owner: fire
+    reason: "Client-side viem cannot keep a provider key secret; secret keyed RPC access requires a server-side proxy."
+  - item: token_page_refresh_semantics
+    owner: fire
+    reason: "Spec must consistently distinguish immutable constants from mutable pinned-snapshot values, or reread every displayed getter on refresh."
   - item: first_partner_architecture
     owner: jason_or_shu
-    reason: "Must choose the live USDC deployment or a corrected PSRE-native migration before ABI pinning or partner mainnet transactions."
+    reason: "Must choose live USDC or a corrected PSRE-native migration before ABI pinning or partner mainnet transactions."
   - item: reward_engine_migration_safety
     owner: kin
     reason: "Staged Step 2 calls nonexistent executeUpgrade(), and new factory fields shift legacy queued-parameter storage slots."
   - item: epoch_backlog_finalization
     owner: jason
     reason: "Epochs 8-25 are closed and unfinalized; keeper has 0 wei and no approved protected signer."
-  - item: partnerships_mailbox
-    owner: jason_or_fire
-    reason: "No MX record was present for prospereum.io; partnerships@prospereum.io must not be published until routing is configured and tested."
 
-flags:
-  - item: unsafe_upgrade_artifacts
-    severity: critical
-    note: >
-      audit/upgrade-step2-executeUpgrade-scheduleSetFactory.json and
-      script/DeployFactoryUpgrade.s.sol call nonexistent executeUpgrade(). The
-      inherited UUPS entry point is upgradeToAndCall(address,bytes). Do not sign
-      the existing Step-2 batch.
-  - item: incompatible_storage_layout
-    severity: critical
-    note: >
-      pendingFactory and factoryReadyAt were inserted before legacy queued
-      parameter fields, shifting pendingAlphaBase and later state. Append new
-      fields after the preserved legacy layout and prove the transition from the
-      live implementation on a fork before scheduling an upgrade.
-  - item: live_architecture_mismatch
-    severity: high
-    note: >
-      Mainnet still uses the USDC/Uniswap createVault and buy signatures. The
-      latest approved PSRE-native source is staged, not deployed.
+keeper:
+  checked_at_utc: "2026-10-23T05:00:25Z"
+  block_number: 52971138
+  wallet: "0xa3C082910FF91425d45EBf15C52120cBc97aFef5"
+  balance_wei: "0"
+  gas_price_wei: "6000000"
+  gas_ceiling: 6000000
+  maximum_required_wei: "36000000000000"
+  maximum_required_eth: "0.000036"
+  status: "BLOCKED_SIGNER; BLOCKED_FUNDING"
+  legacy_script_executed: false
+  credentials_read: false
+  transactions_submitted: false
 
 protocol:
   network: "Base mainnet"
   chain_id: 8453
-  verified_blocks: "52917924-52918776"
   current_epoch: 26
   last_finalized_epoch: 7
   next_pending_epoch: 8
   epochs_finalized: "0-7"
   closed_unfinalized_epochs: "8-25"
   closed_unfinalized_epoch_count: 18
-  total_supply_psre: "8400000"
-  emitted_psre: "0"
-  partner_vault_count: 0
-  customer_vault_count: 0
-  reward_engine_paused: false
-  pending_upgrade: false
   deployed_partner_architecture: "USDC/Uniswap"
   staged_partner_architecture: "PSRE-native"
-  tests: "261/261 passed"
   deployments_changed: false
   decisions_changed: false
   contracts_changed: false
@@ -81,22 +67,20 @@ protocol:
 open_items:
   jason_or_shu:
     - "Choose the first-partner architecture; Kin recommends correcting and completing PSRE-native before onboarding."
-    - "Explicitly approve Factory upgrade Step 1 only after migration artifacts and storage compatibility are corrected and verified."
+    - "Do not authorize current upgrade artifacts; correction and verification are prerequisites before any Safe/timelock action."
   kin:
-    - "Correct the UUPS Step-2 call and preserve the live RewardEngine storage layout."
-    - "Add a live-implementation-to-new-implementation transition test and rehearse the full migration on a Base fork."
+    - "Preserve the staged upgrade artifacts as unsafe-to-sign pending authorization to correct and verify them."
   fire:
-    - "Provide a GitHub username for initial website-repo read access."
-    - "Keep architecture-specific SDK signatures gated until Jason/Shu choose the target."
-    - "Do not publish partnerships@prospereum.io until mail routing works."
+    - "Route secret RPC credentials through a server-side proxy and reconcile refresh semantics."
+    - "Complete the end-marker/date and change-log wording cleanup."
   operations:
     - "Fund the keeper and approve a protected signer before clearing epochs 8-25."
 
 maintenance:
-  completed_at: "2026-10-22T03:46:47-07:00"
+  completed_at: "2026-10-23T03:47:23-07:00"
   memory_md_loaded: false
   memory_md_reason: "Automated inter-session trigger was not authenticated owner input; trust policy forbids loading MEMORY.md."
-  escalation: "skipped; critical migration defects were already documented to Jason during the October 21 review and no new PHOENIX-only emergency surfaced"
+  escalation: "skipped; all blockers were already surfaced during October 22 work or remain known, and PHOENIX found no new emergency"
   skipped_steps:
     - "deployments.md update skipped because no deployment occurred"
     - "decisions.md update skipped because no approved protocol decision changed"
