@@ -15,8 +15,8 @@
   "artifact_readbacks": {
     "daily_note_exists": true,
     "goodnight_exists": true,
-    "daily_report_yaml_parsed": false,
-    "receipt_json_parsed": false
+    "daily_report_yaml_parsed": true,
+    "receipt_json_parsed": true
   },
   "source_evidence": [
     "memory/2026-10-22.md",
@@ -84,7 +84,7 @@
     "reason": "All blockers were already surfaced during October 22 work or remain known; PHOENIX found no new urgent issue requiring duplicate escalation."
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "type": "git_remote",
     "scope": [
       "GOODNIGHT.md",
@@ -104,12 +104,14 @@
         "all pre-existing unrelated dirty and untracked paths"
       ]
     },
-    "commit": null,
+    "commit": "88a72027aea72c330c787e109d09ebfbd25b73ea",
     "remote": "origin/master",
-    "remote_commit": null,
-    "push_exit_status": null,
-    "remote_verified": false,
-    "verification": "pending"
+    "remote_commit": "88a72027aea72c330c787e109d09ebfbd25b73ea",
+    "push_exit_status": 0,
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the maintenance commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields were included in a follow-up closure commit; the resulting remote HEAD was verified after push."
   },
   "failed_steps": [],
   "skipped_steps": [
