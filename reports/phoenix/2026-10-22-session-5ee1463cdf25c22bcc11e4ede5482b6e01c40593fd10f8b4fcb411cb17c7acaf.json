@@ -35,12 +35,15 @@
     "shared_daily_or_wiki_files_modified": false
   },
   "backup": {
-    "status": "pending_exact_path_backup",
+    "status": "completed",
     "paths": [
       "memory/sessions/2026-10-22-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.md",
       "reports/phoenix/2026-10-22-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.json"
     ],
-    "unrelated_dirty_paths_excluded": true
+    "unrelated_dirty_paths_excluded": true,
+    "artifact_commit": "7f9a569e6bfa6ba2b6dd8e017804b39b1f3808cd",
+    "remote": "origin/master",
+    "remote_verified": true
   },
   "failures": []
 }
