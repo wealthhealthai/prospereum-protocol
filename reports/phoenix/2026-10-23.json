@@ -93,8 +93,14 @@
   "deployments_changed": false,
   "decisions_changed": true,
   "escalation": {
-    "attempted": false,
-    "reason": "Archon's wiki index already records the October 23 PSRE-native-first decision and no new PHOENIX-only emergency surfaced."
+    "attempted": true,
+    "target": "agent:archon:direct:jason",
+    "run_id": "2a13e873-a0c9-41f3-932b-ee0d90d2a236",
+    "status": "accepted",
+    "target_disposition": "queued",
+    "delivery_status": "pending",
+    "completion_confirmed": false,
+    "reason": "Decision/blocker notice queued to Archon; queue admission is not completion."
   },
   "backup": {
     "status": "completed",

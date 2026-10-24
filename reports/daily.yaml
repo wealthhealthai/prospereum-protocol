@@ -76,7 +76,14 @@ maintenance:
   completed_at: "2026-10-24T03:47:57-07:00"
   memory_md_loaded: false
   memory_md_reason: "Automated inter-session trigger was not authenticated owner input; trust policy forbids loading MEMORY.md."
-  escalation: "skipped; Archon's wiki index already records the October 23 PSRE-native-first decision and no new PHOENIX-only emergency surfaced"
+  escalation:
+    target: "agent:archon:direct:jason"
+    run_id: "2a13e873-a0c9-41f3-932b-ee0d90d2a236"
+    admission: "accepted"
+    target_disposition: "queued"
+    delivery_status: "pending"
+    completion_confirmed: false
+    note: "Decision/blocker notice queued to Archon; queue admission is not completion."
   skipped_steps:
     - "deployments.md update skipped because no deployment occurred"
     - "MEMORY.md load/update skipped under authenticated-owner trust policy"
