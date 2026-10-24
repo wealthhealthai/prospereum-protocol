@@ -16,8 +16,8 @@
   "artifact_readbacks": {
     "daily_note_exists": true,
     "goodnight_exists": true,
-    "daily_report_yaml_parsed": false,
-    "receipt_json_parsed": false,
+    "daily_report_yaml_parsed": true,
+    "receipt_json_parsed": true,
     "decision_record_present": true
   },
   "source_evidence": [
@@ -97,7 +97,7 @@
     "reason": "Archon's wiki index already records the October 23 PSRE-native-first decision and no new PHOENIX-only emergency surfaced."
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "type": "git_remote",
     "scope": [
       "GOODNIGHT.md",
@@ -118,12 +118,14 @@
         "all pre-existing unrelated dirty and untracked paths"
       ]
     },
-    "commit": null,
+    "commit": "ec630d661c998caef863af766b411f68304c5aad",
     "remote": "origin/master",
-    "remote_commit": null,
-    "push_exit_status": null,
-    "remote_verified": false,
-    "verification": "pending"
+    "remote_commit": "ec630d661c998caef863af766b411f68304c5aad",
+    "push_exit_status": 0,
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the maintenance commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields were included in a follow-up closure commit; the resulting remote HEAD was verified after push."
   },
   "failed_steps": [],
   "skipped_steps": [
