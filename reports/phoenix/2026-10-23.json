@@ -100,6 +100,8 @@
     "target_disposition": "queued",
     "delivery_status": "pending",
     "completion_confirmed": false,
+    "evidence_commit": "b8fdf31da90754cc627d39f88b5f92c75eb0419e",
+    "evidence_remote_verified": true,
     "reason": "Decision/blocker notice queued to Archon; queue admission is not completion."
   },
   "backup": {
