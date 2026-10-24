@@ -1,43 +1,41 @@
 agent: kin
-date: "2026-10-22"
-generated: "2026-10-23T03:47:23-07:00"
+date: "2026-10-23"
+generated: "2026-10-24T03:47:57-07:00"
 
 status: blocked
 summary: >
-  Fire's Token-page v5 incorporated the requested pinned-block, stale-state,
-  RPC-role, backlog-copy, and pool-label changes, but still needs server-side
-  handling for secret provider credentials and internally consistent refresh
-  semantics. Base keeper preflight at block 52971138 remains blocked by an
-  unfunded wallet and no approved protected signer. No chain write or external
-  configuration change occurred.
+  Fire Token-page v6 was accepted as the implementation baseline alongside SDK
+  v4. Jason's relayed direction selects a corrected PSRE-native migration before
+  partner mainnet onboarding, but engineering remains paused before architecture
+  pending the required new-sprint role-roster confirmation. Base keeper preflight
+  at block 53014389 remains blocked by an unfunded wallet and no approved
+  protected signer. No source or chain write occurred.
 
 shipped:
-  - "Reviewed Fire Token-page v5 read-only and returned two implementation requirements plus editorial cleanup."
-  - "Verified Base chain 8453 at block 52971138, current epoch 26, last finalized epoch 7, keeper balance 0 wei, and backlog epochs 8-25."
+  - "Accepted Fire Token-page v6 after exact-text, integrity, tracked-change, PDF, and visual review; no unresolved Token-page finding remains."
+  - "Recorded the PSRE-native-first architecture sequencing decision with its relayed provenance and separate deployment gate."
+  - "Verified Base chain 8453 at block 53014389, current epoch 26, last finalized epoch 7, keeper balance 0 wei, and backlog epochs 8-25."
   - "Preserved the legacy signer prohibition; no credentials were read and no transaction was submitted."
   - "Updated Kin-owned Kin and Prospereum wiki pages; Midas remained current."
-  - "Created reports/phoenix/2026-10-22.json for machine-readable closeout evidence."
+  - "Created reports/phoenix/2026-10-23.json for machine-readable closeout evidence."
 
 blocked:
-  - item: token_page_rpc_secrecy
-    owner: fire
-    reason: "Client-side viem cannot keep a provider key secret; secret keyed RPC access requires a server-side proxy."
-  - item: token_page_refresh_semantics
-    owner: fire
-    reason: "Spec must consistently distinguish immutable constants from mutable pinned-snapshot values, or reread every displayed getter on refresh."
-  - item: first_partner_architecture
-    owner: jason_or_shu
-    reason: "Must choose live USDC or a corrected PSRE-native migration before ABI pinning or partner mainnet transactions."
+  - item: migration_sprint_role_roster
+    owner: jason
+    reason: "Fleet contract requires confirmation or override of architect, executor, and reviewer before architecture or dispatch for this new GAUNTLET sprint."
   - item: reward_engine_migration_safety
     owner: kin
     reason: "Staged Step 2 calls nonexistent executeUpgrade(), and new factory fields shift legacy queued-parameter storage slots."
+  - item: migration_deployment
+    owner: jason
+    reason: "Architecture direction does not authorize deployment or Safe execution; separate target-specific approval remains mandatory."
   - item: epoch_backlog_finalization
     owner: jason
     reason: "Epochs 8-25 are closed and unfinalized; keeper has 0 wei and no approved protected signer."
 
 keeper:
-  checked_at_utc: "2026-10-23T05:00:25Z"
-  block_number: 52971138
+  checked_at_utc: "2026-10-24T05:02:06Z"
+  block_number: 53014389
   wallet: "0xa3C082910FF91425d45EBf15C52120cBc97aFef5"
   balance_wei: "0"
   gas_price_wei: "6000000"
@@ -59,31 +57,28 @@ protocol:
   closed_unfinalized_epochs: "8-25"
   closed_unfinalized_epoch_count: 18
   deployed_partner_architecture: "USDC/Uniswap"
-  staged_partner_architecture: "PSRE-native"
+  selected_partner_architecture: "corrected PSRE-native before partner mainnet onboarding"
+  migration_engineering_started: false
+  deployment_authorized: false
   deployments_changed: false
-  decisions_changed: false
+  decisions_changed: true
   contracts_changed: false
 
 open_items:
-  jason_or_shu:
-    - "Choose the first-partner architecture; Kin recommends correcting and completing PSRE-native before onboarding."
-    - "Do not authorize current upgrade artifacts; correction and verification are prerequisites before any Safe/timelock action."
-  kin:
-    - "Preserve the staged upgrade artifacts as unsafe-to-sign pending authorization to correct and verify them."
-  fire:
-    - "Route secret RPC credentials through a server-side proxy and reconcile refresh semantics."
-    - "Complete the end-marker/date and change-log wording cleanup."
-  operations:
+  jason:
+    - "Confirm or override the new-sprint architect/executor/reviewer roster."
+    - "Provide separate target-specific deployment approval only after implementation, fork rehearsal, and independent review."
     - "Fund the keeper and approve a protected signer before clearing epochs 8-25."
+  kin:
+    - "After roster confirmation, correct storage ordering and the UUPS Step-2 call, add live-layout transition coverage, run the full suite, rehearse on a Base fork, and produce corrected address-unfilled Safe artifacts."
 
 maintenance:
-  completed_at: "2026-10-23T03:47:23-07:00"
+  completed_at: "2026-10-24T03:47:57-07:00"
   memory_md_loaded: false
   memory_md_reason: "Automated inter-session trigger was not authenticated owner input; trust policy forbids loading MEMORY.md."
-  escalation: "skipped; all blockers were already surfaced during October 22 work or remain known, and PHOENIX found no new emergency"
+  escalation: "skipped; Archon's wiki index already records the October 23 PSRE-native-first decision and no new PHOENIX-only emergency surfaced"
   skipped_steps:
     - "deployments.md update skipped because no deployment occurred"
-    - "decisions.md update skipped because no approved protocol decision changed"
     - "MEMORY.md load/update skipped under authenticated-owner trust policy"
     - "Midas wiki edit skipped because its archived product state remained current and timestamp-only edits are prohibited"
   failed_steps: []
