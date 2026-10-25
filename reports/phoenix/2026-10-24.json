@@ -1,0 +1,136 @@
+{
+  "agent": "kin",
+  "closed_date": "2026-10-24",
+  "dispatch_type": "main",
+  "session_key": "agent:kin:direct:jason",
+  "dispatch_source": "Archon PHOENIX cron run c4434d7e-76d0-44df-b970-123242c52400",
+  "status": "completed_with_site_and_keeper_blockers",
+  "completed_at": "2026-10-25T03:47:20-07:00",
+  "artifacts": {
+    "daily_note": "memory/2026-10-24.md",
+    "goodnight": "GOODNIGHT.md",
+    "daily_report": "reports/daily.yaml",
+    "receipt": "reports/phoenix/2026-10-24.json"
+  },
+  "artifact_readbacks": {
+    "daily_note_exists": true,
+    "goodnight_exists": true,
+    "daily_report_yaml_parsed": false,
+    "receipt_json_parsed": false
+  },
+  "source_evidence": [
+    "memory/2026-10-24.md",
+    "reports/keeper-preflight-latest.json",
+    "projects/prospereum/deployments.md",
+    "projects/prospereum/decisions.md"
+  ],
+  "site_decision_sheet_review": {
+    "artifact": "Prospereum_Site_Decision_Sheet_2026-10-24_v1.docx",
+    "sha256": "cef375c365ee7d31a66f2709af4c9caf8da00b87b081135f66eb3ae09d62517b",
+    "mode": "source-documentation-only read-only review",
+    "status": "not_accepted_verbatim",
+    "rows_requiring_correction": [2, 4, 5, 6, 7],
+    "required_corrections": [
+      "Worker must allow eth_getBlockByNumber and enforce exact block-tagged/allowlisted reads with safe JSON-RPC cache semantics.",
+      "Worker must protect the upstream secret and expose endpoint identity without corrupting JSON-RPC.",
+      "Free-tier capacity must be monitored rather than presented as guaranteed.",
+      "Treasury copy must interpolate the live rounded balanceOf rather than type a fixed balance.",
+      "T() copy must change only when rewards are actually minted, not merely when a vault goes live.",
+      "Categorical token/legal classification and no-counsel-revision claims must use whitepaper-aligned informational/non-advice wording or counsel-approved text.",
+      "Cloudflare analytics browser storage/cookies and any privacy-notice requirement must be verified."
+    ],
+    "repository_evidence": {
+      "repository": "wealthhealthai/prospereum-website",
+      "visibility": "private",
+      "branch": "main",
+      "commit": "1d757905aab70b284620bdfe64592e76e1344b93",
+      "worktree_clean": true,
+      "open_pr_count": 0,
+      "latest_pages_run_succeeded": true,
+      "deployed_asset_fingerprint_matches": true,
+      "cloudflare_proxy_confirmed": true
+    }
+  },
+  "protocol_state": {
+    "network": "Base mainnet",
+    "chain_id": 8453,
+    "block_number": 53057535,
+    "current_epoch": 26,
+    "last_finalized_epoch": 7,
+    "closed_unfinalized_epochs": "8-25",
+    "closed_unfinalized_epoch_count": 18,
+    "keeper_balance_wei": "0",
+    "gas_price_wei": "6000000",
+    "maximum_required_wei": "36000000000000",
+    "maximum_required_eth": "0.000036",
+    "keeper_status": [
+      "BLOCKED_SIGNER",
+      "BLOCKED_FUNDING"
+    ],
+    "legacy_script_executed": false,
+    "credentials_read": false,
+    "transactions_submitted": false,
+    "migration_engineering_started": false,
+    "deployment_authorized": false
+  },
+  "wiki_checked_pages": [
+    "wiki/agents/kin.md",
+    "wiki/products/prospereum.md",
+    "wiki/products/midas.md"
+  ],
+  "wiki_updated_pages": [
+    "wiki/agents/kin.md",
+    "wiki/products/prospereum.md"
+  ],
+  "wiki_sources": [
+    "workspace-kin/memory/2026-10-24.md",
+    "workspace-kin/reports/keeper-preflight-latest.json"
+  ],
+  "wiki_status": "updated",
+  "wiki_notes": "Kin and Prospereum were updated with the site decision-sheet corrections and October 24 keeper evidence. Midas remained current; no timestamp-only edit was made.",
+  "memory_md_loaded": false,
+  "memory_md_reason": "Automated inter-session trigger is outside the authenticated-owner trust gate; MEMORY.md was not loaded.",
+  "deployments_changed": false,
+  "decisions_changed": false,
+  "escalation": {
+    "attempted": false,
+    "reason": "Site-sheet corrections were already surfaced during October 24 review and no new PHOENIX-only emergency surfaced."
+  },
+  "backup": {
+    "status": "pending",
+    "type": "git_remote",
+    "scope": [
+      "GOODNIGHT.md",
+      "memory/2026-10-24.md",
+      "reports/daily.yaml",
+      "reports/phoenix/2026-10-24.json"
+    ],
+    "review": {
+      "sensitive_exports_found": false,
+      "raw_exports_found": false,
+      "unrelated_staged_paths_found": false,
+      "unrelated_dirty_paths_preserved": true,
+      "policy_excluded_paths": [
+        "MEMORY.md",
+        "DREAMS.md",
+        "reports/keeper-preflight-latest.json",
+        "all pre-existing unrelated dirty and untracked paths"
+      ]
+    },
+    "commit": null,
+    "remote": "origin/master",
+    "remote_commit": null,
+    "push_exit_status": null,
+    "remote_verified": false,
+    "verification": "pending"
+  },
+  "failed_steps": [],
+  "skipped_steps": [
+    "MEMORY.md load/update skipped under authenticated-owner trust policy.",
+    "deployments.md update skipped because no deployment occurred.",
+    "decisions.md update skipped because no approved protocol decision changed.",
+    "Midas wiki edit skipped because its archived product state remained current and timestamp-only edits are prohibited.",
+    "Migration implementation skipped because the required role roster was not yet confirmed.",
+    "Deployment and Safe execution skipped because no explicit target-specific authorization exists."
+  ]
+}
