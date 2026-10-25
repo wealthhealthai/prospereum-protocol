@@ -5,8 +5,8 @@
   "session_key": "agent:kin:discord:channel:1560508042322255882",
   "session_key_sha256": "5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf",
   "dispatch_source_session_key": "agent:archon:cron:be66bc2d-3cf6-46c0-bcac-16ad0ad4bc0e:run:c4434d7e-76d0-44df-b970-123242c52400",
-  "status": "completed_pending_backup_verification",
-  "completed_at": "2026-10-25T03:46:00-07:00",
+  "status": "completed",
+  "completed_at": "2026-10-25T03:48:20-07:00",
   "identity_verification": {
     "status": "passed",
     "trusted_session_metadata": "openclaw session_status current",
@@ -50,12 +50,20 @@
     ]
   },
   "backup": {
-    "status": "pending_verification",
+    "status": "completed",
+    "type": "git_remote",
     "scope": [
       "memory/sessions/2026-10-24-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.md",
       "reports/phoenix/2026-10-24-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.json"
     ],
-    "unrelated_paths_excluded": true
+    "unrelated_paths_excluded": true,
+    "artifact_commit": "2c344abd53b017d9e71273274058d5603e103825",
+    "remote": "origin/master",
+    "remote_commit_verified": "2c344abd53b017d9e71273274058d5603e103825",
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the artifact commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields were recorded in a receipt-only closure commit; unrelated concurrent files remained excluded."
   },
   "failed_steps": [],
   "skipped_steps": [
