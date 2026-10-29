@@ -20,6 +20,6 @@
   "backup": {"status": "completed", "type": "git_remote", "commit": "3160396f96fa371c0887051991c578503df6d3b1", "remote": "origin/master", "verified_remote_sha": "3160396f96fa371c0887051991c578503df6d3b1", "verified_at": "2026-10-29T01:01:44-07:00"},
   "memory_md_loaded": false,
   "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; trust policy forbids loading MEMORY.md.",
-  "archon_report": {"run_id": "0bc65b91-929a-4666-b33e-ca9767f6c2d7", "target_disposition": "queued", "delivery_status": "pending", "completion_claimed": false},
+  "archon_report": {"run_id": "0bc65b91-929a-4666-b33e-ca9767f6c2d7", "target_disposition": "queued", "delivery_status": "acknowledged_by_archon", "logged_by_archon": "memory/2026-10-29.md", "completion_claimed": true, "jason_message_sent": false},
   "failed_steps": []
 }
