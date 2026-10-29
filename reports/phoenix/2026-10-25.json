@@ -42,5 +42,6 @@
   },
   "memory_md_loaded": false,
   "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; trust policy forbids loading MEMORY.md.",
+  "archon_report": {"run_id": "0bc65b91-929a-4666-b33e-ca9767f6c2d7", "target_disposition": "queued", "delivery_status": "pending", "completion_claimed": false},
   "failed_steps": []
 }
