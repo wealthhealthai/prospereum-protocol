@@ -17,7 +17,7 @@
   "wiki_updated_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md"],
   "wiki_sources": ["workspace-kin/memory/2026-10-27.md", "workspace-kin/reports/keeper-preflight-latest.json"],
   "wiki_status": "updated; Midas reviewed and current without a timestamp-only edit",
-  "backup": {"status": "pending"},
+  "backup": {"status": "completed", "type": "git_remote", "commit": "3160396f96fa371c0887051991c578503df6d3b1", "remote": "origin/master", "verified_remote_sha": "3160396f96fa371c0887051991c578503df6d3b1", "verified_at": "2026-10-29T01:01:44-07:00"},
   "memory_md_loaded": false,
   "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; trust policy forbids loading MEMORY.md.",
   "failed_steps": []
