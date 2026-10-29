@@ -1,0 +1,24 @@
+{
+  "agent": "kin",
+  "closed_date": "2026-10-27",
+  "generated_at": "2026-10-29T01:01:44-07:00",
+  "dispatch_type": "outage_catch_up",
+  "status": "completed_with_evidence_gap",
+  "outage": {"started_approx": "2026-10-26T02:00:00-07:00", "restored": "2026-10-29T00:43:00-07:00", "cause": "agent database was locked", "impact": "Kin sessions and crons failed during the day"},
+  "evidence": {
+    "activity": [],
+    "evidence_gap": "No reliable Kin-generated protocol, website, keeper, deployment, governance, Safe, or real-fund work evidence exists for this date; no completion is inferred.",
+    "source_files": ["memory/2026-10-27.md"],
+    "keeper": "No October 27 run evidenced; the October 24 preflight is not treated as an October 27 chain-state check."
+  },
+  "protocol": {"migration_sprint": "paused pending Jason roster confirmation", "migration_restarted": false, "deployments_changed": false, "decisions_changed": false, "transactions_submitted": false},
+  "artifacts": ["memory/2026-10-27.md", "reports/phoenix/2026-10-27.json", "GOODNIGHT.md", "reports/daily.yaml"],
+  "wiki_checked_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md", "wiki/products/midas.md"],
+  "wiki_updated_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md"],
+  "wiki_sources": ["workspace-kin/memory/2026-10-27.md", "workspace-kin/reports/keeper-preflight-latest.json"],
+  "wiki_status": "updated; Midas reviewed and current without a timestamp-only edit",
+  "backup": {"status": "pending"},
+  "memory_md_loaded": false,
+  "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; trust policy forbids loading MEMORY.md.",
+  "failed_steps": []
+}
