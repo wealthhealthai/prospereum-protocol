@@ -6,7 +6,7 @@
   "session_key_sha256": "53f7633c518dfccdcf82fb8f233fc3f35b57df60d9c08f9650b8705057b20e75",
   "dispatch_source_session_key": "agent:archon:cron:be66bc2d-3cf6-46c0-bcac-16ad0ad4bc0e:run:a8e75242-351c-4306-8a0d-91216dfe7021",
   "status": "completed",
-  "completed_at": "2026-10-30T03:47:00-07:00",
+  "completed_at": "2026-10-30T03:47:36-07:00",
   "identity_verification": {
     "status": "passed",
     "trusted_session_metadata": "openclaw sessions_list exact-key result",
@@ -29,7 +29,7 @@
   },
   "after_midnight_activity": {
     "excluded_from_closed_day_summary": true,
-    "window_local": "2026-10-30T03:46:23-07:00/2026-10-30T03:47:00-07:00",
+    "window_local": "2026-10-30T03:46:23-07:00/2026-10-30T03:47:36-07:00",
     "description": "PHOENIX trigger intake, exact-session identity and hash verification, evidence review, and scoped artifact preparation; no shipping, deployment, signing, transfer, or chain write."
   },
   "scope": {
@@ -57,13 +57,20 @@
     "jason_dm_sent": false
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "type": "git_remote",
     "scope": [
       "memory/sessions/2026-10-29-session-53f7633c518dfccdcf82fb8f233fc3f35b57df60d9c08f9650b8705057b20e75.md",
       "reports/phoenix/2026-10-29-session-53f7633c518dfccdcf82fb8f233fc3f35b57df60d9c08f9650b8705057b20e75.json"
     ],
-    "unrelated_paths_excluded": true
+    "unrelated_paths_excluded": true,
+    "artifact_commit": "36c1791c1ee7ee2e3df6c0c9db83298e62a9547e",
+    "remote": "origin/master",
+    "remote_commit_verified": "36c1791c1ee7ee2e3df6c0c9db83298e62a9547e",
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the artifact commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields were recorded in a receipt-only closure commit; unrelated concurrent files remained excluded."
   },
   "failed_steps": [],
   "skipped_steps": [
