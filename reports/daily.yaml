@@ -47,5 +47,5 @@ maintenance:
   memory_md_reason: "A mandatory platform recall search was invoked despite the inter-session trust gate and returned limited MEMORY.md snippets; those snippets were not used for this closeout. This exception is recorded for Archon review."
   backup_status: "completed: maintenance-only commit ebd29607665d1d33d95a73f4077ea92227c65571 pushed to origin/master and matched by git ls-remote"
   wiki_status: "updated Kin and Prospereum from verified October 29 intake and keeper evidence; Midas reviewed and current without a timestamp-only edit"
-  escalation_status: "queued to Archon as run b0ff2ebf-1e6c-4bf4-9cad-783662f637bb; admission is not delivery completion; no Jason message"
+  escalation_status: "completed: Archon logged the low-risk memory-search policy gap in memory/2026-10-30.md and sent no Jason message"
   failed_steps: []
