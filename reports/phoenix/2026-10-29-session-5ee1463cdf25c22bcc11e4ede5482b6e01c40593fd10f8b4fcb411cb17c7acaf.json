@@ -83,12 +83,20 @@
     "jason_dm_sent": false
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
+    "type": "git_remote",
     "scope": [
       "memory/sessions/2026-10-29-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.md",
       "reports/phoenix/2026-10-29-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.json"
     ],
-    "unrelated_paths_excluded": true
+    "unrelated_paths_excluded": true,
+    "artifact_commit": "6368d8e0171215aa397d66e765f5cac872a1ee5c",
+    "remote": "origin/master",
+    "remote_commit_verified": "6368d8e0171215aa397d66e765f5cac872a1ee5c",
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the artifact commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields were recorded in a receipt-only closure commit; unrelated concurrent files remained excluded."
   },
   "failed_steps": [],
   "skipped_steps": [
