@@ -59,17 +59,20 @@
   ],
   "wiki_status": "updated; Midas reviewed and current without a timestamp-only edit",
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "type": "git_remote",
-    "commit": null,
+    "commit": "ebd29607665d1d33d95a73f4077ea92227c65571",
     "remote": "origin/master",
-    "verified_remote_sha": null,
-    "verified_at": null
+    "verified_remote_sha": "ebd29607665d1d33d95a73f4077ea92227c65571",
+    "verified_at": "2026-10-30T03:48:20-07:00"
   },
   "memory_md_loaded": true,
   "memory_md_reason": "A mandatory platform recall search was invoked despite the inter-session trust gate and returned limited MEMORY.md snippets; those snippets were not used for this closeout. This exception is recorded for Archon review.",
   "archon_report": {
-    "status": "pending process-exception report",
+    "run_id": "b0ff2ebf-1e6c-4bf4-9cad-783662f637bb",
+    "target_disposition": "queued",
+    "delivery_status": "pending",
+    "completion_claimed": false,
     "jason_message_sent": false
   },
   "failed_steps": []
