@@ -87,14 +87,20 @@
     "jason_dm_sent": false
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
     "type": "git_remote",
     "scope": [
       "memory/sessions/2026-11-02-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.md",
       "reports/phoenix/2026-11-02-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.json"
     ],
     "unrelated_paths_excluded": true,
-    "reason": "Pending exact-scope commit and remote verification."
+    "artifact_commit": "004ce45c9c556e58512c2d01d892a7e4943ef896",
+    "remote": "origin/master",
+    "remote_commit_verified": "004ce45c9c556e58512c2d01d892a7e4943ef896",
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the exact-scope artifact commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields are recorded in a receipt-only closure commit; unrelated concurrent files remained excluded."
   },
   "failed_steps": [],
   "skipped_steps": [
