@@ -1,0 +1,103 @@
+{
+  "agent": "kin",
+  "closed_date": "2026-11-05",
+  "generated_at": "2026-11-06T03:47:50-08:00",
+  "dispatch_type": "scheduled_phoenix",
+  "status": "completed_with_blockers",
+  "evidence": {
+    "activity": [
+      "Completed the bounded stale-page review for Midas and corrected a live-versus-staged integration ambiguity.",
+      "Classified W3 migration work as GAUNTLET and reported that the November 10 delivery date is not firm because the accepted architect role is not active in the current parent session.",
+      "Ran a read-only Base keeper preflight at 21:00 PT."
+    ],
+    "source_files": [
+      "memory/2026-11-05.md",
+      "projects/prospereum/decisions.md",
+      "reports/keeper-preflight-latest.json"
+    ],
+    "keeper": {
+      "checked_at_utc": "2026-11-06T05:00:27Z",
+      "block_number": 53754232,
+      "current_epoch": 28,
+      "last_finalized_epoch": 7,
+      "keeper_balance_wei": "0",
+      "closed_unfinalized_epochs": "8-27",
+      "closed_unfinalized_epoch_count": 20,
+      "blockers": [
+        "BLOCKED_SIGNER",
+        "BLOCKED_FUNDING"
+      ],
+      "credentials_read": false,
+      "legacy_script_executed": false,
+      "transactions_submitted": false
+    }
+  },
+  "protocol": {
+    "w3_classification": "GAUNTLET",
+    "november_10_delivery": "not firm as of November 5 08:40 PT",
+    "parent_model_gate": "current parent is openai/gpt-5.6-sol via native Codex; accepted architect is anthropic/claude-opus-5-5 via native Claude CLI; no approved exception or verified switch recorded",
+    "w3_completed_steps": [],
+    "w3_missing_steps": [
+      "architecture",
+      "executor dispatch",
+      "corrected migration batch",
+      "storage-layout transition proof",
+      "Base-fork rehearsal",
+      "independent review"
+    ],
+    "migration_head": "5401317d9ea080e0fa287bb2700f715473a12070",
+    "migration_blockers": [
+      "staged executeUpgrade() call targets a nonexistent selector",
+      "RewardEngine live-layout compatibility remains unresolved"
+    ],
+    "outside_engineer_quote_path": "may proceed November 6 unless Jason clears the parent-model gate and a re-plan establishes a supportable delivery date",
+    "midas_status": "archived; stale integration language corrected",
+    "migration_restarted": false,
+    "deployments_changed": false,
+    "decisions_changed": false,
+    "contracts_changed": false,
+    "transactions_submitted": false
+  },
+  "artifacts": [
+    "memory/2026-11-05.md",
+    "reports/phoenix/2026-11-05.json",
+    "GOODNIGHT.md",
+    "reports/daily.yaml"
+  ],
+  "wiki_checked_pages": [
+    "wiki/agents/kin.md",
+    "wiki/products/prospereum.md",
+    "wiki/products/midas.md"
+  ],
+  "wiki_updated_pages": [
+    "wiki/agents/kin.md",
+    "wiki/products/prospereum.md",
+    "wiki/products/midas.md"
+  ],
+  "wiki_sources": [
+    "workspace-kin/memory/2026-11-05.md",
+    "workspace-kin/memory/2026-11-04.md",
+    "workspace-kin/memory/2026-10-21.md",
+    "workspace-kin/projects/prospereum/decisions.md",
+    "workspace-kin/reports/keeper-preflight-latest.json"
+  ],
+  "wiki_status": "updated Kin and Prospereum from November 5 W3 and keeper evidence; recorded the completed bounded Midas update",
+  "backup": {
+    "status": "pending",
+    "type": "git_remote",
+    "commit": null,
+    "remote": "origin/master",
+    "verified_remote_sha": null,
+    "verified_at": null
+  },
+  "memory_md_loaded": false,
+  "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
+  "archon_report": {
+    "status": "accepted into target queue; delivery pending, not completed",
+    "run_id": "ed27b54a-e13b-41ca-83be-d97c90a6d720",
+    "target_disposition": "queued",
+    "delivery_status": "pending",
+    "jason_message_sent": false
+  },
+  "failed_steps": []
+}
