@@ -1,12 +1,13 @@
-# GOODNIGHT.md — 2026-11-07
+# GOODNIGHT.md — 2026-11-08
 
 ## What Was Done Today
 
-- No new Prospereum/Midas engineering, W3 architecture or dispatch, repository-access change, contract change, deployment, Safe action, governance action, token transfer, or other real-fund action was evidenced for November 7.
+- No new Prospereum/Midas engineering, W3 architecture or dispatch, repository-access change, contract change, deployment, Safe action, governance action, token transfer, or other real-fund action was evidenced for November 8.
 - Reviewed the W3 status and found no closed-day evidence of corrected migration artifacts, storage-transition proof, Base-fork rehearsal, independent review, deployment approval, or completion of Fire's outside-engineer quotation path.
-- Ran the 21:00 PT read-only Base keeper preflight at block 54618222. It reported current epoch 28, last finalized epoch 7, epochs 8–27 closed and unfinalized (20 total), and keeper balance 0 wei.
+- Ran the 21:00 PT read-only Base keeper preflight at block 55050321. It reported current epoch 28, last finalized epoch 7, epochs 8–27 closed and unfinalized (20 total), and keeper balance 0 wei.
 - The keeper remained blocked by unavailable protected signing and insufficient funding. No credentials were read, the legacy signing script was not executed, and no transaction was submitted.
-- The only Git commits in the closed-day window were maintenance commits for the November 6 PHOENIX closeouts and backup verification. Deployment and decision records remain unchanged for November 7.
+- Adopted Jason's November 8 fleet browser rule in the workspace operating instructions: retry public bot-protection failures with the managed OpenClaw browser before reporting a block; never use the Chrome relay without explicit request.
+- The only Git commits in the closed-day window were maintenance commits for the November 7 PHOENIX closeouts and backup verification. Deployment and decision records remain unchanged for November 8.
 
 ## In Progress / Waiting
 
@@ -14,7 +15,7 @@
 - Fire's RC1 website and deployment-verification reports remain intake-only pending independent GAUNTLET review.
 - The operational handover remains incomplete because Shu lacks access to the private website repository. No permission change was made.
 - The staged upgrade artifacts remain unsafe to sign until the invalid Step-2 selector and RewardEngine storage ordering are corrected and verified.
-- The latest keeper check is the November 7 21:00 PT preflight at Base block 54618222: current epoch 28, last finalized epoch 7, keeper balance 0 wei, and epochs 8–27 pending.
+- The latest keeper check is the November 8 21:00 PT preflight at Base block 55050321: current epoch 28, last finalized epoch 7, keeper balance 0 wei, and epochs 8–27 pending.
 - Midas/Olympus remain archived; any reopening requires a product decision and fresh integration validation.
 
 ## Open Decisions (waiting on Jason or Shu)
