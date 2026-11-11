@@ -1,0 +1,95 @@
+{
+  "agent": "kin",
+  "closed_date": "2026-11-10",
+  "generated_at": "2026-11-11T03:49:09-08:00",
+  "dispatch_type": "scheduled_phoenix",
+  "status": "in_progress_with_blockers",
+  "evidence": {
+    "activity": [
+      "No new Prospereum/Midas product or engineering activity was evidenced for November 10.",
+      "No closed-day evidence established corrected migration artifacts, transition proof, fork rehearsal, independent review, deployment approval, or outside-engineer quote completion.",
+      "Ran a read-only Base keeper preflight at 21:00 PT; the closed unfinalized backlog increased from 20 to 21 epochs as epoch 28 closed."
+    ],
+    "source_files": ["memory/2026-11-10.md", "reports/keeper-preflight-latest.json"],
+    "git_window": {
+      "product_commits": 0,
+      "maintenance_commits": [
+        "7ed8899b1b26b8cfefa136e25ab4de9f51e08cc9",
+        "112f0aeba01f45c5c7dad5a3289441e5802a990b"
+      ],
+      "maintenance_scope": "prior November 9 main-session PHOENIX closeout and backup verification"
+    },
+    "keeper": {
+      "checked_at_utc": "2026-11-11T05:00:43Z",
+      "block_number": 55914330,
+      "current_epoch": 29,
+      "last_finalized_epoch": 7,
+      "keeper_balance_wei": "0",
+      "closed_unfinalized_epochs": "8-28",
+      "closed_unfinalized_epoch_count": 21,
+      "blockers": ["BLOCKED_SIGNER", "BLOCKED_FUNDING"],
+      "credentials_read": false,
+      "legacy_script_executed": false,
+      "gas_safeguards_changed": false,
+      "transactions_submitted": false
+    }
+  },
+  "protocol": {
+    "engineering_activity": "none evidenced",
+    "w3_classification": "GAUNTLET",
+    "outside_engineer_quote_status": "unknown; no completion evidence found",
+    "migration_blockers": [
+      "staged executeUpgrade() call targets a nonexistent selector",
+      "RewardEngine live-layout compatibility remains unresolved"
+    ],
+    "migration_restarted": false,
+    "deployments_changed": false,
+    "decisions_changed": false,
+    "contracts_changed": false,
+    "transactions_submitted": false
+  },
+  "artifacts": ["memory/2026-11-10.md", "reports/phoenix/2026-11-10.json", "GOODNIGHT.md", "reports/daily.yaml"],
+  "artifact_readbacks": {
+    "status": "verified",
+    "files": {
+      "GOODNIGHT.md": {
+        "bytes": 3535,
+        "sha256": "4a1f035dd95dcfb4184dc532440f4d01f0d444bef9fe2677984cc4d995ccb0d4",
+        "title": "# GOODNIGHT.md — 2026-11-10"
+      },
+      "reports/daily.yaml": {
+        "bytes": 2826,
+        "sha256": "bc3095d66ace3793975c9f8c155e2970bb9348ca553baa83087e104852a8ee28",
+        "parsed_date": "2026-11-10"
+      },
+      "memory/2026-11-10.md": {
+        "bytes": 1311,
+        "sha256": "bcb276591552f276cadd2a04dfd907ce90df61e4527bc0dbb16a5b672df06a22",
+        "phoenix_heading_count": 1
+      },
+      "reports/phoenix/2026-11-10.json": {
+        "json_parse": true,
+        "parsed_closed_date": "2026-11-10",
+        "self_hash_omitted": "receipt cannot contain a stable hash of itself"
+      }
+    }
+  },
+  "wiki_checked_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md", "wiki/products/midas.md"],
+  "wiki_updated_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md"],
+  "wiki_sources": ["workspace-kin/memory/2026-11-10.md", "workspace-kin/reports/keeper-preflight-latest.json"],
+  "wiki_status": "updated Kin and Prospereum from November 10 keeper and operational evidence; Midas reviewed and current without a timestamp-only edit",
+  "backup": {
+    "status": "pending",
+    "type": "git_remote",
+    "method": "reviewed maintenance-only commit, push to origin/master, exact SHA comparison via git ls-remote",
+    "commit": null,
+    "remote": "origin/master",
+    "verified_remote_sha": null,
+    "verified_at": null
+  },
+  "memory_md_loaded": false,
+  "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
+  "archon_report": {"status": "not sent; no new urgent or decision-worthy fact surfaced", "jason_message_sent": false},
+  "missing_steps": ["backup push and remote verification"],
+  "failed_steps": []
+}
