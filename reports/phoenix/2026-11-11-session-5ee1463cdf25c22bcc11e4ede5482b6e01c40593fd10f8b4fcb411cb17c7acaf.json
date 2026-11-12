@@ -89,12 +89,20 @@
     "reason": "The review verdict and blockers were already reported in the working channel; this closeout introduced no new urgent fact and the dispatch requires silent completion."
   },
   "backup": {
-    "status": "pending_exact_scope_backup",
+    "status": "completed",
+    "type": "git_remote",
     "scope": [
       "memory/sessions/2026-11-11-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.md",
       "reports/phoenix/2026-11-11-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.json"
     ],
-    "unrelated_paths_excluded": true
+    "unrelated_paths_excluded": true,
+    "artifact_commit": "e6692e0fe06012653c32c2dc84740135458c251f",
+    "remote": "origin/master",
+    "remote_commit_verified": "e6692e0fe06012653c32c2dc84740135458c251f",
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the exact-scope artifact commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields are recorded in a receipt-only closure commit; unrelated concurrent files remained excluded."
   },
   "failed_steps": [],
   "skipped_steps": [
