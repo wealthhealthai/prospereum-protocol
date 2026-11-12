@@ -62,8 +62,8 @@
         "title": "# GOODNIGHT.md — 2026-11-11"
       },
       "reports/daily.yaml": {
-        "bytes": 3039,
-        "sha256": "1b672790ad7eadc9dd66c9a4d2f2fa801b638eb229976ff9cbfd69cd668c00c0",
+        "bytes": 3134,
+        "sha256": "840cf482246d242d9542fe2bd89c16157920b64932a37fcf2094b885ee1a98fe",
         "parsed_date": "2026-11-11"
       },
       "memory/2026-11-11.md": {
@@ -86,7 +86,16 @@
     "workspace-kin/reports/keeper-preflight-latest.json"
   ],
   "wiki_status": "updated Kin and Prospereum from November 11 website-review and keeper evidence; Midas reviewed and current without a timestamp-only edit",
-  "backup": {"status": "pending", "type": "git_remote", "scope": "reviewed maintenance-only closeout artifacts"},
+  "backup": {
+    "status": "verified",
+    "type": "git_remote",
+    "method": "reviewed maintenance-only commit, push to origin/master, exact SHA comparison via git ls-remote",
+    "scope": "GOODNIGHT.md, reports/daily.yaml, memory/2026-11-11.md, and reports/phoenix/2026-11-11.json only",
+    "commit": "76560312db5c927365bb788adc559e10e1e307a1",
+    "remote": "origin/master",
+    "verified_remote_sha": "76560312db5c927365bb788adc559e10e1e307a1",
+    "verified_at": "2026-11-12T03:57:47-08:00"
+  },
   "memory_md_loaded": false,
   "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
   "archon_report": {
@@ -96,6 +105,6 @@
     "delivery_status": "pending",
     "jason_message_sent": false
   },
-  "missing_steps": ["Git backup and remote verification"],
+  "missing_steps": [],
   "failed_steps": []
 }
