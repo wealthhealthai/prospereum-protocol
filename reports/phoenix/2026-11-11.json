@@ -1,0 +1,101 @@
+{
+  "agent": "kin",
+  "closed_date": "2026-11-11",
+  "generated_at": "2026-11-12T03:49:53-08:00",
+  "dispatch_type": "scheduled_phoenix",
+  "status": "completed_with_blockers",
+  "evidence": {
+    "activity": [
+      "Completed a review-only GAUNTLET pass on wealthhealthai/prospereum-website PR #1 at pinned base 1d757905aab70b284620bdfe64592e76e1344b93 and head a17d37916543d336985bdcbd5f3a93cb558f630f.",
+      "All 37 changed files were covered; verdict REQUEST CHANGES with 2 blocker, 4 major, 4 medium, and 2 minor findings.",
+      "Page tests 22/22 and Worker tests 11/11 passed; live Base getter and selector checks passed, while the supplied preview failed 12 deployment checks because it served the old Vite application.",
+      "GitHub review publication did not complete because gh rejected the configured gateway TLS certificate chain for api.github.com; no review was posted.",
+      "Ran a read-only Base keeper preflight at 21:00 PT; 21 closed epochs remained unfinalized."
+    ],
+    "source_files": [
+      "memory/2026-11-11.md",
+      "projects/prospereum/reviews/2026-11-11-prospereum-website-pr-1.md",
+      "projects/prospereum/reviews/2026-11-11-prospereum-website-pr-1-github-body.md",
+      "reports/keeper-preflight-latest.json"
+    ],
+    "review": {
+      "repository": "wealthhealthai/prospereum-website",
+      "pull_request": 1,
+      "base_sha": "1d757905aab70b284620bdfe64592e76e1344b93",
+      "head_sha": "a17d37916543d336985bdcbd5f3a93cb558f630f",
+      "files_reviewed": 37,
+      "verdict": "REQUEST CHANGES",
+      "findings": {"blocker": 2, "major": 4, "medium": 4, "minor": 2},
+      "github_review_posted": false,
+      "publication_blocker": "gh rejected the configured gateway TLS certificate chain for api.github.com"
+    },
+    "keeper": {
+      "checked_at_utc": "2026-11-12T05:00:41Z",
+      "block_number": 56346334,
+      "current_epoch": 29,
+      "last_finalized_epoch": 7,
+      "keeper_balance_wei": "0",
+      "closed_unfinalized_epochs": "8-28",
+      "closed_unfinalized_epoch_count": 21,
+      "blockers": ["BLOCKED_SIGNER", "BLOCKED_FUNDING"],
+      "credentials_read": false,
+      "legacy_script_executed": false,
+      "gas_safeguards_changed": false,
+      "transactions_submitted": false
+    }
+  },
+  "protocol": {
+    "engineering_activity": "review only; no product code mutation",
+    "migration_restarted": false,
+    "deployments_changed": false,
+    "decisions_changed": false,
+    "contracts_changed": false,
+    "transactions_submitted": false
+  },
+  "artifacts": ["memory/2026-11-11.md", "reports/phoenix/2026-11-11.json", "GOODNIGHT.md", "reports/daily.yaml"],
+  "artifact_readbacks": {
+    "status": "verified",
+    "files": {
+      "GOODNIGHT.md": {
+        "bytes": 3820,
+        "sha256": "c42406dbcb7dce565d05d24096e46a646ea50c040e58f766a21470768a8dcdad",
+        "title": "# GOODNIGHT.md — 2026-11-11"
+      },
+      "reports/daily.yaml": {
+        "bytes": 3039,
+        "sha256": "1b672790ad7eadc9dd66c9a4d2f2fa801b638eb229976ff9cbfd69cd668c00c0",
+        "parsed_date": "2026-11-11"
+      },
+      "memory/2026-11-11.md": {
+        "bytes": 3617,
+        "sha256": "f0c5f6453b74437652ef672a8b6e5d75393fc35261ccea59c7456b1465e995e4",
+        "phoenix_heading_count": 1
+      },
+      "reports/phoenix/2026-11-11.json": {
+        "json_parse": true,
+        "parsed_closed_date": "2026-11-11",
+        "self_hash_omitted": "receipt cannot contain a stable hash of itself"
+      }
+    }
+  },
+  "wiki_checked_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md", "wiki/products/midas.md"],
+  "wiki_updated_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md"],
+  "wiki_sources": [
+    "workspace-kin/memory/2026-11-11.md",
+    "workspace-kin/projects/prospereum/reviews/2026-11-11-prospereum-website-pr-1.md",
+    "workspace-kin/reports/keeper-preflight-latest.json"
+  ],
+  "wiki_status": "updated Kin and Prospereum from November 11 website-review and keeper evidence; Midas reviewed and current without a timestamp-only edit",
+  "backup": {"status": "pending", "type": "git_remote", "scope": "reviewed maintenance-only closeout artifacts"},
+  "memory_md_loaded": false,
+  "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
+  "archon_report": {
+    "status": "accepted into Archon queue; delivery pending and completion not claimed",
+    "run_id": "df649fab-ec7c-4e5b-881a-f318a0789390",
+    "target_disposition": "queued",
+    "delivery_status": "pending",
+    "jason_message_sent": false
+  },
+  "missing_steps": ["Git backup and remote verification"],
+  "failed_steps": []
+}
