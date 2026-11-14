@@ -57,8 +57,8 @@
         "title": "# GOODNIGHT.md — 2026-11-13"
       },
       "reports/daily.yaml": {
-        "bytes": 2844,
-        "sha256": "4cdd57cd00f053620c45d90a9b2eecb97afca08db4fcefc6244fba4f716cce9f",
+        "bytes": 2939,
+        "sha256": "13e14ce6628e4932d44fc3f156c124202ec44ae2cdfde26f33995b225bd6bd1b",
         "parsed_date": "2026-11-13"
       },
       "memory/2026-11-13.md": {
@@ -77,10 +77,19 @@
   "wiki_updated_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md"],
   "wiki_sources": ["workspace-kin/memory/2026-11-13.md", "workspace-kin/reports/keeper-preflight-latest.json"],
   "wiki_status": "updated Kin and Prospereum from November 13 keeper and operational evidence; Midas reviewed and current without a timestamp-only edit",
-  "backup": {"status": "pending", "type": "git_remote", "scope": "reviewed maintenance-only closeout artifacts"},
+  "backup": {
+    "status": "verified",
+    "type": "git_remote",
+    "method": "reviewed maintenance-only commit, push to origin/master, exact SHA comparison via git ls-remote",
+    "scope": "GOODNIGHT.md, reports/daily.yaml, memory/2026-11-13.md, and reports/phoenix/2026-11-13.json only",
+    "commit": "c4412a752a1dac65c0247a9ffc997e93522aa81a",
+    "remote": "origin/master",
+    "verified_remote_sha": "c4412a752a1dac65c0247a9ffc997e93522aa81a",
+    "verified_at": "2026-11-14T03:49:42-08:00"
+  },
   "memory_md_loaded": false,
   "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
   "archon_report": {"status": "not sent; no new urgent or decision-worthy fact surfaced", "jason_message_sent": false},
-  "missing_steps": ["Git backup and remote verification"],
+  "missing_steps": [],
   "failed_steps": []
 }
