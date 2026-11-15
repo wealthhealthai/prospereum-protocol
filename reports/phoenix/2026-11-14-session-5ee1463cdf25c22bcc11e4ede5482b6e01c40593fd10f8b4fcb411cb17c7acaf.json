@@ -77,12 +77,20 @@
     "reason": "The dispatch requires silent completion with REPLY_SKIP; there was no new urgent or decision-worthy November 14 activity."
   },
   "backup": {
-    "status": "pending",
+    "status": "completed",
+    "type": "git_remote",
     "scope": [
       "memory/sessions/2026-11-14-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.md",
       "reports/phoenix/2026-11-14-session-5ee1463cdf25c22bcc11e4ede5482b6e01c40593fd10f8b4fcb411cb17c7acaf.json"
     ],
-    "unrelated_paths_excluded": true
+    "unrelated_paths_excluded": true,
+    "artifact_commit": "5cb0cb847d9c92c3c0239d0f6dea6de4aa54e0ae",
+    "remote": "origin/master",
+    "remote_commit_verified": "5cb0cb847d9c92c3c0239d0f6dea6de4aa54e0ae",
+    "remote_verified": true,
+    "verification": "git ls-remote origin refs/heads/master matched the exact-scope artifact commit after push",
+    "final_receipt_evidence_committed": true,
+    "final_receipt_note": "Backup verification fields are recorded in a receipt-only closure commit; unrelated concurrent files remained excluded."
   },
   "failed_steps": [],
   "skipped_steps": [
