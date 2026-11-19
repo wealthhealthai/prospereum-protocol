@@ -1,0 +1,90 @@
+{
+  "agent": "kin",
+  "closed_date": "2026-11-18",
+  "generated_at": "2026-11-19T03:50:23-08:00",
+  "dispatch_type": "scheduled_phoenix",
+  "status": "completed_with_blockers",
+  "evidence": {
+    "activity": [
+      "No new Prospereum/Midas product or engineering activity was evidenced for November 18.",
+      "Website PR #1 remained REQUEST CHANGES / NOT APPROVED at final reviewed head fa9cec75a77bc6c174d3d589c7c2e4fb07a515be; the 3/3 remediation loop remained exhausted.",
+      "No closed-day evidence established a new website sprint, merge, deployment, migration restart, Safe action, or transaction.",
+      "Ran a read-only Base keeper preflight at 21:00 PT; 22 closed epochs remained unfinalized."
+    ],
+    "source_files": ["memory/2026-11-18.md", "memory/2026-11-17.md", "reports/keeper-preflight-latest.json"],
+    "git_window": {
+      "product_commits": 0,
+      "maintenance_commits": [
+        "3ed5d1549be32927bbe16e04372831386ed93ef4",
+        "66e8c07ba16ab97cf4b5ee7ce8cec3fd9ab9414c"
+      ],
+      "maintenance_scope": "prior November 17 PHOENIX closeout and backup verification"
+    },
+    "keeper": {
+      "checked_at_utc": "2026-11-19T05:03:42Z",
+      "block_number": 59371223,
+      "current_epoch": 30,
+      "last_finalized_epoch": 7,
+      "keeper_balance_wei": "0",
+      "gas_price_wei": "6000000",
+      "required_ceiling_wei": "36000000000000",
+      "closed_unfinalized_epochs": "8-29",
+      "closed_unfinalized_epoch_count": 22,
+      "blockers": ["BLOCKED_SIGNER", "BLOCKED_FUNDING"],
+      "credentials_read": false,
+      "legacy_script_executed": false,
+      "gas_safeguards_changed": false,
+      "transactions_submitted": false
+    }
+  },
+  "protocol": {
+    "engineering_activity": "none evidenced",
+    "website_review_verdict": "REQUEST CHANGES / NOT APPROVED",
+    "fix_loop": "3/3 exhausted; new sprint requires explicit Jason or Shu authorization",
+    "migration_restarted": false,
+    "deployments_changed": false,
+    "decisions_changed": false,
+    "contracts_changed": false,
+    "transactions_submitted": false
+  },
+  "artifacts": ["memory/2026-11-18.md", "reports/phoenix/2026-11-18.json", "GOODNIGHT.md", "reports/daily.yaml"],
+  "artifact_readbacks": {
+    "status": "verified",
+    "files": {
+      "GOODNIGHT.md": {
+        "bytes": 3451,
+        "sha256": "22221c348c02bd4eb3da32847a7860964a5ac52c11880d22e219d5af36fda78d",
+        "title": "# GOODNIGHT.md — 2026-11-18"
+      },
+      "reports/daily.yaml": {
+        "bytes": 2828,
+        "sha256": "0a49136108d9bb14c83c885d1941e6e8c85b2ca8d035ff26f7b35f5c24dc2df3",
+        "parsed_date": "2026-11-18"
+      },
+      "memory/2026-11-18.md": {
+        "bytes": 1937,
+        "sha256": "4e70b881e7998e479fe5b3f3010bf82ce95d62faf01e4c5b4d4ed576cd6b88ed",
+        "phoenix_heading_count": 1
+      },
+      "reports/phoenix/2026-11-18.json": {
+        "json_parse": true,
+        "parsed_closed_date": "2026-11-18",
+        "self_hash_omitted": "receipt cannot contain a stable hash of itself"
+      }
+    }
+  },
+  "wiki_checked_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md", "wiki/products/midas.md"],
+  "wiki_updated_pages": [],
+  "wiki_sources": ["workspace-kin/memory/2026-11-18.md", "workspace-kin/reports/keeper-preflight-latest.json"],
+  "wiki_status": "current: reviewed all three Kin-owned pages; November 18 reconfirmed the November 17 protocol and blocker state, so no timestamp-only edits were made",
+  "backup": {
+    "status": "pending",
+    "type": "git_remote",
+    "scope": "reviewed maintenance-only closeout artifacts"
+  },
+  "memory_md_loaded": false,
+  "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
+  "archon_report": {"status": "not sent; no new urgent or decision-worthy fact surfaced", "jason_message_sent": false},
+  "missing_steps": ["Git backup and remote verification"],
+  "failed_steps": []
+}
