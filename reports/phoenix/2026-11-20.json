@@ -57,8 +57,8 @@
         "title": "# GOODNIGHT.md — 2026-11-20"
       },
       "reports/daily.yaml": {
-        "bytes": 2827,
-        "sha256": "ad28730bb0cabe28d5d93b404a62e8ca18b81e225604f100a3459afbbbf3ceca",
+        "bytes": 2910,
+        "sha256": "7c732e61b8c9b236ea1eba53f5402fd8fb2823e09d4fa11e59b1aa39d30dba99",
         "parsed_date": "2026-11-20"
       },
       "memory/2026-11-20.md": {
@@ -78,13 +78,19 @@
   "wiki_sources": ["workspace-kin/memory/2026-11-20.md", "workspace-kin/reports/keeper-preflight-latest.json"],
   "wiki_status": "current: reviewed all three Kin-owned pages; November 20 reconfirmed the existing protocol and blocker state, and the transient gas-price change did not warrant timestamp-only edits",
   "backup": {
-    "status": "pending",
+    "status": "verified",
     "type": "git_remote",
-    "scope": "reviewed maintenance-only closeout artifacts"
+    "method": "reviewed maintenance-only commit pushed through the managed proxy/CA environment; exact local and remote branch SHAs matched",
+    "scope": "GOODNIGHT.md, reports/daily.yaml, memory/2026-11-20.md, and reports/phoenix/2026-11-20.json only",
+    "commit": "8e302160d247185f3082fb353f90ba8e08dcdce0",
+    "remote": "origin/master",
+    "verified_remote_sha": "8e302160d247185f3082fb353f90ba8e08dcdce0",
+    "commit_reachable_on_remote": true,
+    "verified_at": "2026-11-21T03:49:10-08:00"
   },
   "memory_md_loaded": false,
   "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
   "archon_report": {"status": "not sent; no new urgent or decision-worthy fact surfaced", "jason_message_sent": false},
-  "missing_steps": ["Git backup and remote verification"],
+  "missing_steps": [],
   "failed_steps": []
 }
