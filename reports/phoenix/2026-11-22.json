@@ -57,8 +57,8 @@
         "title": "# GOODNIGHT.md — 2026-11-22"
       },
       "reports/daily.yaml": {
-        "bytes": 2739,
-        "sha256": "f3d03f57d8cc15c05c298e15903dd0b4e02fa4c43180a2889e05062458b07f28",
+        "bytes": 2910,
+        "sha256": "5743dade347fc117d304939305a623796d540251f8b52210765e73f9b6225fb1",
         "parsed_date": "2026-11-22"
       },
       "memory/2026-11-22.md": {
@@ -78,19 +78,19 @@
   "wiki_sources": ["workspace-kin/memory/2026-11-22.md", "workspace-kin/reports/keeper-preflight-latest.json"],
   "wiki_status": "current: reviewed all three Kin-owned pages; November 22 reconfirmed the existing protocol and blocker state, so no timestamp-only edit was made",
   "backup": {
-    "status": "pending",
+    "status": "verified",
     "type": "git_remote",
-    "method": "reviewed maintenance-only commit and exact remote verification pending",
+    "method": "reviewed maintenance-only commit pushed through the managed proxy/CA environment; exact local and remote branch SHAs matched",
     "scope": "GOODNIGHT.md, reports/daily.yaml, memory/2026-11-22.md, and reports/phoenix/2026-11-22.json only",
-    "commit": null,
+    "commit": "53c7266fae28eae373724304f8f0328dfc05612c",
     "remote": "origin/master",
-    "verified_remote_sha": null,
-    "commit_reachable_on_remote": false,
-    "verified_at": null
+    "verified_remote_sha": "53c7266fae28eae373724304f8f0328dfc05612c",
+    "commit_reachable_on_remote": true,
+    "verified_at": "2026-11-23T03:50:00-08:00"
   },
   "memory_md_loaded": false,
   "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
   "archon_report": {"status": "not sent; no new urgent or decision-worthy fact surfaced", "jason_message_sent": false},
-  "missing_steps": ["Git backup and remote verification"],
+  "missing_steps": [],
   "failed_steps": []
 }
