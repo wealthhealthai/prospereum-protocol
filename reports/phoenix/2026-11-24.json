@@ -1,0 +1,96 @@
+{
+  "agent": "kin",
+  "closed_date": "2026-11-24",
+  "generated_at": "2026-11-25T03:49:22-08:00",
+  "dispatch_type": "scheduled_phoenix",
+  "status": "completed_with_blockers",
+  "evidence": {
+    "activity": [
+      "No new Prospereum/Midas product or engineering activity was evidenced for November 24.",
+      "Website PR #1 remained REQUEST CHANGES / NOT APPROVED at final reviewed head fa9cec75a77bc6c174d3d589c7c2e4fb07a515be; the 3/3 remediation loop remained exhausted.",
+      "No closed-day evidence established a new website sprint, merge, deployment, migration restart, Safe action, or transaction.",
+      "Ran a read-only Base keeper preflight at 21:00 PT; current epoch advanced to 31 and 23 closed epochs remained unfinalized."
+    ],
+    "source_files": ["memory/2026-11-24.md", "memory/2026-11-23.md", "reports/keeper-preflight-latest.json"],
+    "git_window": {
+      "product_commits": 0,
+      "maintenance_commits": [
+        "6f7383415d22492cb57b6d59254127b3c17fa951",
+        "647496b4130a21aea54cae71e2777286cbd13d4e"
+      ],
+      "maintenance_scope": "prior November 23 PHOENIX closeout and backup verification"
+    },
+    "keeper": {
+      "checked_at_utc": "2026-11-25T05:00:21Z",
+      "block_number": 61962232,
+      "current_epoch": 31,
+      "last_finalized_epoch": 7,
+      "keeper_balance_wei": "0",
+      "gas_price_wei": "6020175",
+      "required_ceiling_wei": "36121050000000",
+      "closed_unfinalized_epochs": "8-30",
+      "closed_unfinalized_epoch_count": 23,
+      "blockers": ["BLOCKED_SIGNER", "BLOCKED_FUNDING"],
+      "credentials_read": false,
+      "legacy_script_executed": false,
+      "gas_safeguards_changed": false,
+      "transactions_submitted": false
+    }
+  },
+  "protocol": {
+    "engineering_activity": "none evidenced",
+    "website_review_verdict": "REQUEST CHANGES / NOT APPROVED",
+    "fix_loop": "3/3 exhausted; new sprint requires explicit Jason or Shu authorization",
+    "migration_restarted": false,
+    "deployments_changed": false,
+    "decisions_changed": false,
+    "contracts_changed": false,
+    "transactions_submitted": false
+  },
+  "artifacts": ["memory/2026-11-24.md", "reports/phoenix/2026-11-24.json", "GOODNIGHT.md", "reports/daily.yaml"],
+  "artifact_readbacks": {
+    "status": "verified",
+    "files": {
+      "GOODNIGHT.md": {
+        "bytes": 3522,
+        "sha256": "4f66ef8cbfee9af5c32694adced8d453af4e4ccf76915c21f7a58d9062f821d4",
+        "title": "# GOODNIGHT.md — 2026-11-24"
+      },
+      "reports/daily.yaml": {
+        "bytes": 2768,
+        "sha256": "d9fec32c1dd61a2858f1cf9d22d8dba6990348b24b51654f0c764ffe290df8c0",
+        "parsed_date": "2026-11-24"
+      },
+      "memory/2026-11-24.md": {
+        "bytes": 2235,
+        "sha256": "26e5b0c3b450bc14a2e6852476da42d80b6b9bb7e247874bcffa32ba62d246bd",
+        "phoenix_heading_count": 1
+      },
+      "reports/phoenix/2026-11-24.json": {
+        "json_parse": true,
+        "parsed_closed_date": "2026-11-24",
+        "self_hash_omitted": "receipt cannot contain a stable hash of itself"
+      }
+    }
+  },
+  "wiki_checked_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md", "wiki/products/midas.md"],
+  "wiki_updated_pages": ["wiki/agents/kin.md", "wiki/products/prospereum.md"],
+  "wiki_sources": ["workspace-kin/memory/2026-11-24.md", "workspace-kin/reports/keeper-preflight-latest.json"],
+  "wiki_status": "updated: the directly observed current epoch advanced from 30 to 31 and the closed backlog increased from 22 to 23 epochs; Kin and Prospereum pages now reflect that durable state, while Midas remained current",
+  "backup": {
+    "status": "pending",
+    "type": "git_remote",
+    "method": "reviewed maintenance-only commit and exact remote verification pending",
+    "scope": "GOODNIGHT.md, reports/daily.yaml, memory/2026-11-24.md, and reports/phoenix/2026-11-24.json only",
+    "commit": null,
+    "remote": "origin/master",
+    "verified_remote_sha": null,
+    "commit_reachable_on_remote": false,
+    "verified_at": null
+  },
+  "memory_md_loaded": false,
+  "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
+  "archon_report": {"status": "not sent; no new urgent or decision-worthy fact surfaced", "jason_message_sent": false},
+  "missing_steps": ["Git backup and remote verification"],
+  "failed_steps": []
+}
