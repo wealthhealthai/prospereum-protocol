@@ -1,33 +1,32 @@
 agent: kin
-date: "2026-11-24"
-generated: "2026-11-25T03:49:22-08:00"
+date: "2026-11-25"
+generated: "2026-11-26T03:48:52-08:00"
 
 status: completed_with_blockers
 summary: >
   No new Prospereum/Midas product or engineering activity was evidenced for
-  November 24. Website PR #1 remained REQUEST CHANGES / NOT APPROVED with the
+  November 25. Website PR #1 remained REQUEST CHANGES / NOT APPROVED with the
   3/3 remediation loop exhausted. Keeper finalization remained blocked by
-  signer and funding; current epoch advanced to 31 and 23 closed epochs were
-  pending. No deployment, Safe action, credential access, gas-safeguard change,
-  or transaction occurred.
+  signer and funding with 23 closed epochs pending. No deployment, Safe action,
+  credential access, gas-safeguard change, or transaction occurred.
 
 verified_activity:
   - item: "Reviewed the closed-day Git window, deployment record, and decision record; no new product or engineering activity was evidenced."
     source: "git log; projects/prospereum/deployments.md; projects/prospereum/decisions.md"
   - item: "Preserved website PR #1 as NOT APPROVED with the 3/3 remediation loop exhausted; no fourth pass was authorized."
-    source: "memory/2026-11-24.md; GOODNIGHT.md"
+    source: "memory/2026-11-25.md; GOODNIGHT.md"
   - item: "Ran a read-only Base keeper preflight at 21:00 PT; signer and funding blockers prevented finalization."
     source: "reports/keeper-preflight-latest.json"
 
 keeper:
-  checked_at_utc: "2026-11-25T05:00:21Z"
-  local_run_date: "2026-11-24"
-  block_number: 61962232
+  checked_at_utc: "2026-11-26T05:00:22Z"
+  local_run_date: "2026-11-25"
+  block_number: 62394238
   current_epoch: 31
   last_finalized_epoch: 7
   keeper_balance_wei: "0"
-  gas_price_wei: "6020175"
-  required_ceiling_wei: "36121050000000"
+  gas_price_wei: "6000000"
+  required_ceiling_wei: "36000000000000"
   closed_unfinalized_epochs: "8-30"
   closed_unfinalized_epoch_count: 23
   blockers: ["BLOCKED_SIGNER", "BLOCKED_FUNDING"]
@@ -47,13 +46,13 @@ protocol:
   contracts_changed: false
 
 maintenance:
-  closeout_date: "2026-11-24"
-  prior_day_closeout_commits: ["6f7383415d22492cb57b6d59254127b3c17fa951", "647496b4130a21aea54cae71e2777286cbd13d4e"]
-  artifact_readback_status: "verified: GOODNIGHT title/date, daily YAML date, single closed-date PHOENIX heading, and receipt JSON closed_date all matched 2026-11-24"
+  closeout_date: "2026-11-25"
+  prior_day_closeout_commits: ["92c4e681654e2025b18f6c7d8279d0b0ac228641", "dce5bc9fabe30c2c9f9e557809f903cad98b381f"]
+  artifact_readback_status: "pending final validation"
   memory_md_loaded: false
   memory_md_reason: "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched."
-  backup_status: "reviewed maintenance-only closeout commit 92c4e681654e2025b18f6c7d8279d0b0ac228641 pushed and verified as the exact origin/master head at 2026-11-25T03:50:42-08:00"
-  wiki_status: "updated: wiki/agents/kin.md and wiki/products/prospereum.md now record current epoch 31 and the 23-epoch backlog; wiki/products/midas.md remains current and unchanged"
+  backup_status: "pending reviewed maintenance-only Git commit and remote verification"
+  wiki_status: "current: reviewed wiki/agents/kin.md, wiki/products/prospereum.md, and wiki/products/midas.md; November 25 reconfirmed the November 24 durable state and required no timestamp-only edit"
   escalation_status: "none; no new urgent or decision-worthy fact surfaced and no Jason message was sent"
-  missing_steps: []
+  missing_steps: ["Git backup and remote verification"]
   failed_steps: []
