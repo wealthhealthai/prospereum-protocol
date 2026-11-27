@@ -1,19 +1,19 @@
-# GOODNIGHT.md — 2026-11-25
+# GOODNIGHT.md — 2026-11-26
 
 ## What Was Done Today
 
-- No new Prospereum/Midas product engineering, website remediation, migration architecture, contract change, deployment, Safe action, governance action, token transfer, or other real-fund action was evidenced for November 25.
+- No new Prospereum/Midas product engineering, website remediation, migration architecture, contract change, deployment, Safe action, governance action, token transfer, or other real-fund action was evidenced for November 26.
 - Preserved website PR #1 as **REQUEST CHANGES / NOT APPROVED** at final reviewed head `fa9cec75a77bc6c174d3d589c7c2e4fb07a515be`. The 3/3 remediation loop remains exhausted; no fourth pass, merge, or deployment is authorized without Jason or Shu opening a new sprint.
-- Ran the 21:00 PT read-only Base keeper preflight at block 62394238. It reconfirmed current epoch 31, last finalized epoch 7, epochs 8–30 closed and unfinalized (23 total), keeper balance 0 wei, and gas price 6,000,000 wei. The unchanged gas ceiling required up to 0.000036 ETH at that price.
+- Ran the 21:00 PT read-only Base keeper preflight at block 62826219. It reconfirmed current epoch 31, last finalized epoch 7, epochs 8–30 closed and unfinalized (23 total), keeper balance 0 wei, and gas price 6,001,768 wei. The unchanged gas ceiling required up to 0.000036010608 ETH at that price.
 - The keeper remained blocked by unavailable protected signing and insufficient funding. No credentials were read, the legacy signing script was not executed, gas safeguards were unchanged, and no transaction was submitted.
-- The only Git commits in the closed-day window were maintenance commits for the November 24 PHOENIX closeout and backup verification. Deployment and decision records remain unchanged.
+- The only Git commits in the closed-day window were maintenance commits for the November 25 PHOENIX closeout and backup verification. Deployment and decision records remain unchanged.
 
 ## In Progress / Waiting
 
 - Website PR #1 remains NOT APPROVED. Any new remediation sprint requires explicit Jason or Shu authorization because the three-iteration review loop is exhausted.
 - Any new website sprint must correct the two remaining functional findings documented in the November 12 final adjudication and obtain independent approval before merge or deployment.
 - W3 migration remains GAUNTLET. The invalid staged selector and RewardEngine storage-layout incompatibility remain unresolved; no deployment or Safe action is authorized.
-- The latest keeper evidence is the November 25 21:00 PT preflight at Base block 62394238: current epoch 31, last finalized epoch 7, keeper balance 0 wei, and epochs 8–30 pending.
+- The latest keeper evidence is the November 26 21:00 PT preflight at Base block 62826219: current epoch 31, last finalized epoch 7, keeper balance 0 wei, and epochs 8–30 pending.
 - Midas/Olympus remain archived; any reopening requires a product decision and fresh integration validation.
 
 ## Open Decisions (waiting on Jason or Shu)
