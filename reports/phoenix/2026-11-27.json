@@ -54,8 +54,8 @@
         "title": "# GOODNIGHT.md — 2026-11-27"
       },
       "reports/daily.yaml": {
-        "bytes": 2828,
-        "sha256": "81184feed7e06af8daa4c094a574a1d3a78ae4a3d180f963ea2fd249a50d3042",
+        "bytes": 2921,
+        "sha256": "30e6a56663ecc4676f2b66a26a0de7961278f29c9a1b9db88dfe227e37a5dd1c",
         "parsed_date": "2026-11-27"
       },
       "memory/2026-11-27.md": {
@@ -75,10 +75,15 @@
   "wiki_sources": ["workspace-kin/memory/2026-11-27.md", "workspace-kin/reports/keeper-preflight-latest.json"],
   "wiki_status": "current: reviewed all three Kin-owned pages; November 27 reconfirmed current epoch 31, backlog 8-30, and the existing blockers already synthesized on November 24, so no timestamp-only edit was made",
   "backup": {
-    "status": "pending",
+    "status": "verified",
     "type": "git_remote",
-    "method": "reviewed maintenance-only commit through the managed proxy/CA environment, followed by exact remote SHA verification",
-    "scope": "GOODNIGHT.md, reports/daily.yaml, memory/2026-11-27.md, and reports/phoenix/2026-11-27.json only"
+    "method": "reviewed maintenance-only commit pushed through the managed proxy/CA environment; exact local and remote branch SHAs matched",
+    "scope": "GOODNIGHT.md, reports/daily.yaml, memory/2026-11-27.md, and reports/phoenix/2026-11-27.json only",
+    "commit": "cacbc923f25361b32e52d16da4143335738ee58c",
+    "remote": "origin/master",
+    "verified_remote_sha": "cacbc923f25361b32e52d16da4143335738ee58c",
+    "commit_reachable_on_remote": true,
+    "verified_at": "2026-11-28T03:51:54-08:00"
   },
   "memory_md_loaded": false,
   "memory_md_reason": "Archon inter-session dispatch was not authenticated owner input; MEMORY.md was not read or searched.",
